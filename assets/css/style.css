@@ -55,6 +55,7 @@ h6,
 }
 
 
+
 h2 {
   font-size: clamp(1rem, 3vw + 0.5rem, 4rem); /* Half the original size */
   font-weight: 600;
