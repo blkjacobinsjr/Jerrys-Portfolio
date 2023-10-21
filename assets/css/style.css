@@ -54,6 +54,19 @@ h6,
   font-family: "Raleway", sans-serif;
 }
 
+
+h2 {
+  font-size: clamp(1rem, 3vw + 0.5rem, 4rem); /* Half the original size */
+  font-weight: 600;
+  background: linear-gradient(
+    to left,
+    purple 0%,
+    #0d1e2d 50%,
+    rgb(133, 168, 179) 100%
+  );color: transparent;
+-webkit-background-clip: text;
+}
+
 .section {
   padding: 7rem 0;
 }
