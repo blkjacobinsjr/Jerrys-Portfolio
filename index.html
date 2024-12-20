@@ -66,34 +66,33 @@
     </div>
   </div>
 
-  <nav class="navbar navbar-light custom-navbar">
-    <div class="container d-flex justify-content-between">
-      <a class="navbar-brand" href="index.html">Portfolio.</a>
-      <!-- Spotify playlist embed -->
-      <div style="display: flex; justify-content: flex-end;">
-        <div style="display: flex; justify-content: flex-end;">
-          <div style="border-radius:12px; background: rgba(255, 255, 255, 0.9); padding-right: 15px; box-sizing: border-box; width: 300px; height: 90px;">
-            <iframe id="spotifyPlaylist" class="spotifyPlaylist" style="width: 100%; height: 100%; border: none;" src="https://open.spotify.com/embed/playlist/2oMArrXe9JmGpjVJ5z6lds?utm_source=generator&theme=0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-          </div>
-      <a href="#" class="burger" data-bs-toggle="collapse" data-bs-target="#main-navbar">
-        <span></span>
-      </a>
+  <nav class="navbar navbar-light custom-navbar" style="padding: 0.5rem 0;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="navbar-brand" href="index.html" style="margin: 0;">Portfolio.</a>
+      <!-- Spotify playlist embed with iOS-like styling -->
+      <div class="d-flex align-items-center">
+        <div class="spotify-container d-none d-md-block" style="border-radius: 13px; background: rgba(248, 248, 248, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-right: 15px; width: 300px; height: 80px;">
+          <iframe id="spotifyPlaylist" style="border-radius: 13px; width: 100%; height: 100%; border: none;" src="https://open.spotify.com/embed/playlist/2oMArrXe9JmGpjVJ5z6lds?utm_source=generator&theme=0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+        <a href="#" class="burger" data-bs-toggle="collapse" data-bs-target="#main-navbar">
+          <span></span>
+        </a>
+      </div>
     </div>
   </nav>
 
-  <main id="main">
+  <main id="main" style="padding-top: 1rem;">
 
     <!-- ======= Works Section ======= -->
-    <section class="section site-portfolio">
+    <section class="section site-portfolio" style="padding: 1rem 0;">
       <div class="container">
-        <div class="row mb-5 align-items-center">
-          <div class="col-md-12 col-lg-6 mb-4 mb-lg-0" data-aos="fade-up">
-            <h2>Hello World, I'm Jerry,</h2>
-            <div class="container">
+        <div class="row align-items-center" style="margin-bottom: 1rem;">
+          <div class="col-md-12 col-lg-6" style="margin-bottom: 1rem;" data-aos="fade-up">
+            <h2 style="font-size: calc(1.8rem + 1.2vw); margin-bottom: 0.3rem; background: linear-gradient(to left, rgb(128, 0, 128) 0%, #0d1e2d 50%, rgb(133, 168, 179) 100%); -webkit-background-clip: text; color: transparent;">Hello World, I'm Jerry,</h2>
+            <div class="container p-0">
               <div class="hero-content">
-                  <p>Developer, Designer, Marketing Professional</p>
-        
-                <ul class="list-unstyled list-social">
+                <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 1.1rem); margin-bottom: 0.5rem;">Developer, Designer, Marketing Professional</p>
+                <ul class="list-unstyled list-social" style="margin-bottom: 0;">
                   <li><a href="https://github.com/blkjacobinsjr"><i class="bi bi-github"></i></a></li>
                   <li><a href="https://www.linkedin.com/in/jasschmalz/"><i class="bi bi-linkedin"></i></a></li>
                 </ul>
@@ -106,63 +105,62 @@
               <a href="#" data-filter=".web">Web</a>
               <a href="#" data-filter=".design">Design</a>
               <a href="#" data-filter=".marketing">Marketing</a>
-              <a href="#" data-filter=".projects">Projects</a>
             </div>
           </div>
         </div>
         <div id="portfolio-grid" class="row no-gutter" data-aos="fade-up" data-aos-delay="200">
-          <div class="item web col-sm-6 col-md-4 col-lg-4 mb-4">
-            <a href="scenextras.html" class="item-wrap fancybox">
+          <div class="item web design marketing col-sm-6 col-md-4 col-lg-4 mb-4">
+            <a href="scenextras.html" class="item-wrap fancybox" style="border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
               <div class="work-info">
                 <h3>sceneXtras</h3>
                 <span>Web Dev</span>
               </div>
-              <img class="img-fluid" src="assets/img/img_1.png">
+              <img class="img-fluid" src="assets/img/img_1.png" style="border-radius: 16px;">
             </a>
           </div>
-          <div class="item photography col-sm-6 col-md-4 col-lg-4 mb-4">
-            <a href="subzero.html" class="item-wrap fancybox">
+          <div class="item web design col-sm-6 col-md-4 col-lg-4 mb-4">
+            <a href="subzero.html" class="item-wrap fancybox" style="border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
               <div class="work-info">
                 <h3>subZero</h3>
                 <span>Web Dev</span>
               </div>
-              <img class="img-fluid" src="assets/img/img_2.png">
+              <img class="img-fluid" src="assets/img/img_2.png" style="border-radius: 16px;">
             </a>
           </div>
-          <div class="item branding col-sm-6 col-md-4 col-lg-4 mb-4">
-            <a href="pokefight.html" class="item-wrap fancybox">
+          <div class="item web design col-sm-6 col-md-4 col-lg-4 mb-4">
+            <a href="pokefight.html" class="item-wrap fancybox" style="border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
               <div class="work-info">
                 <h3>Pokefight Game</h3>
                 <span>Web Dev</span>
               </div>
-              <img class="img-fluid" src="assets/img/img_3.jpeg">
+              <img class="img-fluid" src="assets/img/img_3.jpeg" style="border-radius: 16px;">
             </a>
           </div>
-          <div class="item design col-sm-6 col-md-4 col-lg-4 mb-4">
-            <a href="bm-musicvid.html" class="item-wrap fancybox">
+          <div class="item marketing col-sm-6 col-md-4 col-lg-4 mb-4">
+            <a href="bm-musicvid.html" class="item-wrap fancybox" style="border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
               <div class="work-info">
                 <h3>Bien Monk Video</h3>
                 <span>Marketing</span>
               </div>
-              <img class="img-fluid" src="assets/img/img_4.png">
+              <img class="img-fluid" src="assets/img/img_4.png" style="border-radius: 16px;">
             </a>
           </div>
-          <div class="item photography col-sm-6 col-md-4 col-lg-4 mb-4">
-            <a href="foodierecipes.html" class="item-wrap fancybox">
+          <div class="item web design col-sm-6 col-md-4 col-lg-4 mb-4">
+            <a href="foodierecipes.html" class="item-wrap fancybox" style="border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
               <div class="work-info">
                 <h3>Foodie Recipes</h3>
                 <span>Web Dev</span>
               </div>
-              <img class="img-fluid" src="assets/img/img_5.png">
+              <img class="img-fluid" src="assets/img/img_5.png" style="border-radius: 16px;">
             </a>
           </div>
-          <div class="item branding col-sm-6 col-md-4 col-lg-4 mb-4">
-            <a href="priori-todo.html" class="item-wrap fancybox">
+          <div class="item web design col-sm-6 col-md-4 col-lg-4 mb-4">
+            <a href="priori-todo.html" class="item-wrap fancybox" style="border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
               <div class="work-info">
                 <h3>Priori ToDo</h3>
                 <span>Web Dev</span>
               </div>
-              <img class="img-fluid" src="assets/img/img_6.png">
+              <img class="img-fluid" src="assets/img/img_6.png" style="border-radius: 16px;">
             </a>
           </div>
         </div>
@@ -170,7 +168,7 @@
     </section><!-- End  Works Section -->
 
     <!-- ======= Clients Section ======= -->
-    <section class="section">
+    <section class="section" style="padding-bottom: 2rem;">
       <div class="container">
         <div class="row justify-content-center text-center mb-4">
           <div class="col-5">
@@ -190,60 +188,67 @@
     </section><!-- End Clients Section -->
 
     <!-- ======= Core Competencies Section ======= -->
-    <section class="section services">
+    <section class="section services" style="padding-top: 2rem;">
       <div class="container">
         <div class="row justify-content-center text-center mb-4">
-          <div class="col-5">
-            <h3 class="h3 heading">Competencies</h3>
-            <p>Quick-learning junior frontend developer transitioning from marketing roles. Passionate about creating seamless digital experiences for users.</p>
+          <div class="col-12 col-md-8 col-lg-6">
+            <h3 class="h3 heading" style="font-size: calc(1.5rem + 0.3vw); margin-bottom: 1rem; background: linear-gradient(to left, rgb(128, 0, 128) 0%, #0d1e2d 50%, rgb(133, 168, 179) 100%); -webkit-background-clip: text; color: transparent;">Competencies</h3>
+            <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 1rem); color: var(--bs-gray-600); margin-bottom: 2rem;">Quick-learning junior frontend developer transitioning from marketing roles. Passionate about creating seamless digital experiences for users.</p>
           </div>
         </div>
-        <div class="row">
-
-          <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-            <i class="bi bi-card-checklist"></i>
-            <h4 class="h4 mb-2">Web Development</h4>
-            <p>Built fully-functional web apps with React, Tailwind, and cloud platforms through intensive coding bootcamp and personal projects.</p>
-            <ul class="list-unstyled list-line">
-              <li>HTML5, Javascript, CSS, Tailwind</li>
-              <li>React, Node.js, TypeScript</li>
-              <li>Adobe CS, Figma</li>
-              <li>Vite, CRA</li>
-              <li>SQL, Git</li>
-            </ul>
+        <div class="row justify-content-center">
+          <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4">
+            <div style="background: rgba(248, 248, 248, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 16px; padding: 1.5rem; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <i class="bi bi-card-checklist" style="font-size: 2rem; background: linear-gradient(to left, rgb(128, 0, 128), rgb(133, 168, 179)); -webkit-background-clip: text; color: transparent;"></i>
+              <h4 class="h4 mb-3" style="font-size: calc(1.1rem + 0.2vw); margin-top: 1rem;">Web Development</h4>
+              <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem); color: var(--bs-gray-600); margin-bottom: 1rem;">Built fully-functional web apps with React, Tailwind, and cloud platforms through intensive coding bootcamp and personal projects.</p>
+              <ul class="list-unstyled list-line" style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);">
+                <li>HTML5, Javascript, CSS, Tailwind</li>
+                <li>React, Node.js, TypeScript</li>
+                <li>Adobe CS, Figma</li>
+                <li>Vite, CRA</li>
+                <li>SQL, Git</li>
+              </ul>
+            </div>
           </div>
-          <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-            <i class="bi bi-brightness-high"></i>
-            <h4 class="h4 mb-2">Design</h4>
-            <p>Proficient in UX design process, wireframing, low-fidelity prototyping, and UX research. Certified by Google and Coursera.</p>
-            <ul class="list-unstyled list-line">
-              <li>Wireframes and Low-Fidelity Prototyping</li>
-              <li>UX Research and Early Concepts testing</li>
-              <li>Proficient in Figma and Photoshop</li>
-              <li>Experience in creating user-centric design solutions</li>
-              <li>Empathetic translation of UX insights into design decisions</li>
-            </ul>
+          <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4">
+            <div style="background: rgba(248, 248, 248, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 16px; padding: 1.5rem; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <i class="bi bi-brightness-high" style="font-size: 2rem; background: linear-gradient(to left, rgb(128, 0, 128), rgb(133, 168, 179)); -webkit-background-clip: text; color: transparent;"></i>
+              <h4 class="h4 mb-3" style="font-size: calc(1.1rem + 0.2vw); margin-top: 1rem;">Design</h4>
+              <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem); color: var(--bs-gray-600); margin-bottom: 1rem;">Proficient in UX design process, wireframing, low-fidelity prototyping, and UX research. Certified by Google and Coursera.</p>
+              <ul class="list-unstyled list-line" style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);">
+                <li>Wireframes and Low-Fidelity Prototyping</li>
+                <li>UX Research and Early Concepts testing</li>
+                <li>Proficient in Figma and Photoshop</li>
+                <li>Experience in creating user-centric design solutions</li>
+                <li>Empathetic translation of UX insights into design decisions</li>
+              </ul>
+            </div>
           </div>
-          <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-            <i class="bi bi-calendar4-week"></i>
-            <h4 class="h4 mb-2">Languages</h4>
-            <p>Proficient in multiple languages, both programming and spoken.</p>
-            <ul class="list-unstyled list-line">
-              <li>HTML5, Javascript, CSS</li>
-              <li>German (Native), English (Native)</li>
-            </ul>
+          <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4">
+            <div style="background: rgba(248, 248, 248, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 16px; padding: 1.5rem; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <i class="bi bi-calendar4-week" style="font-size: 2rem; background: linear-gradient(to left, rgb(128, 0, 128), rgb(133, 168, 179)); -webkit-background-clip: text; color: transparent;"></i>
+              <h4 class="h4 mb-3" style="font-size: calc(1.1rem + 0.2vw); margin-top: 1rem;">Languages</h4>
+              <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem); color: var(--bs-gray-600); margin-bottom: 1rem;">Proficient in multiple languages, both programming and spoken.</p>
+              <ul class="list-unstyled list-line" style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);">
+                <li>HTML5, Javascript, CSS</li>
+                <li>German (Native), English (Native)</li>
+              </ul>
+            </div>
           </div>
-          <div class="col-12 col-sm-6 col-md-6 col-lg-3">
-            <i class="bi bi-binoculars"></i>
-            <h4 class="h4 mb-2">Marketing</h4>
-            <p>Grew leads and sales pipeline through data-driven marketing campaigns tailored to German target audiences.</p>
-            <ul class="list-unstyled list-line">
-              <li>Salesforce, Google Analytics</li>
-              <li>SEO, Shopify</li>
-              <li>MS Office, WordPress</li>
-              <li>Strategic media partnerships</li>
-              <li>Localized content creation</li>
-            </ul>
+          <div class="col-12 col-sm-6 col-md-6 col-lg-3 mb-4">
+            <div style="background: rgba(248, 248, 248, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 16px; padding: 1.5rem; height: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <i class="bi bi-binoculars" style="font-size: 2rem; background: linear-gradient(to left, rgb(128, 0, 128), rgb(133, 168, 179)); -webkit-background-clip: text; color: transparent;"></i>
+              <h4 class="h4 mb-3" style="font-size: calc(1.1rem + 0.2vw); margin-top: 1rem;">Marketing</h4>
+              <p style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem); color: var(--bs-gray-600); margin-bottom: 1rem;">Grew leads and sales pipeline through data-driven marketing campaigns tailored to German target audiences.</p>
+              <ul class="list-unstyled list-line" style="font-size: clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);">
+                <li>Salesforce, Google Analytics</li>
+                <li>SEO, Shopify</li>
+                <li>MS Office, WordPress</li>
+                <li>Strategic media partnerships</li>
+                <li>Localized content creation</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
