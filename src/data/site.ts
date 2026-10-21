@@ -21,8 +21,6 @@ import thumbPokefight from '../assets/work/thumb-pokefight.webp';
 import thumbPriori from '../assets/work/thumb-priori.webp';
 import thumbFoodie from '../assets/work/thumb-foodie.webp';
 import thumbBienmonk from '../assets/work/thumb-bienmonk.webp';
-import personChristoph from '../assets/work/person-christoph.webp';
-import personEnrique from '../assets/work/person-enrique.webp';
 import draperAward from '../assets/stops/draper-award.webp';
 import buildspaceGrad from '../assets/stops/buildspace-grad.webp';
 import buildspaceBadge from '../assets/stops/buildspace-badge.webp';
@@ -363,25 +361,51 @@ export const path: Stop[] = [
 ];
 
 export interface Testimonial {
+  /** LinkedIn recommendation, verbatim; trimmed only with an ellipsis. */
   quote: string;
   name: string;
+  /** Current title and employer, checked 2026-10-21 against public profiles. */
+  title: string;
+  org?: string;
+  /** Another current credential. */
+  also?: string;
+  /** How they know Jerry. */
   context: string;
-  avatar: ImageMetadata;
 }
 
 export const testimonials: Testimonial[] = [
   {
     quote:
+      'As a key member of the team tasked with the expansion of the business into the DACH region, Jerry has often been challenged with projects you would associate with more senior positions. … Jerry is a true gent and a hard working, professional, self motivated individual who is highly thought of throughout the marketing team.',
+    name: 'Gavin Laugenie',
+    title: 'Enterprise Customer Success Manager',
+    org: 'Dataiku',
+    also: 'Email Council member, DMA UK',
+    context: 'Worked with Jerry at Dotdigital',
+  },
+  {
+    quote:
+      'He is a bright and switched on guy and one of those people whom one is easily inspired from. He doesn’t settle for mediocre. He has a broad knowledge of both offline and digital marketing and a great passion for everything media.',
+    name: 'Ian Green',
+    title: 'Product Design Leader',
+    also: 'Fintech, product strategy, SaaS and AI',
+    context: 'Worked with Jerry on numerous occasions',
+  },
+  {
+    quote:
       "Jerry's greatest strength is his extraordinary eye for user experience and user interface design. He pays attention to the smallest details that can elevate an app from ‘good’ to ‘great,’ and from ‘great’ to ‘delightful’.",
     name: 'Christoph Suessmeier',
-    context: 'Subzro collaborator',
-    avatar: personChristoph,
+    title: 'Software Developer and Consultant',
+    org: 'Exxeta',
+    also: 'Munich',
+    context: 'Collaborated with Jerry on Subzro',
   },
   {
     quote:
       "I wholeheartedly recommend Jerry, whose transition from marketing to mastering web development showcases an adaptability and passion for technology that's as contagious as his 'can-do' mindset…",
     name: 'Enrique Coscarelli',
-    context: 'Former bootcamp instructor',
-    avatar: personEnrique,
+    title: 'Lead Instructor',
+    org: 'WBS Coding School',
+    context: 'Taught Jerry web development',
   },
 ];

@@ -7,7 +7,7 @@ const allCopy = JSON.stringify({
   projects: projects.map(({ shots, ...p }) => p),
   earlier: earlier.map(({ thumb, ...e }) => e),
   path: path.map(({ photos, ...s }) => s),
-  testimonials: testimonials.map(({ avatar, ...t }) => t),
+  testimonials,
 });
 
 describe('content', () => {
@@ -44,6 +44,15 @@ describe('content', () => {
 
   it('signs every stop with an abbreviated city and country, like BER · DE', () => {
     for (const stop of path) expect(stop.code, stop.id).toMatch(/^([A-Z]{3} · )?[A-Z]{2}$/);
+  });
+
+  it('names every recommender with a current title and how they know Jerry', () => {
+    expect(testimonials.length).toBeGreaterThanOrEqual(4);
+    for (const t of testimonials) {
+      expect(t.title.length, t.name).toBeGreaterThan(5);
+      expect(t.context.length, t.name).toBeGreaterThan(10);
+      expect(t.quote.length, t.name).toBeGreaterThan(80);
+    }
   });
 
   it('uses the name Jerry Doughan', () => {
