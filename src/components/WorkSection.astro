@@ -96,8 +96,8 @@ const items: WorkItem[] = await Promise.all(
     block-size: 0;
     overflow: clip;
     transition:
-      block-size 360ms var(--ease-drawer),
-      content-visibility 360ms allow-discrete;
+      block-size var(--dur-move) var(--ease-drawer),
+      content-visibility var(--dur-move) allow-discrete;
   }
 
   .earlier[open]::details-content {

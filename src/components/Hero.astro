@@ -113,7 +113,7 @@ const { sprite, still } = Astro.props;
   /* First paint: copy settles in, the desk floats up a beat later. */
   @media (prefers-reduced-motion: no-preference) {
     .hero-copy > * {
-      animation: hero-in 700ms var(--ease-out) both;
+      animation: hero-in var(--dur-reveal) var(--ease-out) both;
     }
     .hero-copy > :nth-child(2) {
       animation-delay: 70ms;

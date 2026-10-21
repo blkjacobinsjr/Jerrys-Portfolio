@@ -212,10 +212,10 @@ const TICKS_PER_STOP = 6;
     opacity: 1;
     transform: none;
     transition:
-      opacity 200ms var(--ease-out),
-      transform 200ms var(--ease-out),
-      overlay 200ms allow-discrete,
-      display 200ms allow-discrete;
+      opacity var(--dur-ui) var(--ease-out),
+      transform var(--dur-ui) var(--ease-out),
+      overlay var(--dur-ui) allow-discrete,
+      display var(--dur-ui) allow-discrete;
   }
 
   @supports not (position-area: top) {

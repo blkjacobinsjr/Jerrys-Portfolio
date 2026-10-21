@@ -5,7 +5,7 @@
   z-index: var(--z-dock);
   translate: -50% calc(100% + 32px);
   /* Glass needs an opaque ancestor chain, so the entrance moves, it never fades. */
-  transition: translate 420ms var(--ease-drawer);
+  transition: translate var(--dur-move) var(--ease-drawer);
 }
 
 .dock[data-shown='true'] {
@@ -64,7 +64,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transition: clip-path 360ms var(--ease-drawer);
+  transition: clip-path var(--dur-move) var(--ease-drawer);
 }
 
 .dock-list-active a {

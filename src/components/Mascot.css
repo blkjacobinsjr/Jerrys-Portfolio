@@ -21,7 +21,7 @@
   height: 100%;
   background-repeat: no-repeat;
   background-size: 400% 400%;
-  transition: transform 300ms var(--ease-out);
+  transition: transform var(--dur-ui) var(--ease-out);
   will-change: transform;
 }
 
@@ -29,11 +29,11 @@
 @media (prefers-reduced-motion: no-preference) {
   .mascot[data-frame='7'] .mascot-face,
   .mascot[data-frame='15'] .mascot-face {
-    animation: mascot-hop 420ms var(--ease-out);
+    animation: mascot-hop var(--dur-move) var(--ease-out);
   }
 
   .mascot[data-frame='14'] .mascot-face {
-    animation: mascot-wobble 700ms var(--ease-in-out) 2;
+    animation: mascot-wobble var(--dur-reveal) var(--ease-in-out) 2;
   }
 }
 

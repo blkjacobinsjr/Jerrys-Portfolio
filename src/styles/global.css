@@ -37,7 +37,8 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --dur-press: 160ms;
   --dur-ui: 200ms;
-  --dur-reveal: 600ms;
+  --dur-move: 360ms;
+  --dur-reveal: 700ms;
 
   /* z-index scale: content 0, sticky cards 1-9, dock 50, footer curtain -1 */
   --z-dock: 50;
