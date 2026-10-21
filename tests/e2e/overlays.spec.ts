@@ -66,11 +66,13 @@ for (const { name, viewport, touch } of VIEWPORTS) {
 
         await expect(async () => {
           await scrollBy(page, panel, touch);
-          await expect(last).toBeInViewport({ ratio: 0.5, timeout: 400 });
+          await expect(last).toBeInViewport({ ratio: 1, timeout: 400 });
         }, label).toPass({ timeout: 15_000 });
 
         const port = await panel.evaluate((el) => ({ top: el.scrollTop, scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }));
-        if (port.scrollHeight > port.clientHeight + 1) expect(port.top, `${label} scrolls its own panel`).toBeGreaterThan(start);
+        // Content that runs well past the drawer must have been reached by scrolling the drawer itself.
+        // (A phone sheet may first grow to full height, which can be enough for a short entry.)
+        if (port.scrollHeight - port.clientHeight > 40) expect(port.top, `${label} scrolls its own panel`).toBeGreaterThan(start);
         expect(await page.evaluate(() => scrollY), `${label} leaves the page behind alone`).toBe(pageTop);
 
         const close = sheet.locator('.scrollsheet-close');

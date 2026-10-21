@@ -33,3 +33,11 @@ Only real wheel input reproduced it.
 - Test scrolling with real input: `page.mouse.wheel` or a CDP touch scroll gesture, never `scrollTo`.
   `tests/e2e/overlays.spec.ts` opens every drawer entry point at 1024x640 and 390x664. It scrolls
   each one to its last line by wheel or touch and checks that the page behind did not move.
+
+### Link previews
+
+- `public/og.jpg` is the share image (the keyring, with the locket photo pixelated). Keep it.
+- `public/og.mp4` is the looping og:video reel that iMessage plays. After a redesign, regenerate it
+  with `npm run build && npm run og:video` (`tools/og-video.mjs`); it is not part of the build.
+  The script pixelates the baby photo in every frame and refuses to capture an unpixelated locket.
+  `tests/unit/og-video.test.ts` keeps the reel silent, fast-start and within its 1.5 MB budget.

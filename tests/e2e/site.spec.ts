@@ -2,6 +2,25 @@ import { expect, test } from '@playwright/test';
 import { open, scrollToSelector } from './helpers';
 
 test.describe('page', () => {
+  test('offers link cards a looping reel without the page ever loading it', async ({ page }) => {
+    const videoRequests: string[] = [];
+    page.on('request', (r) => {
+      if (r.url().endsWith('/og.mp4')) videoRequests.push(r.url());
+    });
+    await open(page);
+    const meta = (property: string) => page.locator(`meta[property="${property}"]`);
+    await expect(meta('og:image')).toHaveAttribute('content', 'https://jerrydoughan.com/og.jpg');
+    await expect(meta('og:video')).toHaveAttribute('content', 'https://jerrydoughan.com/og.mp4');
+    await expect(meta('og:video:secure_url')).toHaveAttribute('content', 'https://jerrydoughan.com/og.mp4');
+    await expect(meta('og:video:type')).toHaveAttribute('content', 'video/mp4');
+    await expect(meta('og:video:width')).toHaveAttribute('content', '1200');
+    await expect(meta('og:video:height')).toHaveAttribute('content', '630');
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+    const reel = await page.request.get('/og.mp4');
+    expect(reel.ok()).toBe(true);
+    expect(videoRequests).toEqual([]);
+  });
+
   test('renders the hero with no console errors', async ({ page }) => {
     const errors = await open(page);
     await expect(page).toHaveTitle(/Jerry Doughan/);

@@ -11,6 +11,8 @@ interface Props {
 const { title, description } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL('/og.jpg', Astro.site);
+// The looping link-preview reel (tools/og-video.mjs). Only link cards fetch it, never the page.
+const ogVideo = new URL('/og.mp4', Astro.site);
 ---
 
 <!doctype html>
@@ -30,6 +32,11 @@ const ogImage = new URL('/og.jpg', Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:video" content={ogVideo} />
+    <meta property="og:video:secure_url" content={ogVideo} />
+    <meta property="og:video:type" content="video/mp4" />
+    <meta property="og:video:width" content="1200" />
+    <meta property="og:video:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-sans" preload />
   </head>
