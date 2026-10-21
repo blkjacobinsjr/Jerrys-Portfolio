@@ -73,7 +73,7 @@ test('uses real project logos, adds Leapfrog AI and points metadata at the new d
 });
 
 
-test('presents six consistent local recommendations and the exact notable reactions', async ({ page }) => {
+test('presents six consistent local recommendations and the honorary mention', async ({ page }) => {
   await open(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 'recommendations do not widen the mobile viewport').toBe(0);
   const track = page.locator('[data-recs-track]');
@@ -83,12 +83,7 @@ test('presents six consistent local recommendations and the exact notable reacti
   await expect(track.locator('.rec-person img')).toHaveCount(6);
   for (const image of await track.locator('img').all()) await expect(image).toHaveAttribute('src', /^\/_astro\//);
   for (const name of await track.locator('.rec-byline > a').all()) await expect(name).toHaveAttribute('href', /^https:\/\/www\.linkedin\.com\/in\//);
-  const notes = page.locator('.rec-more-track');
-  for (const quote of [
-    'Thank you Jerry! Love the mission.',
-    'Just tested a chat with Michael Burry from The Big Short, had to laugh, really cool work.',
-    'I watched the demo video, very impressive!',
-    'Congrats Jerry Schmalz, good luck lots of support from here!',
-  ]) await expect(notes).toContainText(quote);
+  const notes = page.locator('.honorary-mention');
+  await expect(notes).toContainText('Congrats Jerry Schmalz, good luck lots of support from here!');
   await expect(notes.getByRole('link', { name: /Congrats Jerry Schmalz/ })).toHaveAttribute('href', 'https://www.linkedin.com/posts/jasdoughan_late-to-the-linkedin-party-but-weve-been-ugcPost-7222291638549671936-LUng');
 });

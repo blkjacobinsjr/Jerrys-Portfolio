@@ -4,19 +4,14 @@ import akatosLogo from '../assets/recommendations/logo-akatos.webp';
 import dataikuLogo from '../assets/recommendations/logo-dataiku.webp';
 import exxetaLogo from '../assets/recommendations/logo-exxeta.webp';
 import gateLogo from '../assets/recommendations/logo-gate.webp';
-import generalCatalystLogo from '../assets/recommendations/logo-general-catalyst.webp';
 import googleLogo from '../assets/recommendations/logo-google.webp';
-import microsoftLogo from '../assets/recommendations/logo-microsoft.webp';
 import nasaLogo from '../assets/recommendations/logo-nasa.webp';
-import omrLogo from '../assets/recommendations/logo-omr.webp';
 import christophPortrait from '../assets/recommendations/christoph.webp';
 import danPortrait from '../assets/recommendations/dan-goldin.webp';
 import gavinPortrait from '../assets/recommendations/gavin.webp';
 import ianPortrait from '../assets/recommendations/ian.webp';
 import inigoPortrait from '../assets/recommendations/inigo.webp';
 import jerryJiangPortrait from '../assets/recommendations/jerry-jiang.webp';
-import nikoPortrait from '../assets/recommendations/niko.webp';
-import noahPortrait from '../assets/recommendations/noah.webp';
 import woundiounPortrait from '../assets/recommendations/woundioun.webp';
 import { testimonials, type Testimonial } from './site';
 
@@ -154,25 +149,7 @@ export const recommendations: Recommendation[] = [
   },
 ];
 
-type Source =
-  | { kind: 'linkedin-post'; href: string; label: string }
-  | { kind: 'translation'; label: string }
-  | { kind: 'email'; label: string };
-
-type SupportNote = {
-  name: string;
-  linkedin: string;
-  quote: string;
-  title: string;
-  source: Source;
-  company: string;
-  companyUrl: string;
-  logo: ImageMetadata;
-  portrait: { kind: 'image'; image: ImageMetadata; alt: string } | { kind: 'initials'; value: string };
-};
-
-export const supportNotes: SupportNote[] = [
-  {
+export const honoraryMention = {
     name: 'Dan Goldin',
     linkedin: 'https://www.linkedin.com/in/dansgoldin',
     quote: 'Congrats Jerry Schmalz, good luck lots of support from here!',
@@ -186,38 +163,4 @@ export const supportNotes: SupportNote[] = [
     companyUrl: 'https://www.nasa.gov/',
     logo: nasaLogo,
     portrait: { kind: 'image', image: danPortrait, alt: 'NASA official portrait of Dan Goldin' },
-  },
-  {
-    name: 'Niko Bonatsos',
-    linkedin: 'https://www.linkedin.com/in/bonatsos',
-    quote: 'Thank you Jerry! Love the mission.',
-    title: 'Former MD, General Catalyst · early Snap and Discord backer',
-    source: { kind: 'email', label: 'Email' },
-    company: 'General Catalyst',
-    companyUrl: 'https://www.generalcatalyst.com/',
-    logo: generalCatalystLogo,
-    portrait: { kind: 'image', image: nikoPortrait, alt: 'Niko Bonatsos' },
-  },
-  {
-    name: 'Noah Leidinger',
-    linkedin: 'https://www.linkedin.com/in/noah-leidinger-55737419b',
-    quote: 'Just tested a chat with Michael Burry from The Big Short, had to laugh, really cool work.',
-    title: 'Managing Director, OMR X',
-    source: { kind: 'translation', label: 'Translated from German' },
-    company: 'OMR X',
-    companyUrl: 'https://omr.com/',
-    logo: omrLogo,
-    portrait: { kind: 'image', image: noahPortrait, alt: 'Noah Leidinger' },
-  },
-  {
-    name: 'Mike Campbell',
-    linkedin: 'https://www.linkedin.com/in/mike-campbell-profile',
-    quote: 'I watched the demo video, very impressive!',
-    title: 'Microsoft AI Global Growth',
-    source: { kind: 'email', label: 'Email' },
-    company: 'Microsoft',
-    companyUrl: 'https://www.microsoft.com/',
-    logo: microsoftLogo,
-    portrait: { kind: 'initials', value: 'MC' },
-  },
-];
+};
