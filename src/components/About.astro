@@ -3,35 +3,47 @@ import { Image } from 'astro:assets';
 import ebike from '../assets/icons/ebike.webp';
 import kindle from '../assets/icons/kindle.webp';
 import podcast from '../assets/icons/podcast.webp';
-import { person, testimonials } from '../data/site';
+import { path, person, testimonials } from '../data/site';
 
 const statement =
   'German efficiency meets Ghanaian resilience. Years in marketing and customer support taught me why people buy. Teaching myself design and code let me build what they buy.';
 const words = statement.split(' ');
-// Each word gets its own slice of the scroll; together they span 82% of the stage.
-const step = 82 / words.length;
+// The downtime line reads on in the same stage; its icons count as words.
+const downtime = [
+  'Off', 'screen', 'I', 'am', 'an', ebike, 'e-bike', 'explorer,', 'a', kindle, 'Kindle', 'highlighter,',
+  'and', 'a', podcast, 'Founders', 'podcast', 'devotee.',
+] as const;
+// Each unit gets its own slice of the scroll; together they span 84% of the stage.
+const step = 84 / (words.length + downtime.length);
+// Read words light up in the colours of the path, one stop after another.
+const unit = (i: number) => `--i: ${i}; --c: ${path[i % path.length]!.glow}`;
 ---
 
 <section class="about" id="about" aria-labelledby="about-title">
   <h2 id="about-title" class="sr-only">About</h2>
   <div class="statement-stage">
-    <p class="statement col" style={`--step: ${step}%`}>
-      {words.map((word, i) => [<span class="word" style={`--i: ${i}`}>{word}</span>, ' '])}
-    </p>
+    <div class="statement-group col" style={`--step: ${step}%`}>
+      <p class="statement">
+        {words.map((word, i) => [<span class="word" style={unit(i)}>{word}</span>, ' '])}
+      </p>
+      <p class="downtime">
+        {
+          downtime.map((part, j) => [
+            typeof part === 'string' ? (
+              <span class="word" style={unit(words.length + j)}>{part}</span>
+            ) : (
+              <span class="word inline-icon" style={unit(words.length + j)}>
+                <Image src={part} alt="" widths={[64, 128]} sizes="2.25em" loading="lazy" />
+              </span>
+            ),
+            ' ',
+          ])
+        }
+      </p>
+    </div>
   </div>
 
   <div class="col">
-
-    <p class="downtime">
-      Off screen I am an
-      <span class="inline-icon"><Image src={ebike} alt="" widths={[64, 128]} sizes="2.25em" loading="lazy" /></span>
-      e-bike explorer, a
-      <span class="inline-icon"><Image src={kindle} alt="" widths={[64, 128]} sizes="2.25em" loading="lazy" /></span>
-      Kindle highlighter, and a
-      <span class="inline-icon"><Image src={podcast} alt="" widths={[64, 128]} sizes="2.25em" loading="lazy" /></span>
-      Founders podcast devotee.
-    </p>
-
     <p class="about-cv">
       <a href={person.cv} download>Download my CV</a>
       <span class="muted">PDF, 2023</span>
@@ -73,70 +85,120 @@ const step = 82 / words.length;
 
   .word {
     display: inline-block;
+    --from: color-mix(in oklch, var(--fg) 50%, var(--bg));
+    --ink: var(--fg);
   }
 
-  /* The sentence resolves as you read it: the statement holds still on a tall
-     stage while each word, in turn, goes from faint and blurred through a warm
-     glow to sharp. Compositor-driven; static wherever scroll timelines are missing. */
+  .downtime {
+    margin-top: clamp(1.5rem, 5vh, 3rem);
+    font-size: var(--text-lg);
+    line-height: 2;
+    color: var(--fg-2);
+  }
+
+  /* Small text: unread words start at the muted ink (4.5:1), not fainter. */
+  .downtime .word {
+    --from: var(--fg-2);
+  }
+
+  /* The sentence, then the downtime line, resolve as you read them: the group
+     holds still on a tall stage while each word in turn goes from blurred,
+     through the colour of one stop on the path, to sharp ink. Compositor-
+     driven; static wherever scroll timelines are missing. */
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
       .statement-stage {
-        height: 230svh;
+        height: 320svh;
         view-timeline: --statement block;
       }
 
-      .statement {
+      .statement-group {
         position: sticky;
         top: 0;
         display: flex;
-        flex-wrap: wrap;
-        align-content: center;
-        column-gap: 0.26em;
+        flex-direction: column;
+        justify-content: center;
         min-height: 100svh;
+      }
+
+      .statement,
+      .downtime {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .statement {
+        column-gap: 0.26em;
+      }
+
+      .downtime {
+        column-gap: 0.3em;
       }
 
       .word {
         animation: word-in linear both;
         animation-timeline: --statement;
-        animation-range: contain calc(4% + var(--i) * var(--step)) contain calc(14% + var(--i) * var(--step));
+        animation-range: contain calc(3% + var(--i) * var(--step)) contain calc(16% + var(--i) * var(--step));
+      }
+
+      .inline-icon {
+        animation-name: icon-in;
       }
     }
   }
 
-  /* Unread words stay fully opaque at half ink (over 4:1 against the page,
-     above the 3:1 large-text bar) and blurred; reading sharpens them to full ink. */
+  /* Unread words stay fully opaque (the statement at half ink, over 4:1 at its
+     size) and blurred. Reading passes each one through its stop colour, held
+     dark enough to read, then settles it to ink. */
   @keyframes word-in {
     from {
-      color: color-mix(in oklch, var(--fg) 50%, var(--bg));
+      color: var(--from);
       filter: blur(9px);
       text-shadow: 0 0 0 transparent;
       transform: translateY(0.12em);
     }
-    55% {
-      text-shadow: 0 0 22px color-mix(in oklch, var(--accent) 45%, transparent);
+    35% {
+      color: color-mix(in oklch, var(--c) 78%, var(--fg));
+      filter: blur(1.5px);
+      text-shadow: 0 0 24px color-mix(in oklch, var(--c) 55%, transparent);
+    }
+    65% {
+      color: color-mix(in oklch, var(--c) 40%, var(--ink));
+      text-shadow: 0 0 12px color-mix(in oklch, var(--c) 25%, transparent);
     }
     to {
-      color: var(--fg);
+      color: var(--ink);
       filter: blur(0);
       text-shadow: 0 0 0 transparent;
       transform: none;
     }
   }
 
-  .downtime {
-    margin-top: clamp(1rem, 4vh, 3rem);
-    font-size: var(--text-lg);
-    line-height: 2;
-    color: var(--fg-2);
+  /* The little objects come into focus and into colour. */
+  @keyframes icon-in {
+    from {
+      filter: blur(6px) grayscale(1);
+      transform: translateY(0.12em) scale(0.86);
+    }
+    40% {
+      filter: blur(1px) grayscale(0.3) drop-shadow(0 0 10px color-mix(in oklch, var(--c) 60%, transparent));
+    }
+    to {
+      filter: blur(0) grayscale(0) drop-shadow(0 0 0 transparent);
+      transform: none;
+    }
   }
 
   .inline-icon {
-    display: inline-block;
     width: 2.25em;
     height: 2.25em;
     margin: -0.75em 0.1em -0.6em;
     vertical-align: middle;
-    transition: transform var(--dur-move) var(--ease-out);
+    transition:
+      translate var(--dur-move) var(--ease-out),
+      rotate var(--dur-move) var(--ease-out),
+      scale var(--dur-move) var(--ease-out);
   }
 
   .inline-icon :global(img) {
@@ -146,8 +208,11 @@ const step = 82 / words.length;
   }
 
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    /* Individual transforms, so the hop composes with the scroll reveal. */
     .inline-icon:hover {
-      transform: translateY(-4px) rotate(-6deg) scale(1.12);
+      translate: 0 -4px;
+      rotate: -6deg;
+      scale: 1.12;
       transition-timing-function: cubic-bezier(0.34, 1.9, 0.64, 1);
     }
   }
