@@ -1,6 +1,6 @@
 declare module 'astro' {
   interface AstroClientDirectives {
-    'client:afterload'?: boolean;
+    'client:afterload'?: boolean | string;
   }
 }
 

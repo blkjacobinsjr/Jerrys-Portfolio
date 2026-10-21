@@ -37,11 +37,13 @@ const ogImage = new URL('/og.jpg', Astro.site);
     <a class="skip-link" href="#main">Skip to content</a>
     <slot />
     <script>
-      // Motion is an enhancement: fetch it only after the page has loaded and gone idle.
+      // Motion is an enhancement: fetch it a beat after the page has loaded,
+      // once idle (same timing as client:afterload).
       const start = () => import('../motion').then((motion) => motion.start());
       const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 1500 }) : setTimeout(start, 1));
-      if (document.readyState === 'complete') idle();
-      else addEventListener('load', idle, { once: true });
+      const later = () => setTimeout(idle, 250);
+      if (document.readyState === 'complete') later();
+      else addEventListener('load', later, { once: true });
     </script>
   </body>
 </html>
