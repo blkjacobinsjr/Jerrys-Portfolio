@@ -1,6 +1,7 @@
 ---
 import { Image, getImage } from 'astro:assets';
 import Work, { type Shot, type WorkItem } from './Work';
+import DecryptedText from './DecryptedText';
 import { earlier, projects } from '../data/site';
 
 const items: WorkItem[] = await Promise.all(
@@ -23,7 +24,7 @@ const items: WorkItem[] = await Promise.all(
 ---
 
 <section class="work wide" id="work" aria-labelledby="work-title">
-  <h2 id="work-title" class="label">Selected work</h2>
+  <h2 id="work-title" class="label"><DecryptedText client:afterload="(hover: hover) and (pointer: fine)" text="Selected work" sequential speed={40} encryptedClassName="decrypting" /></h2>
   <Work client:afterload items={items} />
 
   <details class="earlier">

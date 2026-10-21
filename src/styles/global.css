@@ -219,3 +219,8 @@ button {
     filter: blur(6px);
   }
 }
+
+/* Glyphs mid-scramble in a DecryptedText heading (desktop hover only). */
+.decrypting {
+  color: var(--accent-ink);
+}

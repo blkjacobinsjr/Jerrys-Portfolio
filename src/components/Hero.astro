@@ -1,6 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
 import Mascot from './Mascot';
+import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
 import { person } from '../data/site';
 
@@ -16,7 +17,7 @@ const { sprite, still } = Astro.props;
     <div class="hero-id">
       <Mascot client:afterload sprite={sprite} still={still} size={56} label="Poke Jerry’s mascot" />
       <div>
-        <h1>{person.name}</h1>
+        <h1><DecryptedText client:afterload="(hover: hover) and (pointer: fine)" text={person.name} sequential speed={40} encryptedClassName="decrypting" /></h1>
         <p class="muted">{person.role}</p>
       </div>
     </div>

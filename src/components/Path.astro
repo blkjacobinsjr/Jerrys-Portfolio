@@ -2,6 +2,7 @@
 import type { ImageMetadata } from 'astro';
 import { Image, getImage } from 'astro:assets';
 import NowBadge from './NowBadge';
+import DecryptedText from './DecryptedText';
 import PathSheet, { type Picture, type StopView } from './PathSheet';
 import { path } from '../data/site';
 
@@ -30,7 +31,7 @@ const views: StopView[] = await Promise.all(
 
 <section class="path" id="path" aria-labelledby="path-title">
   <div class="col path-head">
-    <h2 id="path-title" class="label">Path</h2>
+    <h2 id="path-title" class="label"><DecryptedText client:afterload="(hover: hover) and (pointer: fine)" text="Path" sequential speed={40} encryptedClassName="decrypting" /></h2>
     <p class="path-lede">Coventry, London, Berlin. From campaigns and support desks to shipping my own apps.</p>
   </div>
 

@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import ContactCTA from './ContactCTA';
+import DecryptedText from './DecryptedText';
 import Keyring from './Keyring.astro';
 import far from '../assets/roof/far.webp';
 import mid from '../assets/roof/mid.webp';
@@ -27,7 +28,7 @@ const layers = [
   <Keyring />
 
   <div class="contact-body col">
-    <h2 id="contact-title">Have an app that should feel this good?</h2>
+    <h2 id="contact-title"><DecryptedText client:afterload="(hover: hover) and (pointer: fine)" text="Have an app that should feel this good?" maxIterations={10} speed={40} encryptedClassName="decrypting" /></h2>
     <ContactCTA client:visible={{ rootMargin: '600px' }} email={person.email} />
     <p class="contact-links">
       <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
