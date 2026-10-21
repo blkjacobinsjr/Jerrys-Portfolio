@@ -1,0 +1,86 @@
+.dock {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: var(--z-dock);
+  translate: -50% calc(100% + 32px);
+  /* Glass needs an opaque ancestor chain, so the entrance moves, it never fades. */
+  transition: translate 420ms var(--ease-drawer);
+}
+
+.dock[data-shown='true'] {
+  translate: -50% 0;
+}
+
+.dock-glass {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.35) inset,
+    0 12px 32px -12px rgb(var(--shadow-tint) / 0.28),
+    0 2px 6px rgb(var(--shadow-tint) / 0.08);
+}
+
+/* Stand-in until the liquid glass mounts on first reveal. */
+.dock-frost {
+  border-radius: 28px;
+  background: color-mix(in oklch, var(--bg) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.6);
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+}
+
+.dock-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px 6px 6px;
+}
+
+.dock-tabs {
+  position: relative;
+}
+
+.dock-list {
+  display: flex;
+  align-items: center;
+}
+
+.dock-list a {
+  display: block;
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--fg);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.dock-list a:active {
+  transform: scale(0.96);
+}
+
+.dock-list-active {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: clip-path 360ms var(--ease-drawer);
+}
+
+.dock-list-active a {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+@media (max-width: 420px) {
+  .dock-list a {
+    padding: 7px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock,
+  .dock-list-active {
+    transition-duration: 0ms;
+  }
+}

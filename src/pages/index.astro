@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import WorkSection from '../components/WorkSection.astro';
+import Path from '../components/Path.astro';
+import About from '../components/About.astro';
+import Contact from '../components/Contact.astro';
+import Dock from '../components/Dock';
+import sprite from '../assets/mascot/sprite.webp';
+import still from '../assets/mascot/still.webp';
+import { person } from '../data/site';
+---
+
+<Base
+  title={`${person.name}, product designer and frontend developer`}
+  description="Jerry Schmalz designs and builds consumer apps that feel good in the first five seconds. Co-founder of Scenaryo. Berlin."
+>
+  <main id="main" class="page" data-scrollsheet-background>
+    <Hero sprite={sprite.src} still={still.src} />
+    <WorkSection />
+    <Path />
+    <About />
+  </main>
+  <Contact />
+  <Dock client:idle sprite={sprite.src} still={still.src} />
+</Base>
+
+<style>
+  .page {
+    position: relative;
+    z-index: 1;
+    background: var(--bg);
+    border-radius: 0 0 clamp(24px, 4vw, 40px) clamp(24px, 4vw, 40px);
+    box-shadow: 0 30px 60px -30px rgb(var(--shadow-tint) / 0.35);
+  }
+</style>

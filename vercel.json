@@ -1,0 +1,20 @@
+{
+  "framework": "astro",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/about.html", "destination": "/#about", "permanent": true },
+    { "source": "/subzero.html", "destination": "/#work", "permanent": true },
+    { "source": "/scenaryo.html", "destination": "/#work", "permanent": true },
+    { "source": "/scenaryo-app.html", "destination": "/#work", "permanent": true },
+    { "source": "/scenextras.html", "destination": "/#work", "permanent": true },
+    { "source": "/pokefight.html", "destination": "/#work", "permanent": true },
+    { "source": "/bm-musicvid.html", "destination": "/#work", "permanent": true },
+    { "source": "/foodierecipes.html", "destination": "/#work", "permanent": true },
+    { "source": "/priori-todo.html", "destination": "/#work", "permanent": true }
+  ],
+  "headers": [
+    { "source": "/_astro/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+  ]
+}

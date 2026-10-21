@@ -1,0 +1,219 @@
+/* Tokens. One palette, one accent, one radius rule:
+   interactive = pill, media cards = --r-card, small tiles = --r-tile. */
+:root {
+  color-scheme: light dark;
+
+  --bg: oklch(0.987 0.002 106);
+  --bg-elev: oklch(1 0 0);
+  --bg-sunk: oklch(0.962 0.003 106);
+  --fg: oklch(0.2 0.004 106);
+  --fg-2: oklch(0.47 0.005 106);
+  --fg-3: oklch(0.64 0.004 106);
+  --line: oklch(0.915 0.003 106);
+  --accent: oklch(0.66 0.19 42);
+  --accent-ink: oklch(0.5 0.17 40);
+  --shadow-tint: 30 20 10;
+
+  --font-sans-stack: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono-stack: var(--font-mono), ui-monospace, monospace;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-statement: clamp(1.75rem, 1.1rem + 2.6vw, 3.25rem);
+
+  --col: 36rem;
+  --wide: 70rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  --section-gap: clamp(6rem, 14vh, 10rem);
+
+  --r-card: 24px;
+  --r-tile: 12px;
+  --r-pill: 999px;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 160ms;
+  --dur-ui: 200ms;
+  --dur-reveal: 600ms;
+
+  /* z-index scale: content 0, sticky cards 1-9, dock 50, footer curtain -1 */
+  --z-dock: 50;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: oklch(0.165 0.003 106);
+    --bg-elev: oklch(0.205 0.003 106);
+    --bg-sunk: oklch(0.13 0.003 106);
+    --fg: oklch(0.955 0.002 106);
+    --fg-2: oklch(0.73 0.004 106);
+    --fg-3: oklch(0.56 0.004 106);
+    --line: oklch(0.27 0.004 106);
+    --accent: oklch(0.72 0.17 45);
+    --accent-ink: oklch(0.78 0.14 50);
+    --shadow-tint: 0 0 0;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans-stack);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+figure,
+blockquote,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  font-size: inherit;
+  font-weight: 500;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklch, currentColor 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur-ui) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 28%, transparent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: var(--r-pill);
+  background: var(--fg);
+  color: var(--bg);
+  transform: translateY(-200%);
+  transition: transform var(--dur-ui) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Layout primitives */
+.col {
+  width: min(100% - 2 * var(--gutter), var(--col));
+  margin-inline: auto;
+}
+
+.wide {
+  width: min(100% - 2 * var(--gutter), var(--wide));
+  margin-inline: auto;
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--fg-2);
+}
+
+.muted {
+  color: var(--fg-2);
+}
+
+/* Scroll-reveal primitive: CSS scroll-driven where supported, static otherwise. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    [data-reveal] {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 28%;
+    }
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(6px);
+  }
+}

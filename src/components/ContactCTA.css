@@ -1,0 +1,52 @@
+/* transitions.dev confetti stage (recipe CSS), plus the CTA visuals. */
+.t-confetti-stage {
+  position: relative;
+  overflow: hidden;
+}
+
+.t-confetti-stage button {
+  position: relative;
+  z-index: 1;
+}
+
+.t-confetti-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.contact-stage {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 7rem 1rem 1.5rem;
+  margin-top: -6rem;
+}
+
+.contact-beam {
+  width: fit-content;
+}
+
+.contact-btn {
+  min-width: 11rem;
+  padding: 0.9rem 1.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.contact-btn:active {
+  transform: scale(0.97);
+}
+
+.contact-mail {
+  font-size: var(--text-sm);
+  color: var(--fg-2);
+}

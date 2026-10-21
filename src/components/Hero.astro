@@ -1,0 +1,143 @@
+---
+import { Picture } from 'astro:assets';
+import Mascot from './Mascot';
+import desk from '../assets/icons/desk.webp';
+import { person } from '../data/site';
+
+interface Props {
+  sprite: string;
+  still: string;
+}
+const { sprite, still } = Astro.props;
+---
+
+<header class="hero wide" id="top">
+  <div class="hero-copy">
+    <div class="hero-id">
+      <Mascot client:idle sprite={sprite} still={still} size={56} label="Poke Jerry’s mascot" />
+      <div>
+        <h1>{person.name}</h1>
+        <p class="muted">{person.role}</p>
+      </div>
+    </div>
+    <p class="hero-bio">
+      I design and build consumer apps that feel good in the first five seconds. Right now that is{' '}
+      <a href="#work">Scenaryo</a>, a fanfiction layer for movies.
+    </p>
+    <p class="hero-links">
+      <a href={`mailto:${person.email}`}>Email</a>
+      <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
+      <a href={person.github} rel="me noopener" target="_blank">GitHub</a>
+    </p>
+  </div>
+
+  <figure class="hero-art" data-hero-art>
+    <Picture
+      src={desk}
+      formats={['avif', 'webp']}
+      alt="A miniature 3D model of Jerry’s Berlin desk: a laptop showing the TV tower, a Kindle with a highlighter, headphones, a plant and an e-bike"
+      widths={[360, 560, 720, 1040]}
+      sizes="(min-width: 900px) 520px, 78vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+  </figure>
+</header>
+
+<style>
+  .hero {
+    display: grid;
+    align-items: center;
+    gap: 2rem;
+    min-height: min(100svh, 56rem);
+    padding-block: clamp(3rem, 10vh, 6rem) 2rem;
+  }
+
+  @media (min-width: 900px) {
+    .hero {
+      grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+      gap: clamp(2rem, 6vw, 6rem);
+    }
+  }
+
+  .hero-copy {
+    display: grid;
+    gap: 1.25rem;
+    max-width: 28rem;
+  }
+
+  .hero-id {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+  }
+
+  h1 {
+    font-size: var(--text-base);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .hero-id p {
+    font-size: var(--text-sm);
+  }
+
+  .hero-bio {
+    font-size: clamp(var(--text-lg), 1rem + 0.5vw, 1.3125rem);
+    line-height: 1.55;
+    letter-spacing: -0.012em;
+  }
+
+  .hero-links {
+    display: flex;
+    gap: 1.25rem;
+    font-size: var(--text-sm);
+    color: var(--fg-2);
+  }
+
+  .hero-art {
+    justify-self: center;
+    width: min(100%, 34rem);
+    will-change: transform;
+  }
+
+  .hero-art :global(picture) {
+    display: block;
+  }
+
+  .hero-art :global(img) {
+    width: 100%;
+    filter: drop-shadow(0 30px 40px rgb(var(--shadow-tint) / 0.12));
+  }
+
+  /* First paint: copy settles in, the desk floats up a beat later. */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-copy > * {
+      animation: hero-in 700ms var(--ease-out) both;
+    }
+    .hero-copy > :nth-child(2) {
+      animation-delay: 70ms;
+    }
+    .hero-copy > :nth-child(3) {
+      animation-delay: 140ms;
+    }
+    .hero-art {
+      animation: hero-art-in 1100ms var(--ease-out) 120ms both;
+    }
+  }
+
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+      filter: blur(4px);
+    }
+  }
+
+  /* Transform only: an opacity fade would hold back LCP. */
+  @keyframes hero-art-in {
+    from {
+      transform: translateY(28px) scale(0.96);
+    }
+  }
+</style>

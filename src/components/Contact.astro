@@ -1,0 +1,181 @@
+---
+import { Image } from 'astro:assets';
+import ContactCTA from './ContactCTA';
+import far from '../assets/roof/far.webp';
+import mid from '../assets/roof/mid.webp';
+import near from '../assets/roof/near.webp';
+import { person } from '../data/site';
+
+const layers = [
+  { img: far, depth: 'far' },
+  { img: mid, depth: 'mid' },
+  { img: near, depth: 'near' },
+] as const;
+---
+
+<footer class="contact" id="contact" aria-labelledby="contact-title">
+  <div class="curtain" data-curtain>
+  <div class="sky" aria-hidden="true">
+    {
+      layers.map(({ img, depth }) => (
+        <Image src={img} alt="" class={`roof roof-${depth}`} data-roof={depth} widths={[768, 1280, 1536]} sizes="100vw" loading="lazy" />
+      ))
+    }
+  </div>
+
+  <div class="contact-body col">
+    <h2 id="contact-title">Have an app that should feel this good?</h2>
+    <ContactCTA client:visible email={person.email} />
+    <p class="contact-links">
+      <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
+      <a href={person.github} rel="me noopener" target="_blank">GitHub</a>
+      <a href={person.cv} download>CV</a>
+      <a class="vinyl" href={person.spotify} rel="noopener" target="_blank" aria-label="My playlist on Spotify">
+        <span class="vinyl-disc" aria-hidden="true"></span>
+        Playlist
+      </a>
+    </p>
+    <p class="contact-fine muted">© {new Date().getFullYear()} {person.name}. Berlin.</p>
+  </div>
+  </div>
+</footer>
+
+<style>
+  /* Curtain: the footer sits in normal flow under <main>; its contents are
+     scrubbed upward slower than the page, so it reads as uncovered from beneath. */
+  .contact {
+    position: relative;
+    z-index: 0;
+    margin-top: calc(-1 * clamp(24px, 4vw, 40px));
+    min-height: 100svh;
+    overflow: clip;
+    background: linear-gradient(
+      to bottom,
+      oklch(0.86 0.04 240) 0%,
+      oklch(0.92 0.035 70) 58%,
+      oklch(0.88 0.07 55) 100%
+    );
+    color: oklch(0.2 0.004 106);
+    --fg: oklch(0.2 0.004 106);
+    --fg-2: oklch(0.36 0.01 106);
+    --bg: oklch(0.987 0.002 106);
+    --line: oklch(0.2 0.004 106 / 0.15);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .contact {
+      background: linear-gradient(to bottom, oklch(0.18 0.04 265) 0%, oklch(0.26 0.06 290) 60%, oklch(0.36 0.08 40) 100%);
+      color: oklch(0.96 0.002 106);
+      --fg: oklch(0.96 0.002 106);
+      --fg-2: oklch(0.8 0.01 106);
+      --bg: oklch(0.165 0.003 106);
+      --line: oklch(1 0 0 / 0.18);
+    }
+
+    .roof {
+      filter: brightness(0.5) saturate(0.85);
+    }
+  }
+
+  .sky {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* Layers scale with width (--w) and are offset in the same unit, so the
+     skyline keeps its shape and the rooftops stay below the copy. */
+  .curtain {
+    position: relative;
+    display: grid;
+    min-height: 100svh;
+    will-change: transform;
+  }
+
+  .sky {
+    --w: max(100vw, 64rem);
+  }
+
+  .roof {
+    position: absolute;
+    left: 50%;
+    width: var(--w);
+    max-width: none;
+    translate: -50% 0;
+    will-change: transform;
+  }
+
+  .roof-far {
+    bottom: calc(var(--w) * 0.1);
+    opacity: 0.85;
+  }
+
+  .roof-mid {
+    bottom: calc(var(--w) * -0.045);
+  }
+
+  .roof-near {
+    bottom: calc(var(--w) * -0.215);
+  }
+
+  .contact-body {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 0.5rem;
+    padding-top: clamp(4rem, 12vh, 8rem);
+    text-align: center;
+  }
+
+  h2 {
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    max-width: 16ch;
+  }
+
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    font-size: var(--text-sm);
+  }
+
+  .contact-fine {
+    margin-top: 1rem;
+    font-size: var(--text-xs);
+  }
+
+  /* The old site's vinyl, kept: it spins while you hover. */
+  .vinyl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .vinyl-disc {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, var(--bg) 0 1.5px, oklch(0.66 0.19 42) 2px 5px, transparent 5.5px),
+      repeating-radial-gradient(circle, oklch(0.18 0 0) 0 1px, oklch(0.26 0 0) 1.5px 2px);
+    animation: spin 1.8s linear infinite paused;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .vinyl:hover .vinyl-disc {
+      animation-play-state: running;
+    }
+  }
+
+  @keyframes spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+</style>

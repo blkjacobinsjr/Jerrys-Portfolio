@@ -1,0 +1,14 @@
+.vercel
+.env*.local
+.env
+node_modules/
+dist/
+.astro/
+.DS_Store
+coverage/
+reports/
+test-results/
+playwright-report/
+.stryker-tmp/
+.lighthouseci/
+.features-gen/

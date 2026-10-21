@@ -1,0 +1,148 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Work, { type Shot, type WorkItem } from './Work';
+import { earlier, projects } from '../data/site';
+
+const items: WorkItem[] = await Promise.all(
+  projects.map(async ({ shots, shotAlts, ...project }) => {
+    const resolved = await Promise.all(
+      shots.map(async (src, i) => {
+        const phone = i === 2;
+        const img = await getImage({ src, widths: phone ? [240, 360, 480, 640] : [480, 800, 1200, 1600], format: 'webp' });
+        return { src: img.src, srcset: img.srcSet.attribute, width: src.width, height: src.height, alt: shotAlts[i] ?? '' } satisfies Shot;
+      }),
+    );
+    return { ...project, shots: resolved as [Shot, Shot, Shot] };
+  }),
+);
+---
+
+<section class="work wide" id="work" aria-labelledby="work-title">
+  <h2 id="work-title" class="label">Selected work</h2>
+  <Work client:idle items={items} />
+
+  <details class="earlier">
+    <summary>
+      <span>Earlier work</span>
+      <span class="muted">{earlier.length} projects</span>
+    </summary>
+    <ul>
+      {
+        earlier.map((item) => (
+          <li>
+            <Image src={item.thumb} alt="" width={44} height={44} densities={[1, 2]} loading="lazy" />
+            <span class="earlier-text">
+              {item.url ? (
+                <a href={item.url} target="_blank" rel="noopener">
+                  {item.name}
+                </a>
+              ) : (
+                <span>{item.name}</span>
+              )}
+              <span class="muted">{item.note}</span>
+            </span>
+            <span class="muted earlier-year">{item.year}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </details>
+</section>
+
+<style>
+  .work {
+    display: grid;
+    gap: 1.5rem;
+    padding-block: var(--section-gap) 0;
+  }
+
+  .earlier {
+    width: min(100%, var(--col));
+    margin: clamp(3rem, 8vh, 5rem) auto 0;
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+  }
+
+  .earlier summary {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .earlier summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .earlier summary::after {
+    content: '+';
+    margin-left: 0.75rem;
+    color: var(--fg-2);
+    transition: rotate var(--dur-ui) var(--ease-out);
+  }
+
+  .earlier[open] summary::after {
+    rotate: 45deg;
+  }
+
+  .earlier summary > :first-child {
+    flex: 1;
+  }
+
+  /* Progressive disclosure that animates its own height (interpolate-size). */
+  .earlier::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 360ms var(--ease-drawer),
+      content-visibility 360ms allow-discrete;
+  }
+
+  .earlier[open]::details-content {
+    block-size: auto;
+  }
+
+  @supports (interpolate-size: allow-keywords) {
+    .earlier {
+      interpolate-size: allow-keywords;
+    }
+  }
+
+  .earlier ul {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem 0 0.5rem;
+  }
+
+  .earlier li {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    align-items: center;
+    gap: 0.875rem;
+    font-size: var(--text-sm);
+  }
+
+  .earlier li :global(img) {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-tile);
+    object-fit: cover;
+    box-shadow: 0 0 0 1px var(--line);
+  }
+
+  .earlier-text {
+    display: grid;
+  }
+
+  .earlier-year {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .earlier::details-content {
+      transition: none;
+    }
+  }
+</style>

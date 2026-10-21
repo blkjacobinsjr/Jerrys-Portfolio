@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.stryker.config.ts"
+  },
+  "mutate": [
+    "src/lib/mascot.ts"
+  ],
+  "coverageAnalysis": "perTest",
+  "reporters": [
+    "clear-text",
+    "progress",
+    "html",
+    "json"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "thresholds": {
+    "high": 95,
+    "low": 85,
+    "break": 90
+  },
+  "tempDirName": ".stryker-tmp",
+  "ignoreStatic": true,
+  "//": "ignoreStatic: the vitest runner does not reload modules for static mutants, so machine-config literals are reported as survivors even when they fail the suite (verified by activating mutant \"type: parallel -> empty\" by hand: XState throws, all mascot tests fail)."
+}

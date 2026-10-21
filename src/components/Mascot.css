@@ -1,0 +1,53 @@
+.mascot {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.mascot:active {
+  transform: scale(0.94);
+}
+
+.mascot-face {
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: 400% 400%;
+  transition: transform 300ms var(--ease-out);
+  will-change: transform;
+}
+
+/* A small hop whenever the mascot is poked into a happy or wink frame. */
+@media (prefers-reduced-motion: no-preference) {
+  .mascot[data-frame='7'] .mascot-face,
+  .mascot[data-frame='15'] .mascot-face {
+    animation: mascot-hop 420ms var(--ease-out);
+  }
+
+  .mascot[data-frame='14'] .mascot-face {
+    animation: mascot-wobble 700ms var(--ease-in-out) 2;
+  }
+}
+
+@keyframes mascot-hop {
+  40% {
+    translate: 0 -18%;
+  }
+}
+
+@keyframes mascot-wobble {
+  25% {
+    rotate: -8deg;
+  }
+  75% {
+    rotate: 8deg;
+  }
+}
