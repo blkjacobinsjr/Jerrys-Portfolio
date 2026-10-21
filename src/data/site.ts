@@ -12,6 +12,10 @@ import foodnote3 from '../assets/work/foodnote-3.webp';
 import subzro1 from '../assets/work/subzro-1.webp';
 import subzro2 from '../assets/work/subzro-2.webp';
 import subzro3 from '../assets/work/subzro-3.webp';
+import phoneScenaryo from '../assets/work/phone-scenaryo.webp';
+import phoneTiding from '../assets/work/phone-tiding.webp';
+import phoneFoodnote from '../assets/work/phone-foodnote.webp';
+import phoneSubzro from '../assets/work/phone-subzro.webp';
 import thumbScenextras from '../assets/work/thumb-scenextras.webp';
 import thumbPokefight from '../assets/work/thumb-pokefight.webp';
 import thumbPriori from '../assets/work/thumb-priori.webp';
@@ -36,6 +40,8 @@ export const person = {
 export interface Project {
   id: string;
   name: string;
+  /** The product's own tagline; leads the card in bold after the name. */
+  tagline: string;
   summary: string;
   years: string;
   role: string;
@@ -47,6 +53,8 @@ export interface Project {
   /** Desktop, desktop, phone. The phone frame sits on top of the stack. */
   shots: [ImageMetadata, ImageMetadata, ImageMetadata];
   shotAlts: [string, string, string];
+  /** A hand holding an iPhone with a real screenshot of the app composited on (tools/compose-phone.py). */
+  phone: { src: ImageMetadata; alt: string };
   story: string;
   shaped: string[];
   proof?: string;
@@ -56,6 +64,7 @@ export const projects: Project[] = [
   {
     id: 'scenaryo',
     name: 'Scenaryo',
+    tagline: 'Characters that feel impossibly real.',
     summary: 'Talk to the characters you love, and shape the scene as it unfolds.',
     years: 'Now',
     role: 'Co-founder. Product, design, frontend',
@@ -69,6 +78,7 @@ export const projects: Project[] = [
       'Scenaryo video section: See a scene come to life',
       'Scenaryo iPhone app with the scene theme picker open',
     ],
+    phone: { src: phoneScenaryo, alt: 'A hand holding an iPhone open on the Scenaryo home screen: characters to talk to and what-if scenarios' },
     story:
       'The evolution of SceneXtras. You enter a story mid-conflict, earn a character’s trust, and steer where it goes. Characters remember you, keep their boundaries, and stay true to their arc.',
     shaped: [
@@ -81,6 +91,7 @@ export const projects: Project[] = [
   {
     id: 'tiding',
     name: 'Tiding',
+    tagline: 'Peptides meet personality.',
     summary: 'A peptide tracker where Pip keeps the daily check-in friendly.',
     years: '2026',
     role: 'Co-founder, sceneXtras Inc.',
@@ -94,6 +105,7 @@ export const projects: Project[] = [
       'Tiding section: Your protocol has a rhythm, keep the record current',
       'Tiding on iPhone with the mascot Pip',
     ],
+    phone: { src: phoneTiding, alt: 'A hand holding an iPhone open on Tiding’s Today screen, with the next Semaglutide dose and a Log dose button' },
     story:
       'Doses, injection sites, vial levels, bloodwork, supplements, and notes in one place. The routine stays clear, and a small mascot named Pip makes the check-in something you want to do.',
     shaped: [
@@ -105,6 +117,7 @@ export const projects: Project[] = [
   {
     id: 'foodnote',
     name: 'FoodNote',
+    tagline: 'Your calories, actually tracked.',
     summary: 'Calorie tracking with AI meal logging and a hamster named Hammy.',
     years: 'Live',
     role: 'Design and frontend',
@@ -118,6 +131,7 @@ export const projects: Project[] = [
       'FoodNote section: Less calculating, more living',
       'FoodNote Today screen with remaining calories and weight trend',
     ],
+    phone: { src: phoneFoodnote, alt: 'A hand holding an iPhone open on the FoodNote dashboard: calories left today, macros, and current weight' },
     story:
       'Describe a meal in plain words and the math is done for you. A weight journal that remembers, and a plan that adapts while it keeps you above a safe floor.',
     shaped: [
@@ -129,6 +143,7 @@ export const projects: Project[] = [
   {
     id: 'subzro',
     name: 'Subzro',
+    tagline: 'Zero in on what matters.',
     summary: 'Subscription intelligence that turns recurring charges into clear decisions.',
     years: '2023',
     role: 'Product direction, UI design, frontend',
@@ -142,6 +157,7 @@ export const projects: Project[] = [
       'Subzro insights overview',
       'Subzro subscription dashboard',
     ],
+    phone: { src: phoneSubzro, alt: 'A hand holding an iPhone open on the Subzro dashboard: total monthly spend, highest spend, and the Spend-O-Meter' },
     story:
       'Most subscription apps stop at listing charges. Subzro frames recurring spend as a living system: what costs the most, what gets used the least, and what you can win back today.',
     shaped: [

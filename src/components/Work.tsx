@@ -2,7 +2,6 @@ import { lazy, Suspense, useState, type CSSProperties } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { useMedia } from '../lib/useMedia';
 import '../styles/sheet.css';
-import '../styles/card-stack.css';
 import './Work.css';
 
 const BotAvatar = lazy(() => import('bot-avatars').then((m) => ({ default: m.BotAvatar })));
@@ -18,6 +17,7 @@ export interface Shot {
 export interface WorkItem {
   id: string;
   name: string;
+  tagline: string;
   summary: string;
   years: string;
   role: string;
@@ -29,48 +29,7 @@ export interface WorkItem {
   shaped: string[];
   proof?: string;
   shots: [Shot, Shot, Shot];
-}
-
-/** Resting pose and fan delta per card, in container units (card-stack-hover recipe geometry). */
-const POSES = [
-  { cx: '6cqw', cy: '10cqh', rot: '-3deg', dx: '-3cqw', dy: '-5cqh', drot: '-2deg' },
-  { cx: '30cqw', cy: '20cqh', rot: '2deg', dx: '3cqw', dy: '3cqh', drot: '2deg' },
-  { cx: '76cqw', cy: '14cqh', rot: '5deg', dx: '4cqw', dy: '-4cqh', drot: '4deg' },
-] as const;
-
-const SIZES = ['(min-width: 70rem) 680px, 62vw', '(min-width: 70rem) 680px, 62vw', '(min-width: 70rem) 190px, 18vw'];
-
-function Shots({ shots }: { shots: WorkItem['shots'] }) {
-  return (
-    <span className="t-stack" aria-hidden="true">
-      {shots.map((shot, i) => {
-        const pose = POSES[i]!;
-        const style = {
-          '--cx': pose.cx,
-          '--cy': pose.cy,
-          '--rot': pose.rot,
-          '--dx': pose.dx,
-          '--dy': pose.dy,
-          '--drot': pose.drot,
-          zIndex: i,
-        } as CSSProperties;
-        return (
-          <span key={shot.src} className={`t-stack-card ${i === 2 ? 'is-phone' : ''}`} style={style}>
-            <img
-              src={shot.src}
-              srcSet={shot.srcset}
-              sizes={SIZES[i]}
-              width={shot.width}
-              height={shot.height}
-              alt=""
-              loading="lazy"
-              decoding="async"
-            />
-          </span>
-        );
-      })}
-    </span>
-  );
+  phone: Shot;
 }
 
 const PHONE_DETENTS: DetentSpec[] = [0.64, 'full'];
@@ -91,13 +50,38 @@ export default function Work({ items }: { items: WorkItem[] }) {
             desktopSide="right"
             detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}
           >
-            <Sheet.Trigger className="work-card" aria-label={`${item.name}: ${item.summary} Open details`}>
-              <Shots shots={item.shots} />
-            </Sheet.Trigger>
-            <div className="work-meta">
-              <h3>{item.name}</h3>
-              <p className="muted">{item.summary}</p>
-              <span className="work-years">{item.years}</span>
+            {/* Flighty-style feature card: bold lead, muted body, the app in hand.
+                The trigger is stretched over the whole card. */}
+            <div className="work-face">
+              <div className="work-copy">
+                <h3 className="work-lead">
+                  {item.name}. {item.tagline}
+                </h3>{' '}
+                <p className="work-body">{item.summary}</p>
+              </div>
+              <p className="work-facts">
+                {item.years} · {item.platform}
+              </p>
+              <span className="work-shot">
+              <img
+                className="work-phone"
+                src={item.phone.src}
+                srcSet={item.phone.srcset}
+                sizes="(min-width: 70rem) 460px, (min-width: 641px) 40vw, 70vw"
+                width={item.phone.width}
+                height={item.phone.height}
+                alt={item.phone.alt}
+                loading="lazy"
+                decoding="async"
+              />
+              </span>
+              <Sheet.Trigger className="work-card" aria-label={`${item.name}: ${item.summary} Open details`}>
+                <span className="work-plus" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" width="16" height="16">
+                    <path d="M8 2.5v11M2.5 8h11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </Sheet.Trigger>
             </div>
 
             <Sheet.Content className="sheet">

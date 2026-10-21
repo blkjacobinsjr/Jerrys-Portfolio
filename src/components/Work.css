@@ -4,91 +4,193 @@
 }
 
 /* Sticky stack: each card pins a little lower than the last, so the deck
-   piles up as you scroll. GSAP recedes the covered card (see Work.astro). */
+   piles up as you scroll. GSAP recedes the covered card (src/motion). */
 .work-item {
   position: sticky;
   top: calc(clamp(1rem, 6vh, 3.5rem) + var(--i) * 14px);
   transform-origin: 50% 0;
-}
-
-.work-card {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  padding: 0;
-  border: 0;
-  border-radius: var(--r-card);
-  background: color-mix(in oklch, var(--tint) 100%, var(--bg));
-  box-shadow:
-    0 0 0 1px rgb(var(--shadow-tint) / 0.05),
-    0 24px 60px -32px rgb(var(--shadow-tint) / 0.35);
-  overflow: hidden;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform var(--dur-press) var(--ease-out);
-}
-
-.work-card:active {
-  transform: scale(0.985);
-}
-
-/* Off-screen card faces are not rendered, and their lazy images not fetched,
-   until they come near; keeps the first paint cheap. */
-.work-card .t-stack {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 100% auto 100%;
-}
-
-/* Shade for a card that is being covered by the next one; GSAP drives --dim. */
-.work-card {
-  position: relative;
-}
-
-.work-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: rgb(var(--shadow-tint) / 0.16);
-  opacity: var(--dim, 0);
-  pointer-events: none;
-  z-index: 40;
-}
-
-.work-meta {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  column-gap: 1rem;
-  padding: 1rem 0.25rem 0;
-  background: var(--bg);
-}
-
-.work-meta h3 {
-  font-size: var(--text-base);
-}
-
-.work-meta p {
-  grid-column: 1;
-  font-size: var(--text-sm);
-}
-
-.work-years {
-  grid-column: 2;
-  grid-row: 1;
-  font-size: var(--text-sm);
-  font-variant-numeric: tabular-nums;
-  color: var(--fg-2);
+  --surface: var(--tint);
+  --muted: color-mix(in oklch, var(--fg) 64%, var(--surface));
 }
 
 @media (prefers-color-scheme: dark) {
   /* Same hue as the light tint, pushed dark, so cards stay on brand. */
-  .work-card {
-    background: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
+  .work-item {
+    --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
   }
 }
 
+/* Feature card after flighty.com: a large rounded surface, one paragraph
+   that opens in bold and continues muted, and the app in someone's hand. */
+.work-face {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 27rem) 1fr;
+  grid-template-rows: auto 1fr auto;
+  aspect-ratio: 16 / 10;
+  padding: clamp(1.5rem, 3.6vw, 2.75rem);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: 0 24px 60px -32px rgb(var(--shadow-tint) / 0.35);
+  overflow: hidden;
+  isolation: isolate;
+  transition: scale var(--dur-press) var(--ease-out);
+}
+
+.work-face:has(.work-card:active) {
+  scale: 0.985;
+}
+
+.work-copy {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.125rem, 0.8rem + 0.95vw, 1.625rem);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.work-lead,
+.work-body {
+  display: inline;
+}
+
+.work-lead {
+  font-size: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  color: var(--fg);
+}
+
+.work-facts {
+  grid-area: 3 / 1;
+  position: relative;
+  z-index: 1;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* The photo stands in the right half; the wrist leaves through the bottom edge.
+   Not rendered, so its lazy image is not fetched, until the card comes near:
+   lazy loading alone reaches this far on a slow phone and competes with the hero. */
+.work-shot {
+  position: absolute;
+  right: 8%;
+  bottom: -15%;
+  height: 106%;
+  aspect-ratio: 2 / 3;
+  pointer-events: none;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px auto 600px;
+}
+
+.work-phone {
+  width: 100%;
+  height: 100%;
+}
+
+/* The trigger covers the card; its plus sits in the corner. */
+.work-card {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.work-card:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.work-plus {
+  position: absolute;
+  top: clamp(1.25rem, 3vw, 2.25rem);
+  right: clamp(1.25rem, 3vw, 2.25rem);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--r-pill);
+  background: var(--fg);
+  color: var(--surface);
+  transition:
+    rotate var(--dur-ui) var(--ease-out),
+    scale var(--dur-ui) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .work-card:hover .work-plus {
+    rotate: 90deg;
+    scale: 1.08;
+  }
+}
+
+/* Shade for a card that is being covered by the next one; GSAP drives --dim. */
+.work-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  background: rgb(var(--shadow-tint) / 0.16);
+  opacity: var(--dim, 0);
+  pointer-events: none;
+}
+
+/* Parallax: the phone rises into the hand's resting spot as the card arrives. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .work-phone {
+      animation: phone-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}
+
+@keyframes phone-rise {
+  from {
+    translate: 0 14%;
+    rotate: 3deg;
+  }
+  to {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+
+/* Phones: copy on top, the hand rises from the bottom edge, centred. */
 @media (max-width: 640px) {
-  .work-card {
-    aspect-ratio: 5 / 4;
+  .work-face {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    aspect-ratio: 4 / 5.4;
+  }
+
+  .work-copy {
+    padding-right: 2.75rem;
+  }
+
+  .work-facts {
+    grid-area: 2 / 1;
+    margin-top: 0.5rem;
+  }
+
+  .work-shot {
+    right: auto;
+    left: 50%;
+    bottom: -24%;
+    height: 92%;
+    translate: -50% 0;
   }
 }

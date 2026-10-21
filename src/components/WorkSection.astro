@@ -4,7 +4,7 @@ import Work, { type Shot, type WorkItem } from './Work';
 import { earlier, projects } from '../data/site';
 
 const items: WorkItem[] = await Promise.all(
-  projects.map(async ({ shots, shotAlts, ...project }) => {
+  projects.map(async ({ shots, shotAlts, phone, ...project }) => {
     const resolved = await Promise.all(
       shots.map(async (src, i) => {
         const phone = i === 2;
@@ -12,7 +12,12 @@ const items: WorkItem[] = await Promise.all(
         return { src: img.src, srcset: img.srcSet.attribute, width: src.width, height: src.height, alt: shotAlts[i] ?? '' } satisfies Shot;
       }),
     );
-    return { ...project, shots: resolved as [Shot, Shot, Shot] };
+    const hand = await getImage({ src: phone.src, widths: [360, 540, 720, 960], format: 'webp' });
+    return {
+      ...project,
+      shots: resolved as [Shot, Shot, Shot],
+      phone: { src: hand.src, srcset: hand.srcSet.attribute, width: phone.src.width, height: phone.src.height, alt: phone.alt },
+    };
   }),
 );
 ---
