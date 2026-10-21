@@ -1,0 +1,83 @@
+/* The building stands in the drawer like a model on a shelf: tilted in 3D,
+   lit from behind by its own main colour, grounded by a soft contact shadow. */
+.model {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 340px);
+  aspect-ratio: 1;
+  margin: 1.5rem auto 0.5rem;
+  perspective: 900px;
+}
+
+.model img {
+  position: relative;
+  width: 88%;
+  height: auto;
+  transform: rotateX(var(--rx, 10deg)) rotateY(var(--ry, -14deg)) rotateZ(1deg);
+  transition: transform var(--dur-reveal) var(--ease-out);
+  filter: drop-shadow(0 24px 22px rgb(var(--shadow-tint) / 0.16));
+}
+
+.model-glow {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in oklch, var(--glow) 60%, transparent), transparent);
+  filter: blur(28px);
+  opacity: 0.5;
+}
+
+.model-floor {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 9%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--shadow-tint) / 0.22), transparent);
+  filter: blur(6px);
+}
+
+.model-caption {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  padding-bottom: 1.25rem;
+  text-align: center;
+}
+
+.model-role {
+  font-size: var(--text-lg);
+  color: var(--fg);
+}
+
+.model-meta {
+  font-size: var(--text-sm);
+  color: var(--fg-2);
+}
+
+/* The authored moment: the model swings up from flat into its tilt as the drawer opens. */
+@media (prefers-reduced-motion: no-preference) {
+  .model img {
+    animation: model-in var(--dur-reveal) var(--ease-out) backwards;
+  }
+
+  .model-glow {
+    animation: glow-in var(--dur-reveal) var(--ease-out) backwards;
+  }
+}
+
+@keyframes model-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) rotateX(34deg) rotateY(-30deg) scale(0.86);
+  }
+}
+
+@keyframes glow-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}

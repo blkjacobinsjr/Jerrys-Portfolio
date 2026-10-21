@@ -1,7 +1,7 @@
-import { lazy, Suspense, type CSSProperties } from 'react';
-import { Sheet, type DetentSpec } from 'scrollsheet';
+import { lazy, Suspense, useState, type CSSProperties } from 'react';
+import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { useMedia } from '../lib/useMedia';
-import 'scrollsheet/styles.css';
+import '../styles/sheet.css';
 import '../styles/card-stack.css';
 import './Work.css';
 
@@ -79,11 +79,18 @@ const DRAWER_DETENTS: DetentSpec[] = ['560px'];
 export default function Work({ items }: { items: WorkItem[] }) {
   // Side drawers size from their detents, so desktop gets one fixed width.
   const desktop = useMedia('(min-width: 768px)');
+  const [openId, setOpenId] = useState<string | null>(null);
   return (
     <ol className="work-list">
       {items.map((item, index) => (
         <li key={item.id} className="work-item" style={{ '--tint': item.tint, '--i': index } as CSSProperties}>
-          <Sheet.Root side="bottom" desktopSide="right" detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}>
+          <Sheet.Root
+            open={openId === item.id}
+            onOpenChange={(open) => setOpenId(open ? item.id : null)}
+            side="bottom"
+            desktopSide="right"
+            detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}
+          >
             <Sheet.Trigger className="work-card" aria-label={`${item.name}: ${item.summary} Open details`}>
               <Shots shots={item.shots} />
             </Sheet.Trigger>
@@ -93,20 +100,21 @@ export default function Work({ items }: { items: WorkItem[] }) {
               <span className="work-years">{item.years}</span>
             </div>
 
-            <Sheet.Content className="work-sheet">
+            <Sheet.Content className="sheet">
               <Sheet.Handle />
               <Sheet.Close />
-              <header className="work-sheet-head">
+              <div className="sheet-body" data-state={openId === item.id ? 'open' : 'closed'}>
+              <header className="detail-lead">
                 {item.id === 'scenaryo' && (
                   <Suspense fallback={<span className="bot-slot" />}>
                     <BotAvatar type="droid" color="#F26A2E" state="default" size={56} />
                   </Suspense>
                 )}
-                <Sheet.Title className="work-sheet-title">{item.name}</Sheet.Title>
+                <Sheet.Title className="detail-title">{item.name}</Sheet.Title>
                 <Sheet.Description className="muted">{item.summary}</Sheet.Description>
               </header>
 
-              <dl className="work-facts">
+              <dl className="detail-facts" style={{ '--i': 1 } as CSSProperties}>
                 <div>
                   <dt>Role</dt>
                   <dd>{item.role}</dd>
@@ -121,17 +129,17 @@ export default function Work({ items }: { items: WorkItem[] }) {
                 </div>
               </dl>
 
-              <p className="work-story">{item.story}</p>
+              <p className="detail-story" style={{ '--i': 2 } as CSSProperties}>{item.story}</p>
 
-              <h3 className="label">What I shaped</h3>
-              <ul className="work-shaped">
+              <h3 className="label detail-label" style={{ '--i': 3 } as CSSProperties}>What I shaped</h3>
+              <ul className="detail-list" style={{ '--i': 3 } as CSSProperties}>
                 {item.shaped.map((line) => (
                   <li key={line}>{line}</li>
                 ))}
               </ul>
-              {item.proof && <p className="work-proof muted">{item.proof}</p>}
+              {item.proof && <p className="detail-proof muted">{item.proof}</p>}
 
-              <div className="work-gallery" data-scrollsheet-nested-scroll tabIndex={0} role="group" aria-label={`${item.name} screenshots`}>
+              <div className="detail-gallery" style={{ '--i': 4 } as CSSProperties} data-scrollsheet-nested-scroll tabIndex={0} role="group" aria-label={`${item.name} screenshots`}>
                 {item.shots.map((shot) => (
                   <img
                     key={shot.src}
@@ -147,10 +155,11 @@ export default function Work({ items }: { items: WorkItem[] }) {
                 ))}
               </div>
 
-              <a className="pill-link" href={item.url} target="_blank" rel="noopener">
+              <a className="pill-link detail-visit" style={{ '--i': 5 } as CSSProperties} href={item.url} target="_blank" rel="noopener">
                 Visit {item.urlLabel}
                 <span aria-hidden="true"> ↗</span>
               </a>
+              </div>
             </Sheet.Content>
           </Sheet.Root>
         </li>

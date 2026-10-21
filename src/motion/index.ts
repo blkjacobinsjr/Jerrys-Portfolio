@@ -1,4 +1,5 @@
 import { gsap, jumpTo, startScroll } from '../lib/scroll';
+import { step, still, type Swing } from '../lib/swing';
 
 /**
  * Every scroll-driven effect on the page. Loaded once, after `load` and an
@@ -10,7 +11,7 @@ export function start() {
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     hero();
     deck();
-    curtain();
+    keyring();
   });
   mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', path);
 }
@@ -91,6 +92,14 @@ function path() {
       },
     );
   }
+  // The stop crossing the middle glows faintly in its own main colour.
+  for (const glow of track.querySelectorAll<HTMLElement>('.stop-glow')) {
+    gsap
+      .timeline({ scrollTrigger: { trigger: glow, containerAnimation: travel, start: 'left 80%', end: 'right 20%', scrub: true } })
+      .fromTo(glow, { opacity: 0 }, { opacity: 0.7, ease: 'none' })
+      .to(glow, { opacity: 0, ease: 'none' });
+  }
+
   // Tabbing to a stop that is still off to the side brings it to the middle, so focus is never hidden.
   const onFocus = (event: FocusEvent) => {
     const stop = (event.target as HTMLElement).closest<HTMLElement>('.stop');
@@ -108,16 +117,76 @@ function path() {
   };
 }
 
-/** The footer is uncovered from beneath, and its rooftops rise at three depths. */
-function curtain() {
-  const reveal = { trigger: '#contact', start: 'top bottom', end: 'bottom bottom' } as const;
-  gsap.fromTo('[data-curtain]', { yPercent: -45 }, { yPercent: 0, ease: 'none', scrollTrigger: { ...reveal, scrub: true } });
-  const rise = { far: 6, mid: 16, near: 30 } as const;
-  for (const [depth, amount] of Object.entries(rise)) {
-    gsap.fromTo(
-      `[data-roof="${depth}"]`,
-      { yPercent: amount },
-      { yPercent: 0, ease: 'none', scrollTrigger: { ...reveal, scrub: 1 } },
-    );
-  }
+/**
+ * The keyring swings with the momentum of the page: scroll acceleration kicks
+ * the carabiner one way and its charms the other, a breeze keeps it alive, and
+ * a pointer can bat a charm. Runs only while the keyring is on screen.
+ */
+function keyring() {
+  const root = document.querySelector<HTMLElement>('[data-keyring]');
+  if (!root) return;
+  const parts = [...root.querySelectorAll<HTMLElement>('[data-swing]')].map((el, i) => ({
+    el,
+    rest: Number(el.dataset.rest ?? 0),
+    mass: Number(el.dataset.mass ?? 1),
+    sign: i === 0 ? 1 : i % 2 ? -1 : 1,
+    phase: i * 1.7,
+    swing: still as Swing,
+    kick: 0,
+  }));
+  const [rig, ...charms] = parts;
+  if (!rig) return;
+
+  let frame = 0;
+  let visible = false;
+  let last = 0;
+  let lastY = scrollY;
+  let lastV = 0;
+
+  const tick = (now: number) => {
+    const dt = last ? (now - last) / 1000 : 1 / 60;
+    last = now;
+    const v = scrollY - lastY;
+    const a = v - lastV;
+    lastY = scrollY;
+    lastV = v;
+    const scroll = a * 1.6 + v * 0.06;
+    const before = rig.swing.velocity;
+
+    for (const part of parts) {
+      const breeze = Math.sin(now / 1250 + part.phase) * 0.35;
+      // Charms hang off the rig, so they lag behind whatever the rig just did.
+      const drag = part === rig ? 0 : -(rig.swing.velocity - before) / Math.max(dt, 1 / 120) * 0.5;
+      part.swing = step(part.swing, (scroll * part.sign + part.kick) / part.mass + breeze + drag, dt);
+      part.kick = 0;
+      part.el.style.rotate = `${part.rest + part.swing.angle * (180 / Math.PI)}deg`;
+    }
+    frame = visible ? requestAnimationFrame(tick) : 0;
+  };
+
+  const io = new IntersectionObserver(([entry]) => {
+    visible = Boolean(entry?.isIntersecting);
+    if (visible && !frame) {
+      last = 0;
+      lastY = scrollY;
+      lastV = 0;
+      frame = requestAnimationFrame(tick);
+    }
+  });
+  io.observe(root);
+
+  // Bat a charm: horizontal pointer speed becomes a kick on the piece under it.
+  const bat = (event: PointerEvent) => {
+    const hit = (event.target as Element).closest<HTMLElement>('[data-swing]');
+    const part = parts.find((p) => p.el === hit) ?? charms[0];
+    if (part) part.kick += event.movementX * 22;
+  };
+  root.addEventListener('pointermove', bat, { passive: true });
+
+  return () => {
+    io.disconnect();
+    root.removeEventListener('pointermove', bat);
+    cancelAnimationFrame(frame);
+    for (const part of parts) part.el.style.rotate = `${part.rest}deg`;
+  };
 }

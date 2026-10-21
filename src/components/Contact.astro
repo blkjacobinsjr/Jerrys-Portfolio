@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import ContactCTA from './ContactCTA';
+import Keyring from './Keyring.astro';
 import far from '../assets/roof/far.webp';
 import mid from '../assets/roof/mid.webp';
 import near from '../assets/roof/near.webp';
@@ -14,14 +15,16 @@ const layers = [
 ---
 
 <footer class="contact" id="contact" aria-labelledby="contact-title">
-  <div class="curtain" data-curtain>
+  <div class="curtain">
   <div class="sky" aria-hidden="true">
     {
       layers.map(({ img, depth }) => (
-        <Image src={img} alt="" class={`roof roof-${depth}`} data-roof={depth} widths={[768, 1280, 1536]} sizes="100vw" loading="lazy" />
+        <Image src={img} alt="" class={`roof roof-${depth}`} widths={[768, 1280, 1536]} sizes="100vw" loading="lazy" />
       ))
     }
   </div>
+
+  <Keyring />
 
   <div class="contact-body col">
     <h2 id="contact-title">Have an app that should feel this good?</h2>
@@ -89,7 +92,6 @@ const layers = [
     position: relative;
     display: grid;
     min-height: 100svh;
-    will-change: transform;
   }
 
   .sky {
@@ -102,7 +104,6 @@ const layers = [
     width: var(--w);
     max-width: none;
     translate: -50% 0;
-    will-change: transform;
   }
 
   .roof-far {
@@ -118,6 +119,49 @@ const layers = [
     bottom: calc(var(--w) * -0.215);
   }
 
+  /* Curtain and rooftop parallax run on the compositor (scroll-driven
+     animations), locked to the finger on touch. Where unsupported, the
+     footer simply sits still. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .contact {
+        view-timeline: --contact block;
+      }
+
+      .curtain,
+      .roof {
+        animation: rise linear both;
+        animation-timeline: --contact;
+        animation-range: entry 0% entry 100%;
+      }
+
+      .curtain {
+        --from: -45%;
+      }
+
+      .roof-far {
+        --from: 6%;
+      }
+
+      .roof-mid {
+        --from: 16%;
+      }
+
+      .roof-near {
+        --from: 30%;
+      }
+    }
+  }
+
+  @keyframes rise {
+    from {
+      transform: translateY(var(--from));
+    }
+    to {
+      transform: none;
+    }
+  }
+
   .contact-body {
     position: relative;
     display: grid;
@@ -126,6 +170,13 @@ const layers = [
     gap: 0.5rem;
     padding-top: clamp(4rem, 12vh, 8rem);
     text-align: center;
+  }
+
+  /* Phones: room above the heading for the keyring that hangs into it. */
+  @media (max-width: 899px) {
+    .contact-body {
+      padding-top: 21rem;
+    }
   }
 
   h2 {

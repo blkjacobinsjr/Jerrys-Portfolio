@@ -8,14 +8,19 @@ import { person, testimonials } from '../data/site';
 const statement =
   'German efficiency meets Ghanaian resilience. Years in marketing and customer support taught me why people buy. Teaching myself design and code let me build what they buy.';
 const words = statement.split(' ');
+// Each word gets its own slice of the scroll; together they span 82% of the stage.
+const step = 82 / words.length;
 ---
 
 <section class="about" id="about" aria-labelledby="about-title">
-  <div class="col">
-    <h2 id="about-title" class="label">About</h2>
-    <p class="statement">
-      {words.map((word) => <span class="word">{word} </span>)}
+  <h2 id="about-title" class="sr-only">About</h2>
+  <div class="statement-stage">
+    <p class="statement col" style={`--step: ${step}%`}>
+      {words.map((word, i) => [<span class="word" style={`--i: ${i}`}>{word}</span>, ' '])}
     </p>
+  </div>
+
+  <div class="col">
 
     <p class="downtime">
       Off screen I am an
@@ -59,7 +64,6 @@ const words = statement.split(' ');
   }
 
   .statement {
-    margin-top: 1.25rem;
     font-size: var(--text-statement);
     font-weight: 500;
     line-height: 1.18;
@@ -67,25 +71,60 @@ const words = statement.split(' ');
     text-wrap: pretty;
   }
 
-  /* Each word lights up as it crosses the reading line. Pure CSS, off the main thread. */
+  .word {
+    display: inline-block;
+  }
+
+  /* The sentence resolves as you read it: the statement holds still on a tall
+     stage while each word, in turn, goes from faint and blurred through a warm
+     glow to sharp. Compositor-driven; static wherever scroll timelines are missing. */
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
+      .statement-stage {
+        height: 230svh;
+        view-timeline: --statement block;
+      }
+
+      .statement {
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        column-gap: 0.26em;
+        min-height: 100svh;
+      }
+
       .word {
-        animation: word-on linear both;
-        animation-timeline: view();
-        animation-range: cover 18% cover 42%;
+        animation: word-in linear both;
+        animation-timeline: --statement;
+        animation-range: contain calc(4% + var(--i) * var(--step)) contain calc(14% + var(--i) * var(--step));
       }
     }
   }
 
-  @keyframes word-on {
+  /* Unread words stay fully opaque at half ink (over 4:1 against the page,
+     above the 3:1 large-text bar) and blurred; reading sharpens them to full ink. */
+  @keyframes word-in {
     from {
-      opacity: 0.16;
+      color: color-mix(in oklch, var(--fg) 50%, var(--bg));
+      filter: blur(9px);
+      text-shadow: 0 0 0 transparent;
+      transform: translateY(0.12em);
+    }
+    55% {
+      text-shadow: 0 0 22px color-mix(in oklch, var(--accent) 45%, transparent);
+    }
+    to {
+      color: var(--fg);
+      filter: blur(0);
+      text-shadow: 0 0 0 transparent;
+      transform: none;
     }
   }
 
   .downtime {
-    margin-top: 3rem;
+    margin-top: clamp(1rem, 4vh, 3rem);
     font-size: var(--text-lg);
     line-height: 2;
     color: var(--fg-2);

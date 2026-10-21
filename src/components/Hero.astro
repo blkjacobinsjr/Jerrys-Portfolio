@@ -14,7 +14,7 @@ const { sprite, still } = Astro.props;
 <header class="hero wide" id="top">
   <div class="hero-copy">
     <div class="hero-id">
-      <Mascot client:idle sprite={sprite} still={still} size={56} label="Poke Jerry’s mascot" />
+      <Mascot client:afterload sprite={sprite} still={still} size={56} label="Poke Jerry’s mascot" />
       <div>
         <h1>{person.name}</h1>
         <p class="muted">{person.role}</p>
@@ -35,10 +35,13 @@ const { sprite, still } = Astro.props;
     <Picture
       src={desk}
       formats={['avif', 'webp']}
+      fallbackFormat="webp"
       alt="A miniature 3D model of Jerry’s Berlin desk: a laptop showing the TV tower, a Kindle with a highlighter, headphones, a plant and an e-bike"
-      widths={[360, 560, 720, 1040]}
-      sizes="(min-width: 900px) 520px, 78vw"
+      widths={[320, 400, 480, 560, 640, 760, 1040]}
+      quality={58}
+      sizes="(min-width: 900px) 520px, 72vw"
       loading="eager"
+      decoding="sync"
       fetchpriority="high"
     />
   </figure>
@@ -97,7 +100,7 @@ const { sprite, still } = Astro.props;
 
   .hero-art {
     justify-self: center;
-    width: min(100%, 34rem);
+    width: min(72vw, 34rem);
     will-change: transform;
   }
 
@@ -116,21 +119,21 @@ const { sprite, still } = Astro.props;
       animation: hero-in var(--dur-reveal) var(--ease-out) both;
     }
     .hero-copy > :nth-child(2) {
-      animation-delay: 70ms;
+      animation-delay: 80ms;
     }
     .hero-copy > :nth-child(3) {
-      animation-delay: 140ms;
+      animation-delay: 150ms;
     }
     .hero-art {
-      animation: hero-art-in 1100ms var(--ease-out) 120ms both;
+      animation: hero-art-in var(--dur-reveal) var(--ease-out) both;
     }
   }
 
+  /* Visible from the first frame (so it is the first contentful paint); it only settles. */
   @keyframes hero-in {
     from {
-      opacity: 0;
-      transform: translateY(10px);
-      filter: blur(4px);
+      transform: translateY(8px);
+      filter: blur(3px);
     }
   }
 

@@ -15,7 +15,6 @@
   --shadow-tint: 30 20 10;
 
   --font-sans-stack: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono-stack: var(--font-mono), ui-monospace, monospace;
 
   --text-xs: 0.8125rem;
   --text-sm: 0.875rem;
@@ -32,13 +31,15 @@
   --r-tile: 12px;
   --r-pill: 999px;
 
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --dur-press: 160ms;
-  --dur-ui: 200ms;
-  --dur-move: 360ms;
-  --dur-reveal: 700ms;
+  /* On the transitions.dev scale (quick, fast, medium, slow, very slow). */
+  --dur-press: 150ms;
+  --dur-ui: 250ms;
+  --dur-move: 350ms;
+  --dur-panel: 400ms;
+  --dur-reveal: 500ms;
 
   /* z-index scale: content 0, sticky cards 1-9, dock 50, footer curtain -1 */
   --z-dock: 50;

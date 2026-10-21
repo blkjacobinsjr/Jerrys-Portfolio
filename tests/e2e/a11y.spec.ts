@@ -22,3 +22,15 @@ test('no axe violations with a project sheet open', async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(TAGS).analyze();
   expect(violations.map((v) => v.id)).toEqual([]);
 });
+
+test('no axe violations with a path drawer open', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page);
+  await scrollToSelector(page, '#path');
+  const stop = page.locator('[data-stop="draper"]');
+  await stop.focus();
+  await stop.click();
+  await expect(page.locator('dialog[open]')).toBeVisible();
+  const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(TAGS).analyze();
+  expect(violations.map((v) => v.id)).toEqual([]);
+});

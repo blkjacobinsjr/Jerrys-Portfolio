@@ -19,7 +19,7 @@ const items: WorkItem[] = await Promise.all(
 
 <section class="work wide" id="work" aria-labelledby="work-title">
   <h2 id="work-title" class="label">Selected work</h2>
-  <Work client:idle items={items} />
+  <Work client:afterload items={items} />
 
   <details class="earlier">
     <summary>

@@ -13,7 +13,14 @@ Feature: Getting to know Jerry
   Scenario: A recruiter checks the career path
     Given I open the portfolio
     When I open the path stop "Benify"
-    Then I read "Beat the previous regional campaigns by 50%."
+    Then I see a sheet titled "Benify"
+    And I read "Beat the previous regional campaigns by 50%."
+
+  Scenario: A founder reads about the pitch to Tim Draper
+    Given I open the portfolio
+    When I open the path stop "Draper University"
+    Then I see a sheet titled "Draper University"
+    And I read "Six million characters?"
 
   Scenario: A visitor finds the earlier projects
     Given I open the portfolio

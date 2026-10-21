@@ -1,0 +1,214 @@
+/* Drawer visuals shared by the work and path sheets. scrollsheet owns the
+   mechanics (native <dialog>, scroll-snap travel, spring). */
+.sheet {
+  background: var(--bg-elev);
+  color: var(--fg);
+  padding: 0.5rem 1.5rem calc(2rem + env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 48px -24px rgb(var(--shadow-tint) / 0.35);
+}
+
+@media (min-width: 768px) {
+  .sheet {
+    border-radius: 28px 0 0 28px;
+    padding: 2rem 2rem 2.5rem;
+  }
+}
+
+.detail-lead {
+  display: grid;
+  gap: 0.375rem;
+  padding: 1.5rem 0 1.25rem;
+}
+
+.detail-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 0.5rem 0 0;
+}
+
+.bot-slot {
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+
+.detail-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+  padding: 1rem 0;
+  border-block: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.detail-facts dt {
+  color: var(--fg-2);
+}
+
+.detail-facts dd {
+  margin: 0.125rem 0 0;
+}
+
+.detail-story {
+  margin-bottom: 1.5rem;
+}
+
+.detail-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.detail-list li::marker {
+  color: var(--fg-3);
+}
+
+.detail-proof {
+  font-size: var(--text-sm);
+  margin-bottom: 1.5rem;
+}
+
+.detail-gallery {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 82%;
+  gap: 0.75rem;
+  margin: 1.5rem -1.5rem;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1.5rem;
+  scrollbar-width: none;
+}
+
+.detail-gallery img {
+  scroll-snap-align: start;
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: var(--r-tile);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--r-pill);
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.pill-link:active {
+  transform: scale(0.97);
+}
+
+/* The panel's shadow arrives with its travel (400ms) and leaves faster
+   with it (350ms), never popping. */
+.sheet {
+  transition: box-shadow var(--dur-move) var(--ease-out);
+}
+
+.scrollsheet-dialog[data-scrollsheet-state='open'] .sheet {
+  transition: box-shadow var(--dur-panel) var(--ease-out);
+}
+
+@starting-style {
+  .scrollsheet-dialog[data-scrollsheet-state='open'] .sheet {
+    box-shadow: none;
+  }
+}
+
+.scrollsheet-dialog[data-scrollsheet-state='closing'] .sheet {
+  box-shadow: none;
+}
+
+/* Drawer motion, Panel reveal timing: content settles in over 400ms, a beat
+   after the panel and blurred to sharp, so the eye lands on the title first;
+   on close it blurs out over 350ms while the panel leaves. */
+.sheet-body {
+  opacity: 1;
+  transition:
+    opacity var(--dur-move) var(--ease-out),
+    filter var(--dur-move) var(--ease-out),
+    translate var(--dur-move) var(--ease-out);
+}
+
+.sheet-body[data-state='open'] {
+  transition:
+    opacity var(--dur-panel) var(--ease-out),
+    filter var(--dur-panel) var(--ease-out),
+    translate var(--dur-panel) var(--ease-out);
+}
+
+@starting-style {
+  .sheet-body[data-state='open'] {
+    opacity: 0;
+  }
+}
+
+.sheet-body[data-state='closed'] {
+  opacity: 0;
+  filter: blur(2px);
+  translate: 0 8px;
+}
+
+.detail-lead,
+.detail-facts,
+.detail-story,
+.detail-label,
+.detail-list,
+.detail-proof,
+.detail-gallery,
+.detail-visit,
+.model-caption {
+  transition:
+    opacity var(--dur-move) var(--ease-out),
+    filter var(--dur-move) var(--ease-out);
+  animation: sheet-in var(--dur-panel) var(--ease-out) backwards;
+  animation-delay: calc(80ms + var(--i, 0) * 40ms);
+}
+
+/* Each part leaves with the drawer: 350ms, blurred out. */
+.sheet-body[data-state='closed'] :is(.detail-lead, .detail-facts, .detail-story, .detail-label, .detail-list, .detail-proof, .detail-gallery, .detail-visit, .model-caption) {
+  opacity: 0;
+  filter: blur(2px);
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-lead,
+  .detail-facts,
+  .detail-story,
+  .detail-label,
+  .detail-list,
+  .detail-proof,
+  .detail-gallery,
+  .detail-visit,
+  .model-caption {
+    animation: none;
+  }
+
+  .sheet-body {
+    transition-property: opacity;
+  }
+}

@@ -4,8 +4,8 @@ import { open, scrollToSelector } from './helpers';
 test.describe('page', () => {
   test('renders the hero with no console errors', async ({ page }) => {
     const errors = await open(page);
-    await expect(page).toHaveTitle(/Jerry Schmalz/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Jerry Schmalz');
+    await expect(page).toHaveTitle(/Jerry Doughan/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Jerry Doughan');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /consumer apps/);
     await expect(page.locator('.hero-art img')).toBeVisible();
     expect(errors).toEqual([]);
@@ -84,25 +84,85 @@ test.describe('work', () => {
 });
 
 test.describe('path', () => {
-  test('shows the story behind a stop', async ({ page }) => {
+  test('opens the same drawer for a stop, with the building and its story', async ({ page }) => {
     await open(page);
     await scrollToSelector(page, '#path');
-    const stop = page.locator('.stop-btn', { hasText: 'Benify' });
+    const stop = page.locator('[data-stop="benify"]');
     // Focus first: on a pinned desktop strip, focusing a stop brings it on screen.
     await stop.focus();
     await page.waitForTimeout(800);
     await expect(stop).toBeInViewport();
     await stop.click();
-    const pop = page.locator('.stop-pop:popover-open');
-    await expect(pop).toContainText('Beat the previous regional campaigns by 50%.');
+    const sheet = page.locator('dialog[open]');
+    await expect(sheet.getByRole('heading', { name: 'Benify' })).toBeVisible();
+    await expect(sheet).toContainText('Beat the previous regional campaigns by 50%.');
+    await expect(sheet.locator('.model img')).toHaveAttribute('alt', /Benify/);
     await page.keyboard.press('Escape');
-    await expect(page.locator('.stop-pop:popover-open')).toHaveCount(0);
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
   });
 
-  test('has a diorama for every stop', async ({ page }) => {
+  test('tells the Draper University story with the award and the demo day post', async ({ page }) => {
     await open(page);
-    await expect(page.locator('.stop')).toHaveCount(11);
-    await expect(page.locator('.stop-art img')).toHaveCount(11);
+    await scrollToSelector(page, '#path');
+    const stop = page.locator('[data-stop="draper"]');
+    await stop.focus();
+    await page.waitForTimeout(800);
+    await stop.click();
+    const sheet = page.locator('dialog[open]');
+    await expect(sheet.getByRole('heading', { name: 'Draper University' })).toBeVisible();
+    await expect(sheet).toContainText('shark-infested water');
+    await expect(sheet.getByRole('img', { name: /Degree of Change Agent/ })).toBeAttached();
+    await expect(sheet.getByRole('link', { name: /demo day story/ })).toHaveAttribute('href', /linkedin\.com\/posts\/jasdoughan/);
+  });
+
+  test('has a diorama and a glow for every stop, oldest to now', async ({ page }) => {
+    await open(page);
+    await expect(page.locator('.stop')).toHaveCount(13);
+    await expect(page.locator('.stop-art img')).toHaveCount(13);
+    await expect(page.locator('.stop-glow')).toHaveCount(13);
+    const ids = await page.locator('[data-stop]').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.stop));
+    expect(ids.slice(-3)).toEqual(['buildspace', 'draper', 'scenaryo']);
+  });
+});
+
+test.describe('statement', () => {
+  test('resolves word by word on a scroll timeline that survived minification', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'scroll timelines are asserted in Chromium');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await open(page);
+    const timeline = await page.locator('.statement .word').first().evaluate((el) => getComputedStyle(el).animationTimeline);
+    expect(timeline).toBe('--statement');
+    // Before the stage is reached, unread words are blurred.
+    const blur = await page.locator('.statement .word').last().evaluate((el) => getComputedStyle(el).filter);
+    expect(blur).toContain('blur');
+  });
+
+  test('never folds a scroll timeline into the animation shorthand', async ({ page }) => {
+    const html = await (await page.request.get('/')).text();
+    const shorthands = [...html.matchAll(/animation:([^;}]*)/g)].map((m) => m[1] ?? '');
+    const broken = shorthands.filter((value) => /(^|\s)--[\w-]+|view\(|scroll\(/.test(value));
+    expect(broken).toEqual([]);
+  });
+});
+
+test.describe('keyring', () => {
+  test('hangs in the sky and swings when the page moves', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'physics timing asserted in Chromium');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await open(page);
+    const keyring = page.getByRole('img', { name: /keyring/ });
+    await expect(keyring).toHaveAttribute('aria-label', /locket with a photo of my baby/);
+    await page.evaluate(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'instant' }));
+    await page.waitForTimeout(1200);
+    const rig = page.locator('[data-keyring] .rig');
+    const before = await rig.evaluate((el) => (el as HTMLElement).style.rotate);
+    await page.mouse.wheel(0, -500);
+    await page.waitForTimeout(150);
+    await page.mouse.wheel(0, 500);
+    await page.waitForTimeout(400);
+    const after = await rig.evaluate((el) => (el as HTMLElement).style.rotate);
+    expect(after).not.toBe('');
+    expect(after).not.toBe(before);
   });
 });
 
@@ -134,7 +194,7 @@ test.describe('contact', () => {
 
   test('offers a CV download', async ({ page }) => {
     await open(page);
-    const response = await page.request.get('/jerry-schmalz-cv.pdf');
+    const response = await page.request.get('/jerry-doughan-cv.pdf');
     expect(response.ok()).toBe(true);
     expect(response.headers()['content-type']).toContain('pdf');
   });

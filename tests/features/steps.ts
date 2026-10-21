@@ -37,14 +37,14 @@ Then('no sheet is open', async ({ page }) => {
 When('I open the path stop {string}', async ({ page }, place: string) => {
   await page.evaluate(() => document.getElementById('path')?.scrollIntoView({ behavior: 'instant' }));
   await page.waitForTimeout(400);
-  const stop = page.locator('.stop-btn', { hasText: place });
+  const stop = page.locator('.stop-btn', { hasText: place }).first();
   await stop.focus();
   await page.waitForTimeout(800);
   await stop.click();
 });
 
 Then('I read {string}', async ({ page }, text: string) => {
-  await expect(page.locator('.stop-pop:popover-open')).toContainText(text);
+  await expect(page.locator('dialog[open]')).toContainText(text);
 });
 
 When('I expand {string}', async ({ page }, label: string) => {

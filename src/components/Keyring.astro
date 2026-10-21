@@ -1,0 +1,111 @@
+---
+import { Image } from 'astro:assets';
+import carabiner from '../assets/keys/carabiner.webp';
+import ledger from '../assets/keys/ledger.webp';
+import locket from '../assets/keys/locket.webp';
+import scenaryo from '../assets/keys/scenaryo.webp';
+
+// Hanging points measured from the cut-outs (fractions of each image's width).
+const CARABINER = { height: 200, pivot: 0.3914, ring: 0.4475 };
+// Fanned out around the split ring. The Scenaryo charm hangs front-left over
+// the locket's empty lid, never over the photo.
+const charms = [
+  { id: 'ledger', src: ledger, pivot: 0.3863, rest: -32, nudge: 6, mass: 0.8 },
+  { id: 'locket', src: locket, pivot: 0.5733, rest: -6, nudge: 0, mass: 1.25 },
+  { id: 'scenaryo', src: scenaryo, pivot: 0.4919, rest: 40, nudge: -8, mass: 1 },
+] as const;
+const CHARM_HEIGHT = 168;
+const width = (img: ImageMetadata, height: number) => Math.round((img.width / img.height) * height);
+---
+
+<div
+  class="keyring"
+  data-keyring
+  role="img"
+  aria-label="My keyring: an orange carabiner holding a Ledger, a Scenaryo charm, and a gold locket with a photo of my baby"
+  style={`--cw: ${width(carabiner, CARABINER.height)}px; --ch: ${CARABINER.height}px; --pivot: ${CARABINER.pivot}; --ring: ${CARABINER.ring}`}
+>
+  <span class="cord"></span>
+  <div class="rig" data-swing data-rest="0" data-mass="1.6">
+    <Image src={carabiner} alt="" height={CARABINER.height} densities={[1, 2]} loading="lazy" class="carabiner" />
+    {
+      charms.map((charm) => (
+        <div
+          class="charm"
+          data-swing
+          data-rest={charm.rest}
+          data-mass={charm.mass}
+          style={`--w: ${width(charm.src, CHARM_HEIGHT)}px; --p: ${charm.pivot}; --nudge: ${charm.nudge}px; rotate: ${charm.rest}deg`}
+        >
+          <Image src={charm.src} alt="" height={CHARM_HEIGHT} densities={[1, 2]} loading="lazy" />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  /* A keyring hanging out of the sky on a thin cord. Pieces rotate around
+     their own hanging points; src/motion/index.ts gives them pendulum physics. */
+  .keyring {
+    --cord: clamp(4.5rem, 15vh, 9rem);
+    position: absolute;
+    top: 0;
+    left: clamp(2rem, 9vw, 9rem);
+    z-index: 1;
+    width: 0;
+    height: calc(var(--cord) + var(--ch) + 168px);
+    pointer-events: none;
+  }
+
+  .cord {
+    position: absolute;
+    left: -0.75px;
+    top: 0;
+    width: 1.5px;
+    height: calc(var(--cord) + 6px);
+    background: linear-gradient(to bottom, transparent, color-mix(in oklch, var(--fg) 45%, transparent) 30%);
+  }
+
+  .rig {
+    position: absolute;
+    top: var(--cord);
+    left: calc(-1 * var(--pivot) * var(--cw));
+    width: var(--cw);
+    transform-origin: calc(var(--pivot) * 100%) 0;
+    pointer-events: auto;
+  }
+
+  .carabiner {
+    display: block;
+    width: var(--cw);
+    height: auto;
+    filter: drop-shadow(0 10px 14px rgb(var(--shadow-tint) / 0.18));
+  }
+
+  .charm {
+    position: absolute;
+    top: calc(var(--ch) * 0.93);
+    left: calc(var(--ring) * var(--cw) - var(--p) * var(--w) + var(--nudge));
+    width: var(--w);
+    transform-origin: calc(var(--p) * 100%) 0;
+    cursor: grab;
+  }
+
+  .charm :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 12px 14px rgb(var(--shadow-tint) / 0.2));
+  }
+
+  /* Phones: the keyring hangs centred above the heading, which moves down to make room. */
+  @media (max-width: 899px) {
+    .keyring {
+      --cord: 1.5rem;
+      left: 50%;
+      scale: 0.86;
+      transform-origin: 50% 0;
+    }
+  }
+</style>

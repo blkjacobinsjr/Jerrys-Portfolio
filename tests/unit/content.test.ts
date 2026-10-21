@@ -2,7 +2,13 @@ import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { earlier, path, person, projects, testimonials } from '../../src/data/site';
 
-const allCopy = JSON.stringify({ person, projects: projects.map(({ shots, ...p }) => p), earlier: earlier.map(({ thumb, ...e }) => e), path, testimonials: testimonials.map(({ avatar, ...t }) => t) });
+const allCopy = JSON.stringify({
+  person: { ...person, email: '' },
+  projects: projects.map(({ shots, ...p }) => p),
+  earlier: earlier.map(({ thumb, ...e }) => e),
+  path: path.map(({ photos, ...s }) => s),
+  testimonials: testimonials.map(({ avatar, ...t }) => t),
+});
 
 describe('content', () => {
   it('uses no em or en dashes anywhere (house style)', () => {
@@ -26,6 +32,20 @@ describe('content', () => {
       expect(p.url).toMatch(/^https:\/\//);
       expect(p.shaped.length).toBeGreaterThanOrEqual(3);
     }
+  });
+
+  it('gives every stop a hex glow, and every photo real alt text', () => {
+    for (const stop of path) {
+      expect(stop.glow, stop.id).toMatch(/^#[0-9a-f]{6}$/);
+      for (const photo of stop.photos ?? []) expect(photo.alt.length, stop.id).toBeGreaterThan(20);
+      if (stop.link) expect(stop.link.href).toMatch(/^https:\/\//);
+    }
+  });
+
+  it('uses the name Jerry Doughan', () => {
+    expect(person.name).toBe('Jerry Doughan');
+    expect(person.linkedin).toContain('jasdoughan');
+    expect(allCopy).not.toMatch(/Schmalz/);
   });
 
   it('keeps project and stop ids unique', () => {

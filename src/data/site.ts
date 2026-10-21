@@ -19,15 +19,18 @@ import thumbFoodie from '../assets/work/thumb-foodie.webp';
 import thumbBienmonk from '../assets/work/thumb-bienmonk.webp';
 import personChristoph from '../assets/work/person-christoph.webp';
 import personEnrique from '../assets/work/person-enrique.webp';
+import draperAward from '../assets/stops/draper-award.webp';
+import buildspaceGrad from '../assets/stops/buildspace-grad.webp';
+import buildspaceBadge from '../assets/stops/buildspace-badge.webp';
 
 export const person = {
-  name: 'Jerry Schmalz',
+  name: 'Jerry Doughan',
   role: 'Product designer and frontend developer',
   email: 'jr.a.schmalz@gmail.com',
-  linkedin: 'https://www.linkedin.com/in/jasschmalz/',
+  linkedin: 'https://www.linkedin.com/in/jasdoughan/',
   github: 'https://github.com/blkjacobinsjr',
   spotify: 'https://open.spotify.com/playlist/2oMArrXe9JmGpjVJ5z6lds',
-  cv: '/jerry-schmalz-cv.pdf',
+  cv: '/jerry-doughan-cv.pdf',
 } as const;
 
 export interface Project {
@@ -178,14 +181,20 @@ export interface Stop {
   title: string;
   where: string;
   notes: string[];
+  /** The diorama's most prominent colour, art-directed; lights the glow behind it. */
+  glow: string;
   /** Badge shown on the stop; "now" marks the current one. */
   flag?: 'now' | 'declined' | 'side';
+  story?: string;
+  photos?: { src: ImageMetadata; alt: string }[];
+  link?: { href: string; label: string };
 }
 
-/** Career path, oldest first. Dioramas live in src/assets/icons/<id>.png. */
+/** Career path, oldest first. Dioramas live in src/assets/icons/<id>.webp. */
 export const path: Stop[] = [
   {
     id: 'coventry',
+    glow: '#d0623f',
     when: '2013',
     place: 'Coventry University',
     title: 'BA Advertising and Marketing',
@@ -194,6 +203,7 @@ export const path: Stop[] = [
   },
   {
     id: 'workinghana',
+    glow: '#f2b149',
     when: 'Uni',
     place: 'Work in Ghana',
     title: 'Student project',
@@ -203,6 +213,7 @@ export const path: Stop[] = [
   },
   {
     id: 'opentable',
+    glow: '#2f6a4a',
     when: '2017',
     place: 'OpenTable',
     title: 'Bilingual customer support',
@@ -211,6 +222,7 @@ export const path: Stop[] = [
   },
   {
     id: 'dotdigital',
+    glow: '#6f9fc8',
     when: '2018',
     place: 'Dotdigital',
     title: 'EMEA marketing executive',
@@ -219,6 +231,7 @@ export const path: Stop[] = [
   },
   {
     id: 'siteminder',
+    glow: '#c79a55',
     when: '2020',
     place: 'SiteMinder',
     title: 'DACH marketing and events',
@@ -227,6 +240,7 @@ export const path: Stop[] = [
   },
   {
     id: 'peloton',
+    glow: '#d49a5e',
     when: '2021',
     place: 'Peloton',
     title: 'Bilingual member advisor',
@@ -235,6 +249,7 @@ export const path: Stop[] = [
   },
   {
     id: 'tiktokdeclined',
+    glow: '#e0a640',
     when: '2022',
     place: 'TikTok',
     title: 'Offer declined',
@@ -244,6 +259,7 @@ export const path: Stop[] = [
   },
   {
     id: 'benify',
+    glow: '#c98a4b',
     when: '2022',
     place: 'Benify',
     title: 'Field marketing specialist',
@@ -252,6 +268,7 @@ export const path: Stop[] = [
   },
   {
     id: 'hkw',
+    glow: '#5fb3c4',
     when: '2023',
     place: 'Haus der Kulturen der Welt',
     title: 'Executive assistant to the director',
@@ -260,6 +277,7 @@ export const path: Stop[] = [
   },
   {
     id: 'wbs',
+    glow: '#a04a2c',
     when: '2023',
     place: 'WBS Coding School',
     title: 'Web development',
@@ -267,7 +285,43 @@ export const path: Stop[] = [
     notes: ['From "Hello, World!" to a full-stack app in four months.', 'Final project: Subzro. Plus a Google UX certificate with 100% on every course.'],
   },
   {
+    id: 'buildspace',
+    when: '2024',
+    place: 'buildspace',
+    title: 'nights & weekends, season 5',
+    where: 'Online and San Francisco',
+    glow: '#4b5fb0',
+    story: 'Six weeks of building on nights and weekends with buildspace. I came out a season 5 graduate.',
+    notes: ['Season 5 of nights & weekends: take an idea from zero to its first users in six weeks.', 'Graduated, with the San Francisco badge and lanyard to show for it.'],
+    photos: [
+      { src: buildspaceBadge, alt: 'A black nights and weekends season 5 San Francisco badge on a buildspace lanyard' },
+      { src: buildspaceGrad, alt: 'A white buildspace grad badge on a buildspace lanyard' },
+    ],
+  },
+  {
+    id: 'draper',
+    when: '2024',
+    place: 'Draper University',
+    title: 'Degree of Change Agent',
+    where: 'San Mateo and San Francisco',
+    glow: '#3f78c4',
+    story:
+      'Hero training at Tim Draper’s school for founders. We paddled through shark-infested water, hiked 20 miles a day, sat through 10-minute ice baths, shot rifles, and learned to build as a team. It ended on stage, pitching to Tim Draper himself.',
+    notes: [
+      'Demo day: my demo went rogue on stage, so I showed Tim the app on my phone. The character I picked was Tim himself, from the film Trust Machine.',
+      '“Six million characters?” he asked. That was the scale of it.',
+      'I prepped for the pitch with an AI version of Tim that gave me tips.',
+      'Our waitlist passed 300 sign-ups in its first week. 104 other founders made the journey with me.',
+    ],
+    photos: [{ src: draperAward, alt: 'The glass Draper University award conferring the Degree of Change Agent, Summer 2024' }],
+    link: {
+      href: 'https://www.linkedin.com/posts/jasdoughan_demo-day-at-draper-university-was-wild-picture-ugcPost-7223066913948532736-DZw1/',
+      label: 'Read the demo day story',
+    },
+  },
+  {
     id: 'scenaryo',
+    glow: '#e5483a',
     when: 'Now',
     place: 'Scenaryo',
     title: 'Co-founder',

@@ -13,7 +13,7 @@ import { person } from '../data/site';
 
 <Base
   title={`${person.name}, product designer and frontend developer`}
-  description="Jerry Schmalz designs and builds consumer apps that feel good in the first five seconds. Co-founder of Scenaryo. Berlin."
+  description="Jerry Doughan designs and builds consumer apps that feel good in the first five seconds. Co-founder of Scenaryo. Berlin."
 >
   <main id="main" class="page" data-scrollsheet-background>
     <Hero sprite={sprite.src} still={still.src} />
@@ -22,7 +22,7 @@ import { person } from '../data/site';
     <About />
   </main>
   <Contact />
-  <Dock client:idle sprite={sprite.src} still={still.src} />
+  <Dock client:afterload sprite={sprite.src} still={still.src} />
 </Base>
 
 <style>
