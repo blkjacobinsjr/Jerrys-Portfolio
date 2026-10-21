@@ -25,7 +25,7 @@ const layers = [
 
   <div class="contact-body col">
     <h2 id="contact-title">Have an app that should feel this good?</h2>
-    <ContactCTA client:visible email={person.email} />
+    <ContactCTA client:visible={{ rootMargin: '600px' }} email={person.email} />
     <p class="contact-links">
       <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
       <a href={person.github} rel="me noopener" target="_blank">GitHub</a>

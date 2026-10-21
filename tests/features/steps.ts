@@ -59,6 +59,8 @@ Then('I see a link to {string}', async ({ page }, name: string) => {
 
 When('I copy the email address', async ({ page }) => {
   await page.evaluate(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'instant' }));
+  // The CTA is an island; click once it has hydrated, as a person would after it rendered.
+  await expect(page.locator('#contact astro-island[ssr]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Copy email' }).click();
 });
 

@@ -8,8 +8,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { outputFolder: 'reports/e2e', open: 'never' }], ['json', { outputFile: 'reports/e2e/results.json' }]],
-  use: { baseURL: 'http://localhost:4321', trace: 'retain-on-failure' },
-  webServer: { command: 'npm run preview -- --port 4321', url: 'http://localhost:4321', reuseExistingServer: !process.env.CI },
+  // BASE_URL runs the same suite against a deployment (preview or production) instead of a local build.
+  use: { baseURL: process.env.BASE_URL ?? 'http://localhost:4321', trace: 'retain-on-failure' },
+  webServer: process.env.BASE_URL
+    ? undefined
+    : { command: 'npm run preview -- --port 4321', url: 'http://localhost:4321', reuseExistingServer: !process.env.CI },
   projects: [
     { name: 'desktop', testDir: 'tests/e2e', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
     { name: 'mobile', testDir: 'tests/e2e', use: { ...devices['Pixel 7'] } },
