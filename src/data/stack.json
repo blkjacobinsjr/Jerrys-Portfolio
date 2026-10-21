@@ -1,0 +1,81 @@
+{
+  "source": "simpleicons",
+  "stack": [
+    {
+      "name": "React",
+      "file": "react-dev.svg"
+    },
+    {
+      "name": "TypeScript",
+      "file": "typescriptlang-org.svg"
+    },
+    {
+      "name": "Next.js",
+      "file": "nextjs-org.svg"
+    },
+    {
+      "name": "Astro",
+      "file": "astro-build.svg"
+    },
+    {
+      "name": "Expo",
+      "file": "expo-dev.svg"
+    },
+    {
+      "name": "Tailwind CSS",
+      "file": "tailwindcss-com.svg"
+    },
+    {
+      "name": "Node.js",
+      "file": "nodejs-org.svg"
+    },
+    {
+      "name": "NestJS",
+      "file": "nestjs-com.svg"
+    },
+    {
+      "name": "Supabase",
+      "file": "supabase-com.svg"
+    },
+    {
+      "name": "PostgreSQL",
+      "file": "postgresql-org.svg"
+    },
+    {
+      "name": "Docker",
+      "file": "docker-com.svg"
+    },
+    {
+      "name": "Vite",
+      "file": "vite-dev.svg"
+    },
+    {
+      "name": "Vercel",
+      "file": "vercel-com.svg"
+    },
+    {
+      "name": "GitHub",
+      "file": "github-com.svg"
+    },
+    {
+      "name": "Figma",
+      "file": "figma-com.svg"
+    },
+    {
+      "name": "Google Analytics",
+      "file": "analytics-google-com.svg"
+    },
+    {
+      "name": "Shopify",
+      "file": "shopify-com.svg"
+    },
+    {
+      "name": "WordPress",
+      "file": "wordpress-org.svg"
+    },
+    {
+      "name": "Zendesk",
+      "file": "zendesk-com.svg"
+    }
+  ]
+}

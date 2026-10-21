@@ -2,7 +2,19 @@
 import { Image, getImage } from 'astro:assets';
 import Work, { type Shot, type WorkItem } from './Work';
 import DecryptedText from './DecryptedText';
+import LogoLoop from './LogoLoop';
 import { earlier, projects } from '../data/site';
+import tools from '../data/stack.json';
+
+// Logo files written by tools/fetch-logos.mjs (logo.dev with a token, Simple Icons without).
+const logoUrls = import.meta.glob<string>('../assets/logos/*', { eager: true, query: '?url', import: 'default' });
+const logos = tools.stack.map(({ name, file }) => ({
+  src: logoUrls[`../assets/logos/${file}`]!,
+  alt: name,
+  title: name,
+  width: 24,
+  height: 24,
+}));
 
 const items: WorkItem[] = await Promise.all(
   projects.map(async ({ shots, shotAlts, phone, ...project }) => {
@@ -53,6 +65,21 @@ const items: WorkItem[] = await Promise.all(
       }
     </ul>
   </details>
+
+  <div class="tools" aria-labelledby="tools-title">
+    <h3 class="label" id="tools-title">Tools I build with</h3>
+    <LogoLoop
+      client:visible={{ rootMargin: '300px' }}
+      logos={logos}
+      speed={36}
+      logoHeight={26}
+      gap={52}
+      pauseOnHover
+      scaleOnHover
+      labels="hover"
+      ariaLabel="Tools I build with"
+    />
+  </div>
 </section>
 
 <style>
@@ -60,6 +87,20 @@ const items: WorkItem[] = await Promise.all(
     display: grid;
     gap: 1.5rem;
     padding-block: var(--section-gap) 0;
+  }
+
+  /* Full bleed: the loop runs edge to edge under the section. */
+  .tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    width: 100vw;
+    margin: clamp(3rem, 8vh, 5rem) calc(50% - 50vw) 0;
+  }
+
+  .tools .label {
+    width: min(100% - 2 * var(--gutter), var(--col));
+    margin-inline: auto;
   }
 
   .earlier {
