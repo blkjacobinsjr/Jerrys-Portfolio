@@ -3,7 +3,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 import react from '@astrojs/react';
 
 export default defineConfig({
-  site: 'https://jerrys-portfolio.vercel.app',
+  site: 'https://jerrydoughan.com',
   integrations: [
     react(),
     {
