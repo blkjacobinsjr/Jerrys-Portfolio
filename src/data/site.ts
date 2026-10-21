@@ -22,6 +22,7 @@ import thumbPriori from '../assets/work/thumb-priori.webp';
 import thumbFoodie from '../assets/work/thumb-foodie.webp';
 import thumbBienmonk from '../assets/work/thumb-bienmonk.webp';
 import draperAward from '../assets/stops/draper-award.webp';
+import tiktokOffer from '../assets/stops/tiktok-offer.webp';
 import buildspaceGrad from '../assets/stops/buildspace-grad.webp';
 import buildspaceBadge from '../assets/stops/buildspace-badge.webp';
 import leapfrog1 from '../assets/work/leapfrog-1.webp';
@@ -321,6 +322,7 @@ export const path: Stop[] = [
     title: 'Offer declined',
     where: 'Berlin',
     notes: ['Said no to TikTok and went to Benify instead.'],
+    photos: [{ src: tiktokOffer, alt: 'Censored TikTok recruiter email following up on Jerry’s offer, May 2022' }],
     flag: 'declined',
   },
   {

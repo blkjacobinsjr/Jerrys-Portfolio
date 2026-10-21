@@ -1,6 +1,11 @@
-/* Drawer visuals shared by the work and path sheets. scrollsheet owns the
+/* Drawer visuals for every overlay (components/Drawer.tsx). scrollsheet owns the
    mechanics (native <dialog>, scroll-snap travel, spring). */
 .scrollsheet-dialog[data-scrollsheet-side] .scrollsheet-panel.sheet {
+  /* The overlay contract (lib/overlay.ts): the panel is its own scroll port,
+     never taller than the screen, so long content always scrolls. */
+  max-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--bg-elev);
   color: var(--fg);
   padding: 0.5rem 1.5rem calc(2rem + env(safe-area-inset-bottom));
@@ -12,7 +17,16 @@
   .scrollsheet-dialog[data-scrollsheet-side] .scrollsheet-panel.sheet {
     border-radius: 28px 0 0 28px;
     padding: 2rem 2rem 2.5rem;
+    /* Reaching the end of the side drawer never scrolls anything behind it.
+       Phones keep chaining, so pulling down at the top still travels the sheet. */
+    overscroll-behavior-y: contain;
   }
+}
+
+/* Grid and flex children may shrink, so nothing pushes the panel past its scroll port. */
+.sheet-body > * {
+  min-width: 0;
+  min-height: 0;
 }
 
 .detail-lead {

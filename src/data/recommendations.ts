@@ -56,7 +56,7 @@ export const recommendations: Recommendation[] = [
     linkedin: 'https://www.linkedin.com/in/icalero',
     portrait: inigoPortrait,
     quote:
-      'Jerry turns ambitious ideas into products people want to talk about. I thought sceneXtras was so good that I encouraged him to launch and introduced him to investors and Basebone. The Reddit response and the first 614 sign-ups reflected the interest I was seeing. He combines strong product instincts with the determination to get his work into people’s hands.',
+      'Jerry turns ambitious ideas into products people want to talk about. I thought sceneXtras was so good that I encouraged him to launch and introduced him to investors and Basebone. The Reddit response and the first thousands of waitlist sign-ups reflected the interest I was seeing. He combines strong product instincts with the determination to get his work into people’s hands.',
     context: 'Former Clivi founder · supported the SceneXtras launch',
     proof: 'Clivi founder · about €0.9M raised',
     position: {

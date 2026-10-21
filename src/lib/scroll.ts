@@ -1,6 +1,7 @@
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { isInsideOverlay, onScrollLock } from './overlay';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,7 +25,11 @@ export function startScroll(): Lenis | undefined {
     syncTouch: false,
     anchors: true,
     autoRaf: false,
+    // Overlays own their scrolling (src/lib/overlay.ts). Without this, Lenis cancels
+    // every wheel event inside a drawer and scrolls the page behind it instead.
+    prevent: isInsideOverlay,
   });
+  onScrollLock((locked) => (locked ? lenis?.stop() : lenis?.start()));
   lenis.on('scroll', ({ velocity }) => {
     ScrollTrigger.update();
     for (const listener of velocityListeners) listener(velocity);

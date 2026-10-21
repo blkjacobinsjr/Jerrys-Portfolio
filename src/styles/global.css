@@ -72,6 +72,13 @@ html {
   background: var(--bg);
 }
 
+/* An open overlay locks the page in place (lib/overlay.ts lockScroll). The gutter
+   stays, so hiding the scrollbar never shifts the layout behind the drawer. */
+html[data-scroll-locked] {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   background: var(--bg);

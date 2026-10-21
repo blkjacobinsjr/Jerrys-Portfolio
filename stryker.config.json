@@ -7,7 +7,8 @@
   "mutate": [
     "src/lib/mascot.ts",
     "src/lib/swing.ts",
-    "src/lib/interaction.ts"
+    "src/lib/interaction.ts",
+    "src/lib/overlay.ts"
   ],
   "coverageAnalysis": "perTest",
   "reporters": [

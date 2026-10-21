@@ -80,6 +80,21 @@ describe('portfolio revamp content', () => {
     expect(path.find((stop) => stop.id === 'desk')?.modelKind).toBe('desk');
   });
 
+  it('credits sceneXtras with its first thousands of Reddit waitlist sign-ups', () => {
+    const inigo = recommendations.find((rec) => rec.name === 'Iñigo Martín-Calero');
+    expect(inigo?.quote).toContain('The Reddit response and the first thousands of waitlist sign-ups reflected the interest I was seeing.');
+    expect(inigo?.quote).not.toMatch(/614/);
+  });
+
+  it('backs the declined TikTok offer with the censored recruiter email', () => {
+    const tiktok = path.find((stop) => stop.id === 'tiktokdeclined');
+    expect(tiktok?.flag).toBe('declined');
+    expect(tiktok?.photos).toHaveLength(1);
+    const [email] = tiktok?.photos ?? [];
+    localAsset(email.src);
+    expect(email.alt).toBe('Censored TikTok recruiter email following up on Jerry’s offer, May 2022');
+  });
+
   it('configures the canonical domain and sitemap discovery', () => {
     expect(astroConfig.site).toBe('https://jerrydoughan.com');
     expect(readFileSync('public/robots.txt', 'utf8')).toContain('Sitemap: https://jerrydoughan.com/sitemap.xml');

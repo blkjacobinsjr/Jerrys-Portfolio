@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
-import { Sheet, type DetentSpec } from 'scrollsheet/auto';
-import '../styles/sheet.css';
+import { Sheet } from 'scrollsheet/auto';
+import Drawer from './Drawer';
 import './PathSheet.css';
 import { useMedia } from '../lib/useMedia';
 import { useMachine } from '@xstate/react';
@@ -33,8 +33,6 @@ export interface StopView {
   modelKind?: 'desk';
 }
 
-const PHONE_DETENTS: DetentSpec[] = [0.72, 'full'];
-const DRAWER_DETENTS: DetentSpec[] = ['520px'];
 const stagger = (i: number) => ({ '--i': i }) as CSSProperties;
 
 /**
@@ -48,7 +46,6 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   const [id, setId] = useState<string | null>(null);
   // Bumped on every open from the strip, so the wheel starts on that stop.
   const [visit, setVisit] = useState(0);
-  const desktop = useMedia('(min-width: 768px)');
   const reduced = useMedia('(prefers-reduced-motion: reduce)');
   const model = useRef<HTMLImageElement>(null);
   const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -110,10 +107,14 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   const labels = useMemo(() => stops.map((s) => `${s.when} · ${s.place}`), [stops]);
 
   return (
-    <Sheet.Root open={open} onOpenChange={changeDrawerOpen} side="bottom" desktopSide="right" detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}>
-      <Sheet.Content className="sheet path-sheet" style={{ '--glow': stop?.glow } as CSSProperties}>
-        <Sheet.Handle />
-        <Sheet.Close />
+    <Drawer
+      open={open}
+      onOpenChange={changeDrawerOpen}
+      phone={[0.72, 'full']}
+      desktop="520px"
+      className="path-sheet"
+      style={{ '--glow': stop?.glow } as CSSProperties}
+    >
         {stop && (
           <div className="sheet-body" data-state={open ? 'open' : 'closed'} data-drawer-state={open ? drawerSnapshot.value : 'idle'}>
             {stop.modelKind === 'desk' && open ? (
@@ -253,7 +254,6 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
             )}
           </div>
         )}
-      </Sheet.Content>
-    </Sheet.Root>
+    </Drawer>
   );
 }

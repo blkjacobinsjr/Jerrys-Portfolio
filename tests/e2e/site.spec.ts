@@ -114,6 +114,53 @@ test.describe('path', () => {
     await expect(sheet.getByRole('link', { name: /demo day story/ })).toHaveAttribute('href', /linkedin\.com\/posts\/jasdoughan/);
   });
 
+  test('shows the censored TikTok offer email on the declined stop', async ({ page }) => {
+    await open(page);
+    await scrollToSelector(page, '#path');
+    const stop = page.locator('[data-stop="tiktokdeclined"]');
+    await stop.focus();
+    await page.waitForTimeout(800);
+    await stop.click();
+    const sheet = page.locator('dialog[open]');
+    await expect(sheet.getByRole('heading', { name: 'TikTok' })).toBeVisible();
+    const email = sheet.getByRole('img', { name: /Censored TikTok recruiter email/ });
+    await expect(email).toBeAttached();
+    await expect(email).toHaveAttribute('loading', 'lazy');
+    await expect(email).toHaveAttribute('width', '1200');
+    await expect(email).toHaveAttribute('height', '900');
+  });
+
+  test('scrolls a long drawer with the mouse wheel on a short laptop screen', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Wheel scrolling is a desktop input; touch devices drag the native sheet.');
+    await page.setViewportSize({ width: 1024, height: 640 });
+    await open(page);
+    await scrollToSelector(page, '#path');
+    const stop = page.locator('[data-stop="draper"]');
+    await stop.focus();
+    await page.waitForTimeout(800);
+    await stop.click();
+    const sheet = page.locator('dialog[open]');
+    await expect(sheet.getByRole('heading', { name: 'Draper University' })).toBeVisible();
+    const panel = sheet.locator('.sheet');
+    const lastNote = sheet.locator('.detail-list li').last();
+    await expect(lastNote).not.toBeInViewport();
+    const port = await panel.evaluate((el) => ({ scrollHeight: el.scrollHeight, clientHeight: el.clientHeight, scrollTop: el.scrollTop }));
+    expect(port.scrollHeight).toBeGreaterThan(port.clientHeight);
+    const story = sheet.locator('.detail-story');
+    await story.hover();
+    const pageTop = await page.evaluate(() => scrollY);
+    await expect(async () => {
+      await page.mouse.wheel(0, 400);
+      await expect(lastNote).toBeInViewport({ timeout: 300 });
+    }).toPass({ timeout: 8_000 });
+    expect(await panel.evaluate((el) => el.scrollTop)).toBeGreaterThan(port.scrollTop);
+    // The wheel belongs to the drawer, not the page behind it.
+    expect(await page.evaluate(() => scrollY)).toBe(pageTop);
+    await expect(sheet.getByRole('button', { name: /close/i })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
+  });
+
   test('walks to the stops before and after it from the drawer', async ({ page }) => {
     await open(page);
     await scrollToSelector(page, '#path');
