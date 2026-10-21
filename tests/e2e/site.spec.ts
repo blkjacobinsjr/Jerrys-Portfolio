@@ -164,6 +164,22 @@ test.describe('keyring', () => {
     expect(after).not.toBe('');
     expect(after).not.toBe(before);
   });
+
+  test('stops swinging and settles at rest when reduced motion is switched on', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'physics timing asserted in Chromium');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await open(page);
+    await page.evaluate(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'instant' }));
+    await page.waitForTimeout(1200);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForTimeout(300);
+    const rig = page.locator('[data-keyring] .rig');
+    const first = await rig.evaluate((el) => (el as HTMLElement).style.rotate);
+    await page.waitForTimeout(600);
+    const second = await rig.evaluate((el) => (el as HTMLElement).style.rotate);
+    expect(first).toBe('0deg');
+    expect(second).toBe(first);
+  });
 });
 
 test.describe('dock', () => {

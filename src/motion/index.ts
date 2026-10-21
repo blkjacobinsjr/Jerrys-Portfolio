@@ -9,9 +9,12 @@ export function start() {
   startScroll();
   const mm = gsap.matchMedia();
   mm.add('(prefers-reduced-motion: no-preference)', () => {
-    hero();
+    // GSAP reverts its own tweens when the query stops matching; our loops and listeners clean up here.
+    const cleanups = [hero(), keyring()];
     deck();
-    keyring();
+    return () => {
+      for (const cleanup of cleanups) cleanup?.();
+    };
   });
   mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', path);
 }

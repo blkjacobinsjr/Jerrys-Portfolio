@@ -291,8 +291,8 @@ export const path: Stop[] = [
     title: 'nights & weekends, season 5',
     where: 'Online and San Francisco',
     glow: '#4b5fb0',
-    story: 'Six weeks of building on nights and weekends with buildspace. I came out a season 5 graduate.',
-    notes: ['Season 5 of nights & weekends: take an idea from zero to its first users in six weeks.', 'Graduated, with the San Francisco badge and lanyard to show for it.'],
+    story: 'Season 5 of nights & weekends, buildspace’s six-week program for building an idea on nights and weekends. I came out a graduate.',
+    notes: ['The format: start any idea from zero and leave with its first fans, users, or revenue.', 'Graduated, with the San Francisco badge and lanyard to show for it.'],
     photos: [
       { src: buildspaceBadge, alt: 'A black nights and weekends season 5 San Francisco badge on a buildspace lanyard' },
       { src: buildspaceGrad, alt: 'A white buildspace grad badge on a buildspace lanyard' },
