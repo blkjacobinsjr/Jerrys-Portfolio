@@ -24,6 +24,9 @@ import thumbBienmonk from '../assets/work/thumb-bienmonk.webp';
 import draperAward from '../assets/stops/draper-award.webp';
 import buildspaceGrad from '../assets/stops/buildspace-grad.webp';
 import buildspaceBadge from '../assets/stops/buildspace-badge.webp';
+import badgeFront from '../assets/lanyard/buildspace-front.webp';
+import badgeBack from '../assets/lanyard/buildspace-back.webp';
+import badgeStrap from '../assets/lanyard/buildspace-strap.webp';
 
 export const person = {
   name: 'Jerry Doughan',
@@ -204,6 +207,9 @@ export interface Stop {
   story?: string;
   photos?: { src: ImageMetadata; alt: string }[];
   link?: { href: string; label: string };
+  /** A badge recreated from the photos, hung on a 3D lanyard in the drawer. */
+  badge?: { front: ImageMetadata; back: ImageMetadata; strap: ImageMetadata };
+  modelKind?: 'desk';
 }
 
 /** Career path, oldest first. Dioramas live in src/assets/icons/<id>.webp. */
@@ -324,6 +330,7 @@ export const path: Stop[] = [
       { src: buildspaceBadge, alt: 'A black nights and weekends season 5 San Francisco badge on a buildspace lanyard' },
       { src: buildspaceGrad, alt: 'A white buildspace grad badge on a buildspace lanyard' },
     ],
+    badge: { front: badgeFront, back: badgeBack, strap: badgeStrap },
   },
   {
     id: 'draper',
@@ -346,6 +353,17 @@ export const path: Stop[] = [
       href: 'https://www.linkedin.com/posts/jasdoughan_demo-day-at-draper-university-was-wild-picture-ugcPost-7223066913948532736-DZw1/',
       label: 'Read the demo day story',
     },
+  },
+  {
+    id: 'desk',
+    code: 'BER · DE',
+    glow: '#bb9567',
+    when: 'These days',
+    place: 'My Berlin desk',
+    title: 'Where I build',
+    where: 'Berlin',
+    modelKind: 'desk',
+    notes: ['A laptop for building, a Kindle for reading, and an e-bike for getting away from the screen.'],
   },
   {
     id: 'scenaryo',

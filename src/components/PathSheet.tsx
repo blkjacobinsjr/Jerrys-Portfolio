@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import '../styles/sheet.css';
 import './PathSheet.css';
 import { useMedia } from '../lib/useMedia';
 import OptionWheel from './OptionWheel';
+
+// three.js and the lanyard load only when a drawer with a badge opens.
+const Lanyard = lazy(() => import('./Lanyard'));
+const Desk = lazy(() => import('./Desk'));
 
 export interface Picture {
   src: string;
@@ -26,6 +30,8 @@ export interface StopView {
   model: Picture;
   photos: Picture[];
   link?: { href: string; label: string };
+  badge?: { front: string; back: string; strap: string };
+  modelKind?: 'desk';
 }
 
 const PHONE_DETENTS: DetentSpec[] = [0.72, 'full'];
@@ -71,7 +77,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   // A fine pointer turns the model a few degrees, like picking it up off a shelf.
   const tilt = (event: PointerEvent<HTMLElement>) => {
     const img = model.current;
-    if (!img || event.pointerType !== 'mouse') return;
+    if (!img || reduced || event.pointerType !== 'mouse') return;
     const box = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - box.left) / box.width - 0.5;
     const y = (event.clientY - box.top) / box.height - 0.5;
@@ -93,7 +99,40 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
         <Sheet.Close />
         {stop && (
           <div className="sheet-body" data-state={open ? 'open' : 'closed'}>
-            <figure key={stop.id} className="model" onPointerMove={tilt} onPointerLeave={untilt}>
+            {stop.modelKind === 'desk' && open ? (
+              <figure className="model model-interactive">
+                <Suspense fallback={<img src={stop.model.src} alt={stop.model.alt} />}>
+                  <Desk image={stop.model.src} />
+                </Suspense>
+                <figcaption className="sr-only">A spinnable relief of my Berlin desk. Drag to turn it, or use the rotation buttons.</figcaption>
+              </figure>
+            ) : stop.badge && open ? (
+              // The badge, recreated from the photos, hangs on its buildspace lanyard: drag it, flip it.
+              <figure key={`${stop.id}-badge`} className="model model-interactive model-badge">
+                <span className="model-glow" aria-hidden="true" />
+                <Suspense fallback={<img src={stop.badge.front} alt="Buildspace badge" />}>
+                  <Lanyard
+                    frontImage={stop.badge.front}
+                    backImage={stop.badge.back}
+                    strapImage={stop.badge.strap}
+                    strapColor="#111111"
+                    finish="glossy"
+                    metal="silver"
+                    cornerRadius={0.25}
+                    size={0.62}
+                    strapLength={0.42}
+                    breeze={0}
+                  />
+                </Suspense>
+                <figcaption className="sr-only">
+                  My nights and weekends season 5 badge, recreated in 3D on a buildspace lanyard. The back is my grad badge.
+                </figcaption>
+                <span className="model-code" aria-hidden="true">
+                  {stop.code}
+                </span>
+              </figure>
+            ) : (
+              <figure key={stop.id} className="model" onPointerMove={tilt} onPointerLeave={untilt}>
               <span className="model-glow" aria-hidden="true" />
               <span className="model-floor" aria-hidden="true" />
               <img
@@ -110,6 +149,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
                 {stop.code}
               </span>
             </figure>
+            )}
 
             <header key={`${stop.id}-caption`} className="model-caption" style={stagger(1)}>
               <Sheet.Title className="detail-title">{stop.place}</Sheet.Title>

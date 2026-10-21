@@ -21,8 +21,9 @@ async function picture(src: ImageMetadata, widths: number[], alt: string): Promi
 
 // What the drawer needs per stop, with images already resized for it.
 const views: StopView[] = await Promise.all(
-  path.map(async ({ flag: _flag, photos = [], ...stop }) => ({
+  path.map(async ({ flag: _flag, photos = [], badge, ...stop }) => ({
     ...stop,
+    badge: badge && { front: badge.front.src, back: badge.back.src, strap: badge.strap.src },
     model: await picture(icon(stop.id), [400, 680, 960], `A miniature 3D model of ${stop.place}`),
     photos: await Promise.all(photos.map((p) => picture(p.src, [480, 960], p.alt))),
   })),
