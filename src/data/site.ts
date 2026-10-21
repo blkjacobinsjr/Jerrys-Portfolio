@@ -24,6 +24,14 @@ import thumbBienmonk from '../assets/work/thumb-bienmonk.webp';
 import draperAward from '../assets/stops/draper-award.webp';
 import buildspaceGrad from '../assets/stops/buildspace-grad.webp';
 import buildspaceBadge from '../assets/stops/buildspace-badge.webp';
+import leapfrog1 from '../assets/work/leapfrog-1.webp';
+import leapfrog2 from '../assets/work/leapfrog-2.webp';
+import leapfrog3 from '../assets/work/leapfrog-3.webp';
+import logoScenaryo from '../assets/work/logos/scenaryo.webp';
+import logoTiding from '../assets/work/logos/tiding.webp';
+import logoFoodnote from '../assets/work/logos/foodnote.webp';
+import logoSubzro from '../assets/work/logos/subzro.webp';
+import logoLeapfrog from '../assets/work/logos/leapfrog.webp';
 import badgeFront from '../assets/lanyard/buildspace-front.webp';
 import badgeBack from '../assets/lanyard/buildspace-back.webp';
 import badgeStrap from '../assets/lanyard/buildspace-strap.webp';
@@ -56,6 +64,8 @@ export interface Project {
   shotAlts: [string, string, string];
   /** A hand holding an iPhone with a real screenshot of the app composited on (tools/compose-phone.py). */
   phone: { src: ImageMetadata; alt: string };
+  logo: ImageMetadata;
+  presentation?: 'website';
   story: string;
   shaped: string[];
   proof?: string;
@@ -64,6 +74,7 @@ export interface Project {
 export const projects: Project[] = [
   {
     id: 'scenaryo',
+    logo: logoScenaryo,
     name: 'Scenaryo',
     tagline: 'Characters that feel impossibly real.',
     summary: 'Talk to the characters you love, and shape the scene as it unfolds.',
@@ -91,6 +102,7 @@ export const projects: Project[] = [
   },
   {
     id: 'tiding',
+    logo: logoTiding,
     name: 'Tiding',
     tagline: 'Peptides meet personality.',
     summary: 'A peptide tracker where Pip keeps the daily check-in friendly.',
@@ -117,6 +129,7 @@ export const projects: Project[] = [
   },
   {
     id: 'foodnote',
+    logo: logoFoodnote,
     name: 'FoodNote',
     tagline: 'Your calories, actually tracked.',
     summary: 'Calorie tracking with AI meal logging and a hamster named Hammy.',
@@ -143,6 +156,7 @@ export const projects: Project[] = [
   },
   {
     id: 'subzro',
+    logo: logoSubzro,
     name: 'Subzro',
     tagline: 'Zero in on what matters.',
     summary: 'Subscription intelligence that turns recurring charges into clear decisions.',
@@ -165,6 +179,29 @@ export const projects: Project[] = [
       'One dashboard for monthly exposure, top spend, and alerts.',
       'Savings framed as money you can win back, not budget advice.',
       'No bank link required, so trust starts in the first session.',
+    ],
+  },
+  {
+    id: 'leapfrog',
+    name: 'Leapfrog AI',
+    logo: logoLeapfrog,
+    tagline: 'AI that ships.',
+    summary: 'AI consulting and implementation for mid-market companies in Europe and the US.',
+    years: 'Now',
+    role: 'Co-founder. CEO, sales and product',
+    platform: 'AI systems, web',
+    url: 'https://lfg-ai.com',
+    urlLabel: 'lfg-ai.com',
+    tint: 'oklch(0.93 0.035 155)',
+    shots: [leapfrog1, leapfrog2, leapfrog3],
+    shotAlts: ['Leapfrog AI website: AI consulting and implementation', 'Leapfrog AI consulting and implementation services', 'Leapfrog AI founders and delivery approach'],
+    phone: { src: leapfrog1, alt: 'Leapfrog AI website with its consulting and implementation offer' },
+    presentation: 'website',
+    story: 'We help mid-market teams turn an AI opportunity into a working system. From the first workflow review to a deployed pilot, the people who scope the work stay close to product design and implementation.',
+    shaped: [
+      'The consulting offer, from workflow reviews and audits to pilots and ongoing delivery.',
+      'Product direction, user experience and frontend implementation.',
+      'A clear route from business requirements to useful internal tools and automations.',
     ],
   },
 ];

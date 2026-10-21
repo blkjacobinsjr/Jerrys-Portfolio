@@ -17,7 +17,7 @@ const logos = tools.stack.map(({ name, file }) => ({
 }));
 
 const items: WorkItem[] = await Promise.all(
-  projects.map(async ({ shots, shotAlts, phone, ...project }) => {
+  projects.map(async ({ shots, shotAlts, phone, logo, ...project }) => {
     const resolved = await Promise.all(
       shots.map(async (src, i) => {
         const phone = i === 2;
@@ -25,9 +25,11 @@ const items: WorkItem[] = await Promise.all(
         return { src: img.src, srcset: img.srcSet.attribute, width: src.width, height: src.height, alt: shotAlts[i] ?? '' } satisfies Shot;
       }),
     );
+    const mark = await getImage({ src: logo, width: 96, format: 'webp' });
     const hand = await getImage({ src: phone.src, widths: [360, 540, 720, 960], format: 'webp' });
     return {
       ...project,
+      logo: mark.src,
       shots: resolved as [Shot, Shot, Shot],
       phone: { src: hand.src, srcset: hand.srcSet.attribute, width: phone.src.width, height: phone.src.height, alt: phone.alt },
     };

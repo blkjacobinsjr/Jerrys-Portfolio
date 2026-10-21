@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef, type CSSProperties } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { useMedia } from '../lib/useMedia';
 import '../styles/sheet.css';
@@ -25,6 +25,8 @@ export interface WorkItem {
   url: string;
   urlLabel: string;
   tint: string;
+  logo: string;
+  presentation?: 'website';
   story: string;
   shaped: string[];
   proof?: string;
@@ -39,8 +41,21 @@ export default function Work({ items }: { items: WorkItem[] }) {
   // Side drawers size from their detents, so desktop gets one fixed width.
   const desktop = useMedia('(min-width: 768px)');
   const [openId, setOpenId] = useState<string | null>(null);
+  const list = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target instanceof HTMLElement) entry.target.dataset.inView = String(entry.isIntersecting);
+      }
+    });
+    list.current?.querySelectorAll('.work-face').forEach((face) => observer.observe(face));
+    const pause = () => { if (list.current) list.current.dataset.hidden = String(document.hidden); };
+    document.addEventListener('visibilitychange', pause);
+    pause();
+    return () => { observer.disconnect(); document.removeEventListener('visibilitychange', pause); };
+  }, []);
   return (
-    <ol className="work-list">
+    <ol ref={list} className="work-list">
       {items.map((item, index) => (
         <li key={item.id} className="work-item" style={{ '--tint': item.tint, '--i': index } as CSSProperties}>
           <Sheet.Root
@@ -53,6 +68,7 @@ export default function Work({ items }: { items: WorkItem[] }) {
             {/* Flighty-style feature card: bold lead, muted body, the app in hand.
                 The trigger is stretched over the whole card. */}
             <div className="work-face">
+              <img className="work-logo" src={item.logo} width={40} height={40} alt={`${item.name} logo`} loading="lazy" decoding="async" />
               <div className="work-copy">
                 <h3 className="work-lead">
                   {item.name}. {item.tagline}
@@ -62,7 +78,7 @@ export default function Work({ items }: { items: WorkItem[] }) {
               <p className="work-facts">
                 {item.years} · {item.platform}
               </p>
-              <span className="work-shot">
+              <span className={`work-shot${item.presentation === 'website' ? ' work-shot-site' : ''}`}>
               <img
                 className="work-phone"
                 src={item.phone.src}
@@ -89,7 +105,7 @@ export default function Work({ items }: { items: WorkItem[] }) {
               <Sheet.Close />
               <div className="sheet-body" data-state={openId === item.id ? 'open' : 'closed'}>
               <header className="detail-lead">
-                {item.id === 'scenaryo' && (
+                {item.id === 'scenaryo' && openId === item.id && (
                   <Suspense fallback={<span className="bot-slot" />}>
                     <BotAvatar type="droid" color="#F26A2E" state="default" size={56} />
                   </Suspense>
