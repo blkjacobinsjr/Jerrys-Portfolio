@@ -14,6 +14,7 @@ export interface Picture {
 
 export interface StopView {
   id: string;
+  code: string;
   when: string;
   place: string;
   title: string;
@@ -89,6 +90,9 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
                 alt={stop.model.alt}
                 decoding="async"
               />
+              <span className="model-code" aria-hidden="true">
+                {stop.code}
+              </span>
             </figure>
 
             <header className="model-caption" style={stagger(1)}>

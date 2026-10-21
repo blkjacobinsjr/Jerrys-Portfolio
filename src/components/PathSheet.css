@@ -81,3 +81,21 @@
     transform: scale(0.7);
   }
 }
+
+/* The same plaque as on the strip, on the shelf under the model. */
+.model-code {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: 0 6px 14px -6px rgb(var(--shadow-tint) / 0.35);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+  white-space: nowrap;
+}

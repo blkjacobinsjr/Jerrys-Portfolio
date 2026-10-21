@@ -42,6 +42,10 @@ describe('content', () => {
     }
   });
 
+  it('signs every stop with an abbreviated city and country, like BER · DE', () => {
+    for (const stop of path) expect(stop.code, stop.id).toMatch(/^([A-Z]{3} · )?[A-Z]{2}$/);
+  });
+
   it('uses the name Jerry Doughan', () => {
     expect(person.name).toBe('Jerry Doughan');
     expect(person.linkedin).toContain('jasdoughan');

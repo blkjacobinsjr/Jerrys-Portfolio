@@ -45,6 +45,7 @@ const views: StopView[] = await Promise.all(
                 <span class="stop-art">
                   <span class="stop-glow" aria-hidden="true"></span>
                   <Image src={icon(stop.id)} alt="" widths={[240, 360, 480]} sizes="(min-width: 900px) 260px, 56vw" loading="lazy" />
+                  <span class="stop-code" aria-hidden="true">{stop.code}</span>
                 </span>
                 <span class="stop-place">{stop.place}</span>
                 <span class="stop-title">{stop.title}</span>
@@ -221,6 +222,24 @@ const views: StopView[] = await Promise.all(
     100% {
       opacity: 0;
     }
+  }
+
+  /* City and country on a small plaque at the model's base, like a station sign. */
+  .stop-code {
+    position: absolute;
+    bottom: 3%;
+    left: 50%;
+    translate: -50% 0;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    background: var(--bg-elev);
+    color: var(--fg);
+    box-shadow: 0 6px 14px -6px rgb(var(--shadow-tint) / 0.35);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    white-space: nowrap;
   }
 
   [data-flag='declined'] .stop-art :global(img) {

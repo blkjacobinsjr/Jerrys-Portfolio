@@ -181,6 +181,8 @@ export interface Stop {
   title: string;
   where: string;
   notes: string[];
+  /** City and country on the building, abbreviated like a station sign. */
+  code: string;
   /** The diorama's most prominent colour, art-directed; lights the glow behind it. */
   glow: string;
   /** Badge shown on the stop; "now" marks the current one. */
@@ -194,6 +196,7 @@ export interface Stop {
 export const path: Stop[] = [
   {
     id: 'coventry',
+    code: 'COV · UK',
     glow: '#d0623f',
     when: '2013',
     place: 'Coventry University',
@@ -203,6 +206,7 @@ export const path: Stop[] = [
   },
   {
     id: 'workinghana',
+    code: 'GH',
     glow: '#f2b149',
     when: 'Uni',
     place: 'Work in Ghana',
@@ -213,6 +217,7 @@ export const path: Stop[] = [
   },
   {
     id: 'opentable',
+    code: 'LDN · UK',
     glow: '#2f6a4a',
     when: '2017',
     place: 'OpenTable',
@@ -222,6 +227,7 @@ export const path: Stop[] = [
   },
   {
     id: 'dotdigital',
+    code: 'LDN · UK',
     glow: '#6f9fc8',
     when: '2018',
     place: 'Dotdigital',
@@ -231,6 +237,7 @@ export const path: Stop[] = [
   },
   {
     id: 'siteminder',
+    code: 'LDN · UK',
     glow: '#c79a55',
     when: '2020',
     place: 'SiteMinder',
@@ -240,6 +247,7 @@ export const path: Stop[] = [
   },
   {
     id: 'peloton',
+    code: 'LDN · UK',
     glow: '#d49a5e',
     when: '2021',
     place: 'Peloton',
@@ -249,6 +257,7 @@ export const path: Stop[] = [
   },
   {
     id: 'tiktokdeclined',
+    code: 'BER · DE',
     glow: '#e0a640',
     when: '2022',
     place: 'TikTok',
@@ -259,6 +268,7 @@ export const path: Stop[] = [
   },
   {
     id: 'benify',
+    code: 'BER · DE',
     glow: '#c98a4b',
     when: '2022',
     place: 'Benify',
@@ -268,6 +278,7 @@ export const path: Stop[] = [
   },
   {
     id: 'hkw',
+    code: 'BER · DE',
     glow: '#5fb3c4',
     when: '2023',
     place: 'Haus der Kulturen der Welt',
@@ -277,6 +288,7 @@ export const path: Stop[] = [
   },
   {
     id: 'wbs',
+    code: 'BER · DE',
     glow: '#a04a2c',
     when: '2023',
     place: 'WBS Coding School',
@@ -286,6 +298,7 @@ export const path: Stop[] = [
   },
   {
     id: 'buildspace',
+    code: 'SFO · US',
     when: '2024',
     place: 'buildspace',
     title: 'nights & weekends, season 5',
@@ -300,6 +313,7 @@ export const path: Stop[] = [
   },
   {
     id: 'draper',
+    code: 'SFO · US',
     when: '2024',
     place: 'Draper University',
     title: 'Degree of Change Agent',
@@ -321,6 +335,7 @@ export const path: Stop[] = [
   },
   {
     id: 'scenaryo',
+    code: 'BER · DE',
     glow: '#e5483a',
     when: 'Now',
     place: 'Scenaryo',
