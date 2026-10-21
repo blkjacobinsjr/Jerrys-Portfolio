@@ -1,22 +1,54 @@
 import { useEffect, useRef } from 'react';
+import { useMachine } from '@xstate/react';
+import { interactionMachine } from '../lib/interaction';
 import * as THREE from 'three';
 
 /** Minted-style artwork extrusion: the alpha silhouette supplies the solid edge. */
-export default function Desk({ image }: { image: string }) {
+export default function Desk({
+  image,
+  alt = 'My Berlin desk, with a laptop, plant, books, and e-bike',
+  onReady,
+  onError
+}: {
+  image: string;
+  alt?: string;
+  onReady?: () => void;
+  onError?: () => void;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const turn = useRef<(angle: number) => void>(() => {});
+  const failRef = useRef<() => void>(() => {});
+  const [snapshot, send] = useMachine(interactionMachine);
 
   useEffect(() => {
     const root = host.current;
     if (!root) return;
+    send({ type: 'START' });
+    let alive = true;
+    let failed = false;
+    const fail = () => {
+      if (!alive || failed) return;
+      failed = true;
+      root.dataset.ready = 'false';
+      send({ type: 'FAIL', message: 'The desk preview could not be started.' });
+      onError?.();
+    };
+    failRef.current = fail;
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     } catch {
-      return;
+      fail();
+      return undefined;
     }
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    try {
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+    } catch {
+      renderer.dispose();
+      fail();
+      return undefined;
+    }
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 20);
     camera.position.z = 4.5;
@@ -28,7 +60,6 @@ export default function Desk({ image }: { image: string }) {
     const canvas = renderer.domElement;
     canvas.setAttribute('aria-hidden', 'true');
     root.append(canvas);
-    let alive = true;
     let ready = false;
     let visible = true;
     let raf = 0;
@@ -38,12 +69,18 @@ export default function Desk({ image }: { image: string }) {
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
     const textures: THREE.Texture[] = [];
     const render = () => {
-      if (alive && visible && !document.hidden) renderer.render(scene, camera);
+      if (alive && !failed && visible && !document.hidden) {
+        try {
+          renderer.render(scene, camera);
+        } catch {
+          fail();
+        }
+      }
     };
     const stop = () => { cancelAnimationFrame(raf); raf = 0; velocity = 0; };
     const coast = () => {
       raf = 0;
-      if (!alive || !visible || document.hidden || motion.matches) return;
+      if (!alive || failed || !visible || document.hidden || motion.matches) return;
       group.rotation.y += velocity;
       velocity *= 0.92;
       render();
@@ -52,13 +89,17 @@ export default function Desk({ image }: { image: string }) {
     turn.current = (angle) => { stop(); group.rotation.y += angle; render(); };
     const photo = new Image();
     photo.onload = () => {
-      if (!alive) return;
+      if (!alive || failed) return;
+      try {
       const size = 160;
       const mask = document.createElement('canvas');
       mask.width = size;
       mask.height = size;
       const ctx = mask.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {
+        fail();
+        return;
+      }
       ctx.drawImage(photo, 0, 0, size, size);
       const pixels = ctx.getImageData(0, 0, size, size);
       const positions: number[] = [];
@@ -107,23 +148,37 @@ export default function Desk({ image }: { image: string }) {
       ready = true;
       root.dataset.ready = 'true';
       render();
+      if (!failed) {
+        send({ type: 'READY' });
+        onReady?.();
+      }
+      } catch {
+        fail();
+      }
     };
+    photo.onerror = fail;
     photo.src = image;
     const resize = new ResizeObserver(() => {
-      renderer.setSize(root.clientWidth, root.clientHeight, false);
-      camera.aspect = root.clientWidth / Math.max(1, root.clientHeight);
-      camera.updateProjectionMatrix();
-      render();
+      try {
+        renderer.setSize(root.clientWidth, root.clientHeight, false);
+        camera.aspect = root.clientWidth / Math.max(1, root.clientHeight);
+        camera.updateProjectionMatrix();
+        render();
+      } catch {
+        fail();
+      }
     });
     resize.observe(root);
     const observer = new IntersectionObserver(([entry]) => { visible = entry?.isIntersecting ?? false; if (visible) render(); else stop(); });
     observer.observe(root);
     const visibility = () => { stop(); if (!document.hidden) render(); };
     const preference = () => { stop(); render(); };
+    const contextLost = (event: Event) => { event.preventDefault(); fail(); };
     document.addEventListener('visibilitychange', visibility);
     motion.addEventListener('change', preference);
+    canvas.addEventListener('webglcontextlost', contextLost);
     const down = (event: PointerEvent) => {
-      if (!ready || event.button > 0) return;
+      if (!ready || failed || event.button > 0) return;
       stop(); previousX = event.clientX; previousY = event.clientY;
       canvas.setPointerCapture(event.pointerId);
     };
@@ -149,9 +204,11 @@ export default function Desk({ image }: { image: string }) {
     canvas.addEventListener('lostpointercapture', up);
     return () => {
       alive = false; stop(); turn.current = () => {};
+      photo.onload = null; photo.onerror = null; photo.src = '';
       resize.disconnect(); observer.disconnect();
       document.removeEventListener('visibilitychange', visibility);
       motion.removeEventListener('change', preference);
+      canvas.removeEventListener('webglcontextlost', contextLost);
       canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move);
       canvas.removeEventListener('pointerup', up); canvas.removeEventListener('pointercancel', up); canvas.removeEventListener('lostpointercapture', up);
       group.traverse((object) => {
@@ -163,14 +220,15 @@ export default function Desk({ image }: { image: string }) {
       });
       textures.forEach((texture) => texture.dispose());
       renderer.dispose(); canvas.remove();
+      send({ type: 'CLOSE' });
     };
-  }, [image]);
+  }, [image, onError, onReady, send]);
 
-  return <div className="desk-view">
-    <div ref={host} className="desk-stage" data-scrollsheet-no-drag><img src={image} alt="My Berlin desk, with a laptop, plant, books, and e-bike" /></div>
+  return <div className="desk-view" data-renderer-state={snapshot.value}>
+    <div ref={host} className="desk-stage" data-scrollsheet-no-drag data-renderer-state={snapshot.value}><img src={image} alt={alt} onError={() => failRef.current()} /></div>
     <div className="model-controls" aria-label="Rotate the Berlin desk">
-      <button type="button" onClick={() => turn.current(-Math.PI / 4)} aria-label="Rotate desk left">Rotate left</button>
-      <button type="button" onClick={() => turn.current(Math.PI / 4)} aria-label="Rotate desk right">Rotate right</button>
+      <button type="button" disabled={!snapshot.matches('ready')} onClick={() => turn.current(-Math.PI / 4)}>Rotate desk left</button>
+      <button type="button" disabled={!snapshot.matches('ready')} onClick={() => turn.current(Math.PI / 4)}>Rotate desk right</button>
     </div>
   </div>;
 }

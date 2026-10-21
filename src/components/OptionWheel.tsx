@@ -1,5 +1,7 @@
-// React Bits OptionWheel (TS-CSS), verbatim except an ariaLabel prop for the listbox name.
+// React Bits OptionWheel with a named listbox and an explicit interaction lifecycle.
 import { useRef, useState, useCallback, useEffect, type CSSProperties } from 'react';
+import { useMachine } from '@xstate/react';
+import { interactionMachine } from '../lib/interaction';
 import './OptionWheel.css';
 
 type Side = 'left' | 'right';
@@ -26,6 +28,7 @@ export interface OptionWheelProps {
   soundVolume?: number;
   className?: string;
   ariaLabel?: string;
+  active?: boolean;
 }
 
 interface WheelConfig {
@@ -81,7 +84,8 @@ const OptionWheel = ({
   soundUrl = '',
   soundVolume = 0.5,
   className = '',
-  ariaLabel = 'Option wheel'
+  ariaLabel = 'Option wheel',
+  active = true
 }: OptionWheelProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -98,8 +102,14 @@ const OptionWheel = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef('');
   const lastTickRef = useRef(0);
+  const visibleRef = useRef(false);
+  const activeRef = useRef(active);
+  activeRef.current = active;
   const [selectedIndex, setSelectedIndex] = useState(defaultSelected);
   const [isDragging, setIsDragging] = useState(false);
+  const [snapshot, send] = useMachine(interactionMachine);
+  const stateRef = useRef(snapshot.value);
+  stateRef.current = snapshot.value;
 
   const remPx = typeof window !== 'undefined' ? parseFloat(getComputedStyle(document.documentElement).fontSize) || 16 : 16;
 
@@ -121,23 +131,8 @@ const OptionWheel = ({
     soundVolume
   };
 
-  // Single rAF loop that eases the wheel position toward its target with
-  // frame-rate independent exponential smoothing, then lays every option out
-  // along the curve based on its distance from the current position.
-  const runFrame = useCallback((now: number) => {
-    const dt = Math.min((now - lastRef.current) / 1000, 0.05);
-    lastRef.current = now;
+  const layoutAt = useCallback((position: number) => {
     const cfg = cfgRef.current;
-    const tau = Math.max(cfg.smoothing, 1) / 1000;
-    const k = 1 - Math.exp(-dt / tau);
-
-    const target = targetRef.current;
-    const cur = posRef.current;
-    let next = cur + (target - cur) * k;
-    const settled = Math.abs(target - next) < 0.001;
-    if (settled) next = target;
-    posRef.current = next;
-
     const els = itemRefs.current;
     const n = cfg.count;
     const mirror = cfg.side === 'right' ? -1 : 1;
@@ -148,7 +143,7 @@ const OptionWheel = ({
     for (let i = 0; i < n; i++) {
       const el = els[i];
       if (!el) continue;
-      let d = i - next;
+      let d = i - position;
       if (cfg.loop && n > 1) {
         d = ((d % n) + n) % n;
         if (d > n / 2) d -= n;
@@ -168,17 +163,55 @@ const OptionWheel = ({
       el.style.filter = cfg.blur > 0 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
       el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
     }
+  }, []);
 
-    rafRef.current = settled ? null : requestAnimationFrame(runFrame);
+  // Single rAF loop that eases the wheel position toward its target, then lays
+  // every option out along the curve based on its distance from the center.
+  const runFrame = useCallback((now: number) => {
+    if (!activeRef.current || !visibleRef.current || document.hidden) {
+      rafRef.current = null;
+      return;
+    }
+    const dt = Math.min((now - lastRef.current) / 1000, 0.05);
+    lastRef.current = now;
+    const tau = Math.max(cfgRef.current.smoothing, 1) / 1000;
+    const k = 1 - Math.exp(-dt / tau);
+    let next = posRef.current + (targetRef.current - posRef.current) * k;
+    const settled = Math.abs(targetRef.current - next) < 0.001;
+    if (settled) next = targetRef.current;
+    posRef.current = next;
+    layoutAt(next);
+    if (settled) {
+      rafRef.current = null;
+      send({ type: 'READY' });
+      return;
+    }
+    rafRef.current = requestAnimationFrame(runFrame);
+  }, [layoutAt, send]);
+
+  const stopLoop = useCallback(() => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
   }, []);
 
   const startLoop = useCallback(() => {
-    if (rafRef.current != null) {
-      cancelAnimationFrame(rafRef.current);
+    if (!activeRef.current || document.hidden) return;
+    const cfg = cfgRef.current;
+    const needsMotion = Math.abs(targetRef.current - posRef.current) >= 0.001;
+    const currentState = stateRef.current;
+    if (currentState === 'error') send({ type: 'RETRY' });
+    else if (currentState === 'idle' || (currentState === 'ready' && needsMotion)) send({ type: 'START' });
+    stopLoop();
+    if (cfg.smoothing <= 1 || !needsMotion) {
+      posRef.current = targetRef.current;
+      layoutAt(targetRef.current);
+      send({ type: 'READY' });
+      return;
     }
+    if (!visibleRef.current) return;
     lastRef.current = performance.now();
     rafRef.current = requestAnimationFrame(runFrame);
-  }, [runFrame]);
+  }, [layoutAt, runFrame, send, stopLoop]);
 
   // Optional tick on selection change, throttled so fast scrolling can't spam
   // it, and with playback failures (e.g. autoplay policies) silently ignored.
@@ -202,6 +235,7 @@ const OptionWheel = ({
   const applyTarget = useCallback(
     (value: number, snap: boolean) => {
       const cfg = cfgRef.current;
+      if (cfg.count === 0 || !activeRef.current) return;
       let v = value;
       if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0));
       if (snap) v = Math.round(v);
@@ -223,6 +257,7 @@ const OptionWheel = ({
     const el = rootRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      if (!activeRef.current) return;
       e.preventDefault();
       const cfg = cfgRef.current;
       const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
@@ -240,8 +275,60 @@ const OptionWheel = ({
     };
   }, [applyTarget]);
 
+  useEffect(() => {
+    if (!active) {
+      stopLoop();
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
+      wheelTimerRef.current = null;
+      dragRef.current = null;
+      setIsDragging(false);
+      send({ type: 'CLOSE' });
+      return;
+    }
+    if (items.length === 0) {
+      const currentState = stateRef.current;
+      if (currentState === 'idle') send({ type: 'START' });
+      if (currentState === 'idle' || currentState === 'loading' || currentState === 'ready') {
+        send({ type: 'FAIL', message: 'No stops are available.' });
+      }
+      stopLoop();
+      return;
+    }
+    if (!cfgRef.current.loop) {
+      const max = items.length - 1;
+      targetRef.current = Math.min(Math.max(targetRef.current, 0), max);
+      posRef.current = Math.min(Math.max(posRef.current, 0), max);
+    }
+    const selected = ((Math.round(targetRef.current) % items.length) + items.length) % items.length;
+    selectedRef.current = selected;
+    setSelectedIndex(selected);
+    startLoop();
+  }, [active, activeColor, blur, curve, fade, fontSize, items, loop, minOpacity, send, side, smoothing, spacing, startLoop, stopLoop, textColor, tilt]);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      const nextVisible = entry?.isIntersecting ?? false;
+      if (visibleRef.current === nextVisible) return;
+      visibleRef.current = nextVisible;
+      if (nextVisible) startLoop();
+      else stopLoop();
+    });
+    observer.observe(el);
+    const visibility = () => {
+      if (document.hidden) stopLoop();
+      else startLoop();
+    };
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', visibility);
+    };
+  }, [startLoop, stopLoop]);
+
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!cfgRef.current.draggable) return;
+    if (!activeRef.current || !cfgRef.current.draggable) return;
     dragRef.current = { y: e.clientY, start: targetRef.current, id: e.pointerId };
     dragMovedRef.current = false;
     setIsDragging(true);
@@ -287,6 +374,7 @@ const OptionWheel = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!activeRef.current || cfgRef.current.count === 0) return;
       let delta: number | null = null;
       if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1;
       else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1;
@@ -297,17 +385,12 @@ const OptionWheel = ({
     [applyTarget]
   );
 
-  useEffect(() => {
-    applyTarget(targetRef.current, false);
-  }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, side, loop, smoothing, applyTarget]);
-
   useEffect(
     () => () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
+      stopLoop();
       audioRef.current?.pause();
     },
-    []
+    [stopLoop]
   );
 
   return (
@@ -316,6 +399,7 @@ const OptionWheel = ({
       role="listbox"
       tabIndex={0}
       aria-label={ariaLabel}
+      data-wheel-state={snapshot.value}
       className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`}
       style={
         {
@@ -331,6 +415,7 @@ const OptionWheel = ({
       onPointerCancel={handlePointerEnd}
       onKeyDown={handleKeyDown}
     >
+      {snapshot.matches('error') && <span className="option-wheel__error" role="alert">No stops are available.</span>}
       {items.map((label, index) => (
         <div
           key={`${label}-${index}`}

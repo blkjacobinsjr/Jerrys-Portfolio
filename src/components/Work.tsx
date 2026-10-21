@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect, useRef, type CSSProperties } from 'react';
+import { lazy, Suspense, useState, type CSSProperties } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { useMedia } from '../lib/useMedia';
 import '../styles/sheet.css';
@@ -41,21 +41,8 @@ export default function Work({ items }: { items: WorkItem[] }) {
   // Side drawers size from their detents, so desktop gets one fixed width.
   const desktop = useMedia('(min-width: 768px)');
   const [openId, setOpenId] = useState<string | null>(null);
-  const list = useRef<HTMLOListElement>(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.target instanceof HTMLElement) entry.target.dataset.inView = String(entry.isIntersecting);
-      }
-    });
-    list.current?.querySelectorAll('.work-face').forEach((face) => observer.observe(face));
-    const pause = () => { if (list.current) list.current.dataset.hidden = String(document.hidden); };
-    document.addEventListener('visibilitychange', pause);
-    pause();
-    return () => { observer.disconnect(); document.removeEventListener('visibilitychange', pause); };
-  }, []);
   return (
-    <ol ref={list} className="work-list">
+    <ol className="work-list">
       {items.map((item, index) => (
         <li key={item.id} className="work-item" style={{ '--tint': item.tint, '--i': index } as CSSProperties}>
           <Sheet.Root

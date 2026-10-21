@@ -19,19 +19,22 @@
         "categories:accessibility": [
           "error",
           {
-            "minScore": 1
+            "minScore": 1,
+            "aggregationMethod": "median-run"
           }
         ],
         "categories:best-practices": [
           "error",
           {
-            "minScore": 1
+            "minScore": 1,
+            "aggregationMethod": "median-run"
           }
         ],
         "categories:seo": [
           "error",
           {
-            "minScore": 1
+            "minScore": 1,
+            "aggregationMethod": "median-run"
           }
         ],
         "largest-contentful-paint": [

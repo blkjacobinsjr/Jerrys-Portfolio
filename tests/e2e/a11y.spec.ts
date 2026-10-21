@@ -34,3 +34,36 @@ test('no axe violations with a path drawer open', async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(TAGS).analyze();
   expect(violations.map((v) => v.id)).toEqual([]);
 });
+
+for (const stop of ['desk', 'buildspace']) {
+  test(`no axe violations with the ${stop} model and keyboard controls ready`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await open(page);
+    await page.locator(`[data-stop="${stop}"]`).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('dialog[open] [data-model-state="ready"]')).toBeVisible();
+    const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(TAGS).analyze();
+    expect(violations.map((violation) => violation.id)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(page.locator(`[data-stop="${stop}"]`)).toBeFocused();
+  });
+
+  test(`no axe violations when the ${stop} model falls back without WebGL`, async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+        value: function (this: HTMLCanvasElement, type: string, ...args: unknown[]) {
+          if (type === 'webgl' || type === 'webgl2' || type === 'experimental-webgl') return null;
+          return Reflect.apply(original, this, [type, ...args]);
+        },
+      });
+    });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await open(page);
+    await page.locator(`[data-stop="${stop}"]`).click();
+    await expect(page.locator('dialog[open] [data-model-state="error"]')).toBeVisible();
+    await expect(page.locator('dialog[open]').getByRole('alert')).toBeVisible();
+    const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(TAGS).analyze();
+    expect(violations.map((violation) => violation.id)).toEqual([]);
+  });
+}

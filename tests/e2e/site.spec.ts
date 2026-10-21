@@ -5,7 +5,8 @@ test.describe('page', () => {
   test('renders the hero with no console errors', async ({ page }) => {
     const errors = await open(page);
     await expect(page).toHaveTitle(/Jerry Doughan/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Jerry Doughan');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Jerry Doughan');
+    await expect(page.locator('h1 [aria-hidden="true"]')).toHaveText('Jerry Doughan');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /consumer apps/);
     await expect(page.locator('.hero-art img')).toBeVisible();
     expect(errors).toEqual([]);
@@ -51,8 +52,7 @@ test.describe('work', () => {
     await expect(page.locator('dialog[open]')).toHaveCount(0);
   });
 
-  test('returns focus to the card after a keyboard open', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'keyboard journey');
+  test('returns focus to the card after a keyboard open', async ({ page }) => {
     await open(page);
     await scrollToSelector(page, '#work');
     const card = page.locator('.work-card').first();
@@ -64,8 +64,7 @@ test.describe('work', () => {
     await expect(card).toBeFocused();
   });
 
-  test('opens a sheet from the keyboard', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'keyboard journey');
+  test('opens a sheet from the keyboard', async ({ page }) => {
     await open(page);
     await scrollToSelector(page, '#work');
     await page.locator('.work-card').nth(1).focus();
@@ -136,24 +135,25 @@ test.describe('path', () => {
 
   test('has a diorama and a glow for every stop, oldest to now', async ({ page }) => {
     await open(page);
-    await expect(page.locator('.stop')).toHaveCount(13);
-    await expect(page.locator('.stop-art img')).toHaveCount(13);
-    await expect(page.locator('.stop-glow')).toHaveCount(13);
+    await expect(page.locator('.stop')).toHaveCount(14);
+    await expect(page.locator('.stop-art img')).toHaveCount(14);
+    await expect(page.locator('.stop-glow')).toHaveCount(14);
     const ids = await page.locator('[data-stop]').evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.stop));
-    expect(ids.slice(-3)).toEqual(['buildspace', 'draper', 'scenaryo']);
+    expect(ids.slice(-4)).toEqual(['buildspace', 'draper', 'desk', 'scenaryo']);
   });
 });
 
 test.describe('statement', () => {
-  test('resolves word by word on a scroll timeline that survived minification', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'scroll timelines are asserted in Chromium');
+  test('resolves word by word on a scroll timeline that survived minification', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await open(page);
     const timeline = await page.locator('.statement .word').first().evaluate((el) => getComputedStyle(el).animationTimeline);
-    expect(timeline).toBe('--statement');
+    const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
+    expect(timeline).toBe(supported ? '--statement' : 'auto');
     // Before the stage is reached, unread words are blurred.
     const blur = await page.locator('.statement .word').last().evaluate((el) => getComputedStyle(el).filter);
-    expect(blur).toContain('blur');
+    if (supported) expect(blur).toContain('blur');
+    else expect(blur).toBe('none');
   });
 
   test('never folds a scroll timeline into the animation shorthand', async ({ page }) => {
@@ -165,8 +165,7 @@ test.describe('statement', () => {
 });
 
 test.describe('keyring', () => {
-  test('hangs in the sky and swings when the page moves', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'physics timing asserted in Chromium');
+  test('hangs in the sky and swings when the page moves', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await open(page);
     const keyring = page.getByRole('img', { name: /keyring/ });
@@ -175,17 +174,16 @@ test.describe('keyring', () => {
     await page.waitForTimeout(1200);
     const rig = page.locator('[data-keyring] .rig');
     const before = await rig.evaluate((el) => (el as HTMLElement).style.rotate);
-    await page.mouse.wheel(0, -500);
+    await page.evaluate(() => window.scrollBy({ top: -500, behavior: 'instant' }));
     await page.waitForTimeout(150);
-    await page.mouse.wheel(0, 500);
+    await page.evaluate(() => window.scrollBy({ top: 500, behavior: 'instant' }));
     await page.waitForTimeout(400);
     const after = await rig.evaluate((el) => (el as HTMLElement).style.rotate);
     expect(after).not.toBe('');
     expect(after).not.toBe(before);
   });
 
-  test('stops swinging and settles at rest when reduced motion is switched on', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'physics timing asserted in Chromium');
+  test('stops swinging and settles at rest when reduced motion is switched on', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await open(page);
     await page.evaluate(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'instant' }));
@@ -216,15 +214,22 @@ test.describe('dock', () => {
 
 test.describe('contact', () => {
   test('copies the email, celebrates, and confirms', async ({ page, browserName, context }) => {
-    test.skip(browserName !== 'chromium', 'clipboard permission is chromium-only in Playwright');
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    if (browserName === 'chromium') await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.addInitScript(() => {
+      const write = navigator.clipboard.writeText.bind(navigator.clipboard);
+      navigator.clipboard.writeText = async (value) => {
+        await write(value);
+        (window as unknown as { copiedText: string }).copiedText = value;
+      };
+    });
     await open(page);
     await scrollToSelector(page, '#contact');
     const button = page.getByRole('button', { name: 'Copy email' });
     await button.click();
     await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
     await expect(page.getByText('Email copied')).toBeVisible();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('jr.a.schmalz@gmail.com');
+    expect(await page.evaluate(() => (window as unknown as { copiedText: string }).copiedText)).toBe('jr.a.schmalz@gmail.com');
+    if (browserName === 'chromium') expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('jr.a.schmalz@gmail.com');
   });
 
   test('offers a CV download', async ({ page }) => {

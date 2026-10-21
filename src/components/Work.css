@@ -210,7 +210,7 @@
 .work-face::before {
   content: '';
   position: absolute;
-  inset: -20%;
+  inset: -10%;
   z-index: -1;
   background: radial-gradient(ellipse at 75% 70%, color-mix(in oklch, var(--surface) 50%, var(--glow, #b89170)) 0%, transparent 55%),
     radial-gradient(ellipse at 30% 20%, color-mix(in oklch, var(--surface) 65%, white), transparent 65%);
@@ -234,14 +234,6 @@
 }
 
 .work-shot-site .work-phone { filter: none; animation: none; object-fit: cover; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .work-face::before { animation: surface-drift 24s ease-in-out infinite alternate; animation-play-state: paused; }
-  .work-face[data-in-view='true']::before { animation-play-state: running; }
-  .work-list[data-hidden='true'] .work-face::before { animation-play-state: paused; }
-}
-
-@keyframes surface-drift { to { transform: translate3d(-5%, 5%, 0) scale(1.08); } }
 
 @media (max-width: 640px) {
   .work-shot-site {

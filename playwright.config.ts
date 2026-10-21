@@ -5,6 +5,9 @@ const bddDir = defineBddConfig({ features: 'tests/features/*.feature', steps: 't
 
 export default defineConfig({
   fullyParallel: true,
+  // The perf project measures real frame times on the same machine.
+  // Keep browser runs sequential so concurrent test browsers cannot distort it.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { outputFolder: 'reports/e2e', open: 'never' }], ['json', { outputFile: 'reports/e2e/results.json' }]],

@@ -19,3 +19,11 @@ export async function scrollToSelector(page: Page, selector: string) {
   await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'start', behavior: 'instant' }), selector);
   await page.waitForTimeout(400);
 }
+
+/** Expand through the public handle, then scroll the native content port. Works in mobile WebKit, which has no Playwright mouse wheel. */
+export async function scrollSheetToEnd(page: Page) {
+  const sheet = page.locator('dialog[open]');
+  if ((page.viewportSize()?.width ?? 0) < 768) await sheet.locator('.scrollsheet-handle').click();
+  await expect(sheet).toHaveAttribute('data-scrollsheet-at-max', '');
+  await sheet.locator('.sheet').evaluate((panel) => panel.scrollTo({ top: panel.scrollHeight, behavior: 'instant' }));
+}

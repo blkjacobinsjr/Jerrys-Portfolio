@@ -1,13 +1,12 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import '../styles/sheet.css';
 import './PathSheet.css';
 import { useMedia } from '../lib/useMedia';
+import { useMachine } from '@xstate/react';
+import { interactionMachine, type InteractionState } from '../lib/interaction';
 import OptionWheel from './OptionWheel';
-
-// three.js and the lanyard load only when a drawer with a badge opens.
-const Lanyard = lazy(() => import('./Lanyard'));
-const Desk = lazy(() => import('./Desk'));
+import ModelLoader from './ModelLoader';
 
 export interface Picture {
   src: string;
@@ -45,6 +44,7 @@ const stagger = (i: number) => ({ '--i': i }) as CSSProperties;
  */
 export default function PathSheet({ stops }: { stops: StopView[] }) {
   const [open, setOpen] = useState(false);
+  const [drawerSnapshot, sendDrawer, drawerActor] = useMachine(interactionMachine);
   const [id, setId] = useState<string | null>(null);
   // Bumped on every open from the strip, so the wheel starts on that stop.
   const [visit, setVisit] = useState(0);
@@ -53,25 +53,42 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   const model = useRef<HTMLImageElement>(null);
   const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  const startDrawer = useCallback(() => {
+    sendDrawer({ type: drawerActor.getSnapshot().matches('error') ? 'RETRY' : 'START' });
+  }, [drawerActor, sendDrawer]);
+  const changeDrawerOpen = useCallback((next: boolean) => {
+    setOpen(next);
+    if (next) startDrawer();
+    else sendDrawer({ type: 'CLOSE' });
+  }, [sendDrawer, startDrawer]);
+  const reportDrawerState = useCallback((state: InteractionState) => {
+    if (state === 'loading') startDrawer();
+    else if (state === 'ready') sendDrawer({ type: 'READY' });
+    else if (state === 'error') sendDrawer({ type: 'FAIL', message: 'The selected preview could not be started.' });
+  }, [sendDrawer, startDrawer]);
+
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       const button = (event.target as Element | null)?.closest<HTMLElement>('[data-stop]');
       if (!button?.dataset.stop) return;
       setId(button.dataset.stop);
       setVisit((n) => n + 1);
-      setOpen(true);
+      changeDrawerOpen(true);
     };
     document.addEventListener('click', onClick);
     return () => {
       document.removeEventListener('click', onClick);
       clearTimeout(settle.current);
     };
-  }, []);
+  }, [changeDrawerOpen]);
 
   // The wheel reports every stop it passes; switch once it comes to rest.
   const pick = (index: number) => {
     clearTimeout(settle.current);
-    settle.current = setTimeout(() => setId(stops[index]?.id ?? null), 180);
+    settle.current = setTimeout(() => {
+      startDrawer();
+      setId(stops[index]?.id ?? null);
+    }, 180);
   };
 
   // A fine pointer turns the model a few degrees, like picking it up off a shelf.
@@ -93,37 +110,45 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   const labels = useMemo(() => stops.map((s) => `${s.when} · ${s.place}`), [stops]);
 
   return (
-    <Sheet.Root open={open} onOpenChange={setOpen} side="bottom" desktopSide="right" detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}>
+    <Sheet.Root open={open} onOpenChange={changeDrawerOpen} side="bottom" desktopSide="right" detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}>
       <Sheet.Content className="sheet path-sheet" style={{ '--glow': stop?.glow } as CSSProperties}>
         <Sheet.Handle />
         <Sheet.Close />
         {stop && (
-          <div className="sheet-body" data-state={open ? 'open' : 'closed'}>
+          <div className="sheet-body" data-state={open ? 'open' : 'closed'} data-drawer-state={open ? drawerSnapshot.value : 'idle'}>
             {stop.modelKind === 'desk' && open ? (
-              <figure className="model model-interactive">
-                <Suspense fallback={<img src={stop.model.src} alt={stop.model.alt} />}>
-                  <Desk image={stop.model.src} />
-                </Suspense>
+              <figure key={`${stop.id}-desk`} className="model model-interactive">
+                <span className="model-glow" aria-hidden="true" />
+                <ModelLoader
+                  kind="desk"
+                  image={stop.model.src}
+                  alt={stop.model.alt}
+                  onStateChange={reportDrawerState}
+                />
                 <figcaption className="sr-only">A spinnable relief of my Berlin desk. Drag to turn it, or use the rotation buttons.</figcaption>
               </figure>
             ) : stop.badge && open ? (
               // The badge, recreated from the photos, hangs on its buildspace lanyard: drag it, flip it.
               <figure key={`${stop.id}-badge`} className="model model-interactive model-badge">
                 <span className="model-glow" aria-hidden="true" />
-                <Suspense fallback={<img src={stop.badge.front} alt="Buildspace badge" />}>
-                  <Lanyard
-                    frontImage={stop.badge.front}
-                    backImage={stop.badge.back}
-                    strapImage={stop.badge.strap}
-                    strapColor="#111111"
-                    finish="glossy"
-                    metal="silver"
-                    cornerRadius={0.25}
-                    size={0.62}
-                    strapLength={0.42}
-                    breeze={0}
-                  />
-                </Suspense>
+                <ModelLoader
+                  kind="lanyard"
+                  image={stop.badge.front}
+                  alt="Buildspace badge"
+                  options={{
+                    frontImage: stop.badge.front,
+                    backImage: stop.badge.back,
+                    strapImage: stop.badge.strap,
+                    strapColor: '#111111',
+                    finish: 'glossy',
+                    metal: 'silver',
+                    cornerRadius: 0.25,
+                    size: 0.62,
+                    strapLength: 0.42,
+                    breeze: 0
+                  }}
+                  onStateChange={reportDrawerState}
+                />
                 <figcaption className="sr-only">
                   My nights and weekends season 5 badge, recreated in 3D on a buildspace lanyard. The back is my grad badge.
                 </figcaption>
@@ -144,6 +169,8 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
                 height={stop.model.height}
                 alt={stop.model.alt}
                 decoding="async"
+                onLoad={() => { if (open) reportDrawerState('ready'); }}
+                onError={() => { if (open) reportDrawerState('error'); }}
               />
               <span className="model-code" aria-hidden="true">
                 {stop.code}
@@ -176,6 +203,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
                 minOpacity={0}
                 smoothing={reduced ? 1 : 200}
                 inset={0}
+                active={open}
               />
             </nav>
 

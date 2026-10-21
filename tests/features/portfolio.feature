@@ -38,3 +38,49 @@ Feature: Getting to know Jerry
     And I open the portfolio
     Then smooth scrolling is off
     And the career path is not pinned
+
+  Scenario: A visitor spins the Berlin desk on request
+    Given I prefer reduced motion
+    And I open the portfolio
+    Then no 3D model has been downloaded
+    When I open the path stop "My Berlin desk"
+    Then I see a sheet titled "My Berlin desk"
+    And the 3D model is ready
+    And the path wheel offers "2024 · Draper University" and "Now · Scenaryo"
+    When I turn the desk right
+    And I close the sheet
+    Then no sheet is open
+    And no model canvas remains
+
+  Scenario: A visitor flips the Buildspace badge
+    Given I prefer reduced motion
+    And I open the portfolio
+    Then no 3D model has been downloaded
+    When I open the path stop "buildspace"
+    Then the 3D model is ready
+    When I flip the Buildspace badge
+    Then the lanyard is visible
+
+  Scenario: A visitor opens Scenaryo research on a phone
+    Given the viewport is 390 pixels wide
+    And I prefer reduced motion
+    And I open the portfolio
+    When I open the project "Scenaryo"
+    And I scroll the sheet to its end
+    Then its research CTA is fully visible
+    When I follow its research CTA
+    Then the research URL opens
+
+  Scenario: A client explores Leapfrog AI
+    Given I prefer reduced motion
+    And I open the portfolio
+    When I open the project "Leapfrog AI"
+    Then I see a sheet titled "Leapfrog AI"
+    And the sheet links to "lfg-ai.com"
+
+  Scenario: A recruiter reads the recommendations
+    Given I prefer reduced motion
+    And I open the portfolio
+    Then six recommendations share the same composition
+    And Dan Goldin has an honorary mention
+    And the canonical URL is "https://jerrydoughan.com/"

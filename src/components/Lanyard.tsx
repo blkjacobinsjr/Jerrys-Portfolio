@@ -1,6 +1,8 @@
 // React Bits Lanyard (TS-CSS), with local accessibility and lifecycle integration.
 // Loaded only when the buildspace drawer opens.
 import { useEffect, useRef } from 'react';
+import { useMachine } from '@xstate/react';
+import { interactionMachine } from '../lib/interaction';
 import type { CSSProperties } from 'react';
 import * as THREE from 'three';
 
@@ -43,6 +45,8 @@ export interface LanyardProps {
   intro?: boolean;
   className?: string;
   style?: CSSProperties;
+  onReady?: () => void;
+  onError?: () => void;
 }
 
 interface Settings {
@@ -359,17 +363,36 @@ const traceRoundedRect = (path: PathLike, x: number, y: number, width: number, h
 
 const loadImage = (
   cache: Map<string, Promise<HTMLImageElement | null>>,
-  url?: string
+  url: string | undefined,
+  signal: AbortSignal
 ): Promise<HTMLImageElement | null> => {
   if (!url) return Promise.resolve(null);
   const cached = cache.get(url);
   if (cached) return cached;
   const promise = new Promise<HTMLImageElement | null>(resolve => {
     const image = new Image();
+    let settled = false;
+    const finish = (value: HTMLImageElement | null) => {
+      if (settled) return;
+      settled = true;
+      image.onload = null;
+      image.onerror = null;
+      signal.removeEventListener('abort', abort);
+      resolve(value);
+    };
+    const abort = () => {
+      finish(null);
+      image.src = '';
+    };
+    if (signal.aborted) {
+      finish(null);
+      return;
+    }
+    signal.addEventListener('abort', abort, { once: true });
     image.crossOrigin = 'anonymous';
     image.decoding = 'async';
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
+    image.onload = () => finish(image);
+    image.onerror = () => finish(null);
     image.src = url;
   });
   cache.set(url, promise);
@@ -891,12 +914,16 @@ const Lanyard = ({
   interactive = true,
   intro = true,
   className = '',
-  style
+  style,
+  onReady,
+  onError
 }: LanyardProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<Settings | null>(null);
   const applyRef = useRef<(() => void) | null>(null);
   const flipRef = useRef<(() => void) | null>(null);
+  const failRef = useRef<() => void>(() => {});
+  const [snapshot, send] = useMachine(interactionMachine);
 
   settingsRef.current = {
     frontImage,
@@ -929,16 +956,33 @@ const Lanyard = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
+    send({ type: 'START' });
+    let alive = true;
+    let failed = false;
+    const fail = () => {
+      if (!alive || failed) return;
+      failed = true;
+      send({ type: 'FAIL', message: 'The badge preview could not be started.' });
+      onError?.();
+    };
+    failRef.current = fail;
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch {
+      fail();
       return undefined;
     }
-    renderer.setClearColor(0x000000, 0);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.NeutralToneMapping;
-    renderer.toneMappingExposure = 1;
+    try {
+      renderer.setClearColor(0x000000, 0);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.NeutralToneMapping;
+      renderer.toneMappingExposure = 1;
+    } catch {
+      renderer.dispose();
+      fail();
+      return undefined;
+    }
     const canvas = renderer.domElement;
     canvas.className = 'lanyard-canvas';
     canvas.setAttribute('aria-hidden', 'true');
@@ -956,6 +1000,7 @@ const Lanyard = ({
     scene.add(keyLight, fillLight);
 
     const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
+    const imageController = new AbortController();
     const images: Images = { front: null, back: null, strap: null };
     const frontCanvas = document.createElement('canvas');
     const backCanvas = document.createElement('canvas');
@@ -1044,7 +1089,6 @@ const Lanyard = ({
     let last = performance.now();
     let time = 0;
     let visible = true;
-    let alive = true;
     let placed = false;
     let hovering = false;
     let press: Press | null = null;
@@ -1139,17 +1183,30 @@ const Lanyard = ({
       if (imageKey !== applied.imageKey) {
         const token = ++imageToken;
         Promise.all([
-          loadImage(imageCache, s.frontImage),
-          loadImage(imageCache, s.backImage),
-          loadImage(imageCache, s.strapImage)
+          loadImage(imageCache, s.frontImage, imageController.signal),
+          loadImage(imageCache, s.backImage, imageController.signal),
+          loadImage(imageCache, s.strapImage, imageController.signal)
         ]).then(([front, back, strap]) => {
           if (!alive || token !== imageToken) return;
+          if ((s.frontImage && !front) || (s.backImage && !back) || (s.strapImage && !strap)) {
+            fail();
+            return;
+          }
           images.front = front;
           images.back = back;
           images.strap = strap;
-          paintFaces();
-          repaintStrap();
-        });
+          try {
+            paintFaces();
+            repaintStrap();
+            render();
+            if (!failed) {
+              send({ type: 'READY' });
+              onReady?.();
+            }
+          } catch {
+            fail();
+          }
+        }).catch(() => fail());
       }
       const faceKey = `${layoutKey}|${s.cardColor}|${s.imageFit}`;
       if (faceKey !== applied.faceKey) paintFaces();
@@ -1265,10 +1322,15 @@ const Lanyard = ({
     };
 
     const render = () => {
-      cardGroup.position.copy(sim.body.position);
-      cardGroup.quaternion.copy(sim.body.quaternion);
-      updateBand();
-      renderer.render(scene, camera);
+      if (failed) return;
+      try {
+        cardGroup.position.copy(sim.body.position);
+        cardGroup.quaternion.copy(sim.body.quaternion);
+        updateBand();
+        renderer.render(scene, camera);
+      } catch {
+        fail();
+      }
     };
 
     const physics = (): Physics => {
@@ -1427,12 +1489,16 @@ const Lanyard = ({
     canvas.addEventListener('touchstart', onTouchStart, { passive: false });
 
     const resize = () => {
-      view.width = Math.max(1, container.clientWidth);
-      view.height = Math.max(1, container.clientHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setSize(view.width, view.height, false);
-      apply();
-      render();
+      try {
+        view.width = Math.max(1, container.clientWidth);
+        view.height = Math.max(1, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(view.width, view.height, false);
+        apply();
+        render();
+      } catch {
+        fail();
+      }
     };
 
     const resizeObserver = new ResizeObserver(resize);
@@ -1443,6 +1509,8 @@ const Lanyard = ({
       else { cancelAnimationFrame(raf); raf = 0; }
     });
     intersectionObserver.observe(container);
+    const contextLost = (event: Event) => { event.preventDefault(); fail(); };
+    canvas.addEventListener('webglcontextlost', contextLost);
     const onVisibility = () => {
       cancelAnimationFrame(raf); raf = 0;
       if (!document.hidden) start();
@@ -1462,6 +1530,7 @@ const Lanyard = ({
 
     return () => {
       alive = false;
+      imageController.abort();
       cancelAnimationFrame(raf);
       applyRef.current = null;
       flipRef.current = null;
@@ -1469,6 +1538,7 @@ const Lanyard = ({
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
+      canvas.removeEventListener('webglcontextlost', contextLost);
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerup', onPointerUp);
@@ -1481,15 +1551,16 @@ const Lanyard = ({
       environment.dispose();
       renderer.dispose();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+      send({ type: 'CLOSE' });
     };
-  }, []);
+  }, [onError, onReady, send]);
 
-  return <div className={`lanyard ${className}`.trim()} style={style}>
-    <div ref={containerRef} className="lanyard-stage" data-scrollsheet-no-drag>
-      <img className="lanyard-fallback" src={frontImage} alt="Buildspace nights and weekends season 5 badge" />
+  return <div className={`lanyard ${className}`.trim()} style={style} data-renderer-state={snapshot.value}>
+    <div ref={containerRef} className="lanyard-stage" data-scrollsheet-no-drag data-renderer-state={snapshot.value}>
+      <img className="lanyard-fallback" src={frontImage} alt="Buildspace nights and weekends season 5 badge" onError={() => failRef.current()} />
     </div>
     <div className="model-controls">
-      <button type="button" onClick={() => flipRef.current?.()}>Flip badge</button>
+      <button type="button" disabled={!snapshot.matches('ready')} onClick={() => flipRef.current?.()}>Flip badge</button>
     </div>
   </div>;
 };

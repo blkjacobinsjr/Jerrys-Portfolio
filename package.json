@@ -15,7 +15,7 @@
     "test:unit": "vitest run --coverage",
     "test:mutation": "stryker run",
     "test:e2e": "bddgen && playwright test",
-    "test:lighthouse": "lhci autorun",
+    "test:lighthouse": "lhci autorun && lhci autorun --config=lighthouserc.desktop.cjs",
     "qa": "npm run check && npm run test:unit && npm run test:mutation && npm run build && npm run test:e2e && npm run test:lighthouse"
   },
   "dependencies": {
