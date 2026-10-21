@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import '../styles/sheet.css';
 import './PathSheet.css';
 import { useMedia } from '../lib/useMedia';
+import OptionWheel from './OptionWheel';
 
 export interface Picture {
   src: string;
@@ -39,19 +40,33 @@ const stagger = (i: number) => ({ '--i': i }) as CSSProperties;
 export default function PathSheet({ stops }: { stops: StopView[] }) {
   const [open, setOpen] = useState(false);
   const [id, setId] = useState<string | null>(null);
+  // Bumped on every open from the strip, so the wheel starts on that stop.
+  const [visit, setVisit] = useState(0);
   const desktop = useMedia('(min-width: 768px)');
+  const reduced = useMedia('(prefers-reduced-motion: reduce)');
   const model = useRef<HTMLImageElement>(null);
+  const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       const button = (event.target as Element | null)?.closest<HTMLElement>('[data-stop]');
       if (!button?.dataset.stop) return;
       setId(button.dataset.stop);
+      setVisit((n) => n + 1);
       setOpen(true);
     };
     document.addEventListener('click', onClick);
-    return () => document.removeEventListener('click', onClick);
+    return () => {
+      document.removeEventListener('click', onClick);
+      clearTimeout(settle.current);
+    };
   }, []);
+
+  // The wheel reports every stop it passes; switch once it comes to rest.
+  const pick = (index: number) => {
+    clearTimeout(settle.current);
+    settle.current = setTimeout(() => setId(stops[index]?.id ?? null), 180);
+  };
 
   // A fine pointer turns the model a few degrees, like picking it up off a shelf.
   const tilt = (event: PointerEvent<HTMLElement>) => {
@@ -69,6 +84,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   };
 
   const stop = stops.find((s) => s.id === id);
+  const labels = useMemo(() => stops.map((s) => `${s.when} · ${s.place}`), [stops]);
 
   return (
     <Sheet.Root open={open} onOpenChange={setOpen} side="bottom" desktopSide="right" detents={desktop ? DRAWER_DETENTS : PHONE_DETENTS}>
@@ -76,8 +92,8 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
         <Sheet.Handle />
         <Sheet.Close />
         {stop && (
-          <div key={stop.id} className="sheet-body" data-state={open ? 'open' : 'closed'}>
-            <figure className="model" onPointerMove={tilt} onPointerLeave={untilt}>
+          <div className="sheet-body" data-state={open ? 'open' : 'closed'}>
+            <figure key={stop.id} className="model" onPointerMove={tilt} onPointerLeave={untilt}>
               <span className="model-glow" aria-hidden="true" />
               <span className="model-floor" aria-hidden="true" />
               <img
@@ -95,7 +111,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
               </span>
             </figure>
 
-            <header className="model-caption" style={stagger(1)}>
+            <header key={`${stop.id}-caption`} className="model-caption" style={stagger(1)}>
               <Sheet.Title className="detail-title">{stop.place}</Sheet.Title>
               <Sheet.Description className="model-role">{stop.title}</Sheet.Description>
               <p className="model-meta">
@@ -103,13 +119,33 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
               </p>
             </header>
 
+            <nav className="model-wheel" aria-label="Before and after">
+              <OptionWheel
+                key={visit}
+                items={labels}
+                defaultSelected={stops.indexOf(stop)}
+                onChange={pick}
+                ariaLabel="Stops on the path"
+                textColor="var(--fg)"
+                activeColor="var(--fg)"
+                fontSize={1.0625}
+                spacing={1.75}
+                tilt={0}
+                blur={reduced ? 0 : 1}
+                fade={0.38}
+                minOpacity={0}
+                smoothing={reduced ? 1 : 200}
+                inset={0}
+              />
+            </nav>
+
             {stop.story && (
-              <p className="detail-story" style={stagger(2)}>
+              <p key={`${stop.id}-story`} className="detail-story" style={stagger(2)}>
                 {stop.story}
               </p>
             )}
 
-            <ul className="detail-list" style={stagger(3)}>
+            <ul key={`${stop.id}-notes`} className="detail-list" style={stagger(3)}>
               {stop.notes.map((note) => (
                 <li key={note}>{note}</li>
               ))}
@@ -117,6 +153,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
 
             {stop.photos.length > 0 && (
               <div
+                key={`${stop.id}-photos`}
                 className="detail-gallery"
                 style={stagger(4)}
                 data-scrollsheet-nested-scroll
@@ -141,7 +178,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
             )}
 
             {stop.link && (
-              <a className="pill-link detail-visit" style={stagger(5)} href={stop.link.href} target="_blank" rel="noopener">
+              <a key={`${stop.id}-link`} className="pill-link detail-visit" style={stagger(5)} href={stop.link.href} target="_blank" rel="noopener">
                 {stop.link.label}
                 <span aria-hidden="true"> ↗</span>
               </a>

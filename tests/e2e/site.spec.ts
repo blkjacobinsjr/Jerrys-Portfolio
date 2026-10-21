@@ -115,6 +115,25 @@ test.describe('path', () => {
     await expect(sheet.getByRole('link', { name: /demo day story/ })).toHaveAttribute('href', /linkedin\.com\/posts\/jasdoughan/);
   });
 
+  test('walks to the stops before and after it from the drawer', async ({ page }) => {
+    await open(page);
+    await scrollToSelector(page, '#path');
+    const stop = page.locator('[data-stop="benify"]');
+    await stop.focus();
+    await page.waitForTimeout(800);
+    await stop.click();
+    const sheet = page.locator('dialog[open]');
+    const wheel = sheet.getByRole('listbox', { name: 'Stops on the path' });
+    await expect(wheel.getByRole('option', { selected: true })).toHaveText('2022 · Benify');
+    await expect(sheet.locator('.model-code')).toHaveText('BER · DE');
+    await wheel.getByRole('option', { name: '2023 · Haus der Kulturen der Welt' }).click();
+    await expect(sheet.getByRole('heading', { name: 'Haus der Kulturen der Welt' })).toBeVisible();
+    await wheel.focus();
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');
+    await expect(sheet.getByRole('heading', { name: 'TikTok' })).toBeVisible();
+  });
+
   test('has a diorama and a glow for every stop, oldest to now', async ({ page }) => {
     await open(page);
     await expect(page.locator('.stop')).toHaveCount(13);

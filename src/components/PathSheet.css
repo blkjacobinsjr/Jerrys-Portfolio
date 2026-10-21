@@ -99,3 +99,31 @@
   line-height: 1.4;
   white-space: nowrap;
 }
+
+/* Before and after: React Bits OptionWheel, flat and centred under the
+   caption, three rows tall so it shows exactly the neighbouring stops.
+   Turn it, drag it, or tap a stop to go there. */
+.model-wheel {
+  position: relative;
+  width: min(100%, 19rem);
+  height: calc(3 * 1.0625rem * 1.75);
+  margin: 0 auto 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.model-wheel .option-wheel__item {
+  left: 50%;
+  translate: -50% 0;
+  transform-origin: center;
+  font-weight: 400;
+}
+
+.model-wheel .option-wheel__item--selected {
+  font-weight: 600;
+}
+
+.model-wheel .option-wheel:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
+  border-radius: var(--r-tile);
+}
