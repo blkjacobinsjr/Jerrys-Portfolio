@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import TearTicket from './TearTicket';
 import { canUseGL } from '../lib/gl';
+import { onFirstIntent } from '../lib/intent';
 import { cue } from '../lib/sound';
 import { mailto, openMail, sheetImage, TOPICS, type Topic } from '../lib/letter';
 import './Letter.css';
@@ -22,8 +23,9 @@ interface Sheet {
 
 /**
  * A letter to me, after Carter Ogunsola's contact page. Write it, then tear the stub off the
- * postage ticket (React Bits TearTicket) to send it. The whole letter is a sheet of React Bits
- * PaperCrumple while it opens on load and when you start over; reduced motion keeps it still.
+ * postage ticket (React Bits TearTicket) to send it. On load the letter unfolds with a
+ * CSS transform; Start over crumples it as a sheet of React Bits PaperCrumple (WebGL, fetched on
+ * first intent). Reduced motion keeps it still.
  */
 export default function Letter({ email }: { email: string }) {
   const [topic, setTopic] = useState<Topic>(TOPICS[0]);
@@ -51,13 +53,20 @@ export default function Letter({ email }: { email: string }) {
     const box = el.getBoundingClientRect();
     return { width: box.width, height: box.height, fill: getComputedStyle(el).backgroundColor };
   };
+  const intro = () => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    clear();
+    setHidden(true);
+    setAct('intro');
+    later(done, OPEN_MS);
+  };
   const play = (next: Act) => {
     const size = measure();
     if (!size) return false;
     clear();
     setSheet(size);
     setCrumpled(false);
-    setHidden(next === 'intro');
+    setHidden(false);
     setAct(next);
     // If the paper never arrives (slow network, lost WebGL context) the letter must not stay hidden.
     later(done, GIVE_UP_MS);
@@ -71,8 +80,12 @@ export default function Letter({ email }: { email: string }) {
 
   useEffect(() => setDate(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()).toUpperCase()), []);
   useLayoutEffect(() => {
-    play('intro');
-    return clear;
+    intro();
+    const stop = onFirstIntent(() => void import('./PaperCrumple'));
+    return () => {
+      stop();
+      clear();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -93,13 +106,11 @@ export default function Letter({ email }: { email: string }) {
   // The paper is on screen: for the intro it opens by itself, for a reset it crumples first, the letter is wiped while it is balled up, then it opens blank.
   const onReady = () => {
     clear();
-    if (act === 'reset') {
-      setHidden(true);
-      setCrumpled(true);
-      later(blank, CRUMPLE_MS / 2);
-      later(() => setCrumpled(false), CRUMPLE_MS);
-      later(done, CRUMPLE_MS + OPEN_MS);
-    } else later(done, OPEN_MS);
+    setHidden(true);
+    setCrumpled(true);
+    later(blank, CRUMPLE_MS / 2);
+    later(() => setCrumpled(false), CRUMPLE_MS);
+    later(done, CRUMPLE_MS + OPEN_MS);
   };
   const send = () => {
     setSent((n) => n + 1);
@@ -158,7 +169,8 @@ export default function Letter({ email }: { email: string }) {
         </div>
       </form>
 
-      {act && sheet ? (
+      {act === 'intro' ? <div className="letter-paper letter-fold" aria-hidden="true" /> : null}
+      {act === 'reset' && sheet ? (
         <div className="letter-paper" style={{ top: -MARGIN, left: -MARGIN, width: sheet.width + 2 * MARGIN, height: sheet.height + 2 * MARGIN }} aria-hidden="true">
           <Suspense fallback={null}>
             <PaperCrumple
@@ -174,7 +186,7 @@ export default function Letter({ email }: { email: string }) {
               shadowOpacity={0.1}
               draggable={false}
               disabled
-              startCrumpled={act === 'intro'}
+              startCrumpled={false}
               crumpled={crumpled}
               onReady={onReady}
               onError={done}
