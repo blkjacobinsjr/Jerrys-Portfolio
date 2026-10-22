@@ -1,6 +1,6 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import Work, { type Shot, type WorkItem } from './Work';
+import Work, { type Screenshot, type WorkItem } from './Work';
 import DecryptedText from './DecryptedText';
 import LogoLoop from './LogoLoop';
 import { earlier, projects } from '../data/site';
@@ -22,7 +22,9 @@ const items: WorkItem[] = await Promise.all(
       shots.map(async (src, i) => {
         const phone = i === 2;
         const img = await getImage({ src, widths: phone ? [240, 360, 480, 640] : [480, 800, 1200, 1600], format: 'webp' });
-        return { src: img.src, srcset: img.srcSet.attribute, width: src.width, height: src.height, alt: shotAlts[i] ?? '' } satisfies Shot;
+        // The drawer carousel's WebGL texture: the widest candidate up to 1200px, never the original.
+        const texture = img.srcSet.values.filter((v) => (v.transform.width ?? 0) <= 1200).at(-1)?.url ?? img.src;
+        return { src: img.src, srcset: img.srcSet.attribute, texture, width: src.width, height: src.height, alt: shotAlts[i] ?? '' } satisfies Screenshot;
       }),
     );
     const mark = await getImage({ src: logo, width: 96, format: 'webp' });
@@ -30,7 +32,7 @@ const items: WorkItem[] = await Promise.all(
     return {
       ...project,
       logo: mark.src,
-      shots: resolved as [Shot, Shot, Shot],
+      shots: resolved as [Screenshot, Screenshot, Screenshot],
       phone: { src: hand.src, srcset: hand.srcSet.attribute, width: phone.src.width, height: phone.src.height, alt: phone.alt },
     };
   }),

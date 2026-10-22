@@ -1,0 +1,95 @@
+/* A work drawer's screenshots (WorkGallery.tsx). One fixed box holds the static strip or the
+   WebGL carousel, so swapping one for the other moves nothing. It bleeds to the panel's edges. */
+.work-gallery {
+  --bleed: 1.5rem;
+  height: 340px;
+  margin: 1.5rem calc(-1 * var(--bleed));
+}
+
+@media (min-width: 768px) {
+  .work-gallery {
+    --bleed: 2rem;
+  }
+}
+
+.work-gallery > .detail-gallery {
+  height: 100%;
+  margin: 0;
+  padding-inline: var(--bleed);
+  scroll-padding-inline: var(--bleed);
+}
+
+.work-gallery > .detail-gallery img {
+  height: 100%;
+}
+
+.work-carousel {
+  position: relative;
+  height: 100%;
+}
+
+/* The library contains overscroll on its overflow: hidden box. Nothing in it scrolls, so a vertical wheel or
+   swipe over it scrolled nothing at all; it has to chain to the drawer (the overlay contract, lib/overlay.ts). */
+.work-carousel .flex-carousel {
+  overscroll-behavior: auto;
+}
+
+/* Room on both sides of the caption for the step buttons. */
+.work-carousel .flex-carousel__caption {
+  padding-inline: calc(var(--bleed) + 3rem);
+}
+
+/* The counter at the library's half opacity reads under 4.5:1; the muted ink token passes in both schemes. */
+.work-carousel .flex-carousel__count:not([data-hidden]),
+.work-carousel .flex-carousel__slash {
+  opacity: 1;
+  color: var(--fg-2);
+}
+
+/* The library's ring is a faint grey; the site's focus ring is the ink colour. */
+.work-carousel .flex-carousel:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--fg);
+}
+
+/* Level with the first caption line, which sits 22px under the cards. */
+.work-carousel-step {
+  position: absolute;
+  top: calc(50% + var(--card-half) + 14px);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--bg-elev);
+  color: var(--fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    scale var(--dur-press) var(--ease-out),
+    background-color var(--dur-ui) ease;
+}
+
+.work-carousel-step[data-dir='prev'] {
+  left: var(--bleed);
+}
+
+.work-carousel-step[data-dir='next'] {
+  right: var(--bleed);
+}
+
+.work-carousel-step:active {
+  scale: 0.94;
+}
+
+.work-carousel-step:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .work-carousel-step:hover {
+    background: var(--bg-sunk);
+  }
+}
