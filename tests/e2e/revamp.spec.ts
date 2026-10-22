@@ -191,7 +191,6 @@ test('a path drawer leads with the organisation mark, then the title, role and o
 test('the hero teaser shows a recommendation above the fold and leads to the full section', async ({ page, isMobile }) => {
   await open(page);
   const teaser = page.locator('.hero-recs');
-  await expect(teaser.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
   await expect(teaser.locator('.mt-quote.is-active')).toContainText('One of the scrappiest builders I know');
   await expect(teaser.locator('.mt-author.is-active')).toContainText('Akatos');
   await expect(teaser.locator('.mt-avatar img')).toHaveCount(3);
@@ -203,26 +202,6 @@ test('the hero teaser shows a recommendation above the fold and leads to the ful
   await teaser.getByRole('link', { name: 'All six recommendations' }).click();
   await expect(page.locator('#recommendations')).toBeInViewport();
   await expect(page.locator('#recommendations .rec')).toHaveCount(6);
-});
-
-test('the A · B switch swaps the teaser style, by keyboard too, and remembers it', async ({ page }) => {
-  await open(page);
-  const radios = page.getByRole('radiogroup', { name: 'Testimonial style' });
-  await expect(radios.getByRole('radio')).toHaveCount(2);
-  const unique = radios.getByRole('radio', { name: 'Unique testimonial' });
-  await unique.click();
-  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
-  await expect(page.locator('.ut-quote')).toHaveText('One of the scrappiest builders I know');
-  await expect(page.locator('.mt-quote')).toHaveCount(0);
-  expect(new URL(page.url()).searchParams.get('t')).toBe('a');
-  await unique.press('ArrowRight');
-  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
-  await expect(radios.getByRole('radio', { name: 'Minimal testimonial' })).toBeFocused();
-  await radios.getByRole('radio', { name: 'Unique testimonial' }).click();
-  await page.goto('/');
-  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
-  await page.goto('/?t=b');
-  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
 });
 
 test('path cards carry the mark and one when-and-where line, with nothing over the model', async ({ page }) => {

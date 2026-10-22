@@ -5,7 +5,7 @@ import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
 import { person } from '../data/site';
 import { teaser } from '../data/recommendations';
-import HeroTeaser from './HeroTeaser';
+import MinimalTestimonial from './MinimalTestimonial';
 
 interface Props {
   sprite: string;
@@ -43,7 +43,7 @@ const quotes = await Promise.all(
       <a href={person.github} rel="me noopener" target="_blank">GitHub</a>
     </p>
     <div class="hero-recs" role="group" aria-label="From my recommendations">
-      <HeroTeaser client:afterload quotes={quotes} />
+      <MinimalTestimonial client:afterload testimonials={quotes} />
       <a class="hero-recs-all" href="#recommendations">All six recommendations</a>
     </div>
   </div>
@@ -115,17 +115,13 @@ const quotes = await Promise.all(
     color: var(--fg-2);
   }
 
-  /* The teaser spans both columns; the link and the temporary style switch share the line below. */
   .hero-recs {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1.25rem 1rem;
+    justify-items: start;
+    gap: 0.75rem;
   }
 
   .hero-recs-all {
-    grid-area: 2 / 1;
-    justify-self: start;
     font-size: var(--text-sm);
     color: var(--fg-2);
   }

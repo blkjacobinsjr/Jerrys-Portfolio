@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { open } from './helpers';
 
-// Variant B of the hero teaser (21st.dev Minimal Testimonial), the default: the published layout at every width.
+// The hero teaser (21st.dev Minimal Testimonial): the published layout at every width.
 
 async function measure(page: Page) {
   return page.evaluate(() => {
@@ -25,7 +25,6 @@ async function measure(page: Page) {
       quotes: box('.mt-quotes').toJSON() as DOMRect,
       avatars: box('.mt-avatars').toJSON() as DOMRect,
       teaser: box('.mt').toJSON() as DOMRect,
-      toggle: box('.teaser-switch').toJSON() as DOMRect,
       link: box('.hero-recs-all').toJSON() as DOMRect,
       textTop: Math.min(...text.map((rect) => rect.top)),
       textBottom: Math.max(...text.map((rect) => rect.bottom)),
@@ -36,7 +35,7 @@ async function measure(page: Page) {
   });
 }
 
-test('the quote, the avatar row, the byline and the style switch never collide', async ({ page }) => {
+test('the quote, the avatar row and the byline never collide', async ({ page }) => {
   await open(page);
   await page.evaluate(() => document.fonts.ready);
   for (const colorScheme of ['light', 'dark'] as const) {
@@ -53,12 +52,6 @@ test('the quote, the avatar row, the byline and the style switch never collide',
       for (const lines of m.quoteLines) expect(lines, `${at}: quote lines`).toBeLessThanOrEqual(width >= 1024 ? 2 : 3);
       expect(m.nameLines, `${at}: each name on one line`).toEqual([1, 1, 1]);
       expect(m.roleLines, `${at}: each role on one line`).toEqual([1, 1, 1]);
-      // The temporary switch keeps its distance: below the teaser, beside the link.
-      expect(m.toggle.top, `${at}: switch below the teaser`).toBeGreaterThanOrEqual(m.teaser.bottom + 16);
-      expect(m.toggle.left, `${at}: switch clear of the link`).toBeGreaterThanOrEqual(m.link.right + 16);
-      const middle = (rect: DOMRect) => rect.top + rect.height / 2;
-      expect(Math.abs(middle(m.toggle) - middle(m.link)), `${at}: switch on the link's line`).toBeLessThanOrEqual(4);
-      expect(m.toggle.right, `${at}: switch inside the column`).toBeLessThanOrEqual(m.teaser.right + 0.5);
     }
   }
 });
@@ -118,15 +111,13 @@ test('with reduced motion the quote switches at once', async ({ page }) => {
   expect(opacities).toEqual(Array(10).fill(1));
 });
 
-test('B is the server-rendered default and A loads only when chosen', async ({ page, request }) => {
+test('B is the only teaser: server-rendered, with no style switch', async ({ page, request }) => {
   const html = await (await request.get('/')).text();
-  expect(html, 'the first paint is already B: no swap when the island hydrates').toContain('data-variant="b"');
-  expect(html).toContain('class="mt-quote is-active"');
-  expect(html).not.toContain('class="ut-quote');
+  expect(html, 'the first paint is already the testimonial: no swap when the island hydrates').toContain('class="mt-quote is-active"');
+  expect(html).not.toContain('teaser-switch');
+  expect(html).not.toContain('ut-quote');
   await open(page);
-  const chunks = () => page.evaluate(() => performance.getEntriesByType('resource').map((entry) => entry.name).filter((name) => /\/UniqueTestimonial\./.test(name)));
-  expect(await chunks()).toEqual([]);
-  await page.getByRole('radio', { name: 'Unique testimonial' }).click();
-  await expect(page.locator('.ut-quote')).toBeVisible();
-  expect(await chunks()).toHaveLength(1);
+  await expect(page.getByRole('radiogroup', { name: 'Testimonial style' })).toHaveCount(0);
+  await page.goto('/?t=a');
+  await expect(page.locator('.mt-quote.is-active')).toBeVisible();
 });

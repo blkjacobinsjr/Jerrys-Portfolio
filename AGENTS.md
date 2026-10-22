@@ -77,19 +77,15 @@ renders the band across that edge with and without containment and requires them
   `src/data/site.ts`. `node tools/fetch-logos.mjs` refetches them: from logo.dev with `LOGO_DEV_TOKEN`
   set, otherwise from each organisation's own icon. Personal stops get no mark.
 
-### Hero recommendations teaser (Oct 2026, temporary A · B switch)
+### Hero recommendations teaser (Oct 2026)
 
-`components/HeroTeaser.tsx` shows three verbatim fragments (`teaser` in `data/recommendations.ts`, which
-also carries each person's portrait and company logo from the same records, never a copy) in one of
-two ready-made 21st.dev components: B Minimal Testimonial (default, server-rendered, ships with the
-page) and A Unique Testimonial (lazy chunk). The choice is `?t=a|b` plus localStorage `teaser-style`.
-Their Tailwind classes are translated one for one into plain CSS with the site tokens; the site has no
-Tailwind. C (radiumcoders Animated Testimonials) was dropped: its source is behind 21st.dev sign-in,
-and it is not Aceternity's open component of the same name. The switch sits on the "All six
-recommendations" line (`.hero-recs` is a two-column grid, `.hero-teaser` is `display: contents`).
-When Jerry picks one: delete the switch and the other component, render the pick directly from
-Hero.astro, and make `.hero-recs` one column again. `tests/e2e/teaser-b.spec.ts` checks B at 390, 768,
-1024 and 1440 in light and dark.
+`Hero.astro` renders 21st.dev Minimal Testimonial (`components/MinimalTestimonial.tsx`) with three
+verbatim fragments (`teaser` in `data/recommendations.ts`, which also carries each person's portrait
+and company logo from the same records, never a copy). Jerry picked it over Unique Testimonial (A) and
+radiumcoders Animated Testimonials (C, source behind 21st.dev sign-in) on the live site; the A · B
+switch and A are gone. Its Tailwind classes are translated one for one into plain CSS with the site
+tokens (no Tailwind here); the one deliberate change is half the published `mb-12` under the quote.
+`tests/e2e/teaser-b.spec.ts` checks it at 390, 768, 1024 and 1440 in light and dark.
 
 ### Stacked crossfades and shrink-to-fit columns (Oct 2026)
 

@@ -10,7 +10,8 @@
 .mt-quotes {
   display: grid;
   min-height: 80px;
-  margin-bottom: 3rem;
+  /* Published: mb-12 (3rem). Jerry asked for about half under the hero copy. */
+  margin-bottom: 1.5rem;
 }
 
 /* Published: font-light. The reference render has no 300 face and shows it at 400; Geist has a
