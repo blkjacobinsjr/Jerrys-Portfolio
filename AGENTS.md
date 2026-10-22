@@ -108,6 +108,11 @@ distance from its fitted axis, then keep the remaining late oval pixels in strok
 centreline through their centroids. Derive each mask width from the furthest final fill pixel to its
 rasterized centreline; source brush thickness alone can leave unmasked fill at the end of the dash.
 
+### Native anchors and late pins (Oct 2026)
+
+Native fragment anchors resolve before idle-loaded motion runs. If a later ScrollTrigger pin adds a
+spacer above the target, realign untouched deep links after pin creation and refresh; stop after user input.
+
 ### Pages of their own (Oct 2026)
 
 - `/writing`, `/consultancy` and `/contact` use `layouts/Page.astro`: Base + the dock with `page=` set,

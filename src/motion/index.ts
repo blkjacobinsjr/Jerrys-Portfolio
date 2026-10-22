@@ -1,4 +1,4 @@
-import { gsap, jumpTo, startScroll } from '../lib/scroll';
+import { gsap, hasUserIntent, jumpTo, ScrollTrigger, startScroll } from '../lib/scroll';
 import { step, still, type Swing } from '../lib/swing';
 
 /**
@@ -82,6 +82,18 @@ function path() {
     },
   });
 
+  // Native anchors resolve before this late pin adds its spacer. Keep untouched
+  // deep links aligned through pin refreshes, then leave scrolling to the visitor.
+  const alignInitialHash = () => {
+    if (hasUserIntent() || location.hash.length < 2) return;
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (!target) return;
+    const margin = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    jumpTo(scrollY + target.getBoundingClientRect().top - margin);
+  };
+  ScrollTrigger.addEventListener('refresh', alignInitialHash);
+  alignInitialHash();
+
   // Each diorama rises to full size as it reaches the middle of the screen.
   for (const img of track.querySelectorAll('.stop-art img')) {
     gsap.fromTo(
@@ -116,6 +128,7 @@ function path() {
 
   return () => {
     track.removeEventListener('focusin', onFocus);
+    ScrollTrigger.removeEventListener('refresh', alignInitialHash);
     document.documentElement.classList.remove('is-pinned');
   };
 }
