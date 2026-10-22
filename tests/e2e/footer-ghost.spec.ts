@@ -20,6 +20,9 @@ test('the ghost cursor is not fetched until the footer nears the viewport, then 
   });
   const before = await page.locator('#contact').evaluate((el) => el.getBoundingClientRect().height);
   await scrollToSelector(page, '#contact');
+  expect(await ghostChunk(page)).toBe(false);
+  await page.mouse.move(300, 300);
+  await page.mouse.move(340, 320);
 
   const ghost = page.locator('#contact .ghost-cursor');
   await expect(ghost).toHaveCount(1);
@@ -38,6 +41,8 @@ test('the ghost colour follows the footer theme', async ({ page, isMobile }) => 
     await page.emulateMedia({ colorScheme: scheme });
     await open(page);
     await scrollToSelector(page, '#contact');
+    await page.mouse.move(300, 300);
+    await page.mouse.move(340, 320);
     // Dark footer: glowing trail composited with screen. Light footer: ink with normal blending.
     await expect(page.locator('#contact .ghost-cursor canvas')).toHaveCSS('mix-blend-mode', scheme === 'dark' ? 'screen' : 'normal');
   }
