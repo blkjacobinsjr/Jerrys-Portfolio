@@ -31,6 +31,16 @@ test.describe('page', () => {
     expect(errors).toEqual([]);
   });
 
+  test('shows a quiet Backed by row under the desk', async ({ page }) => {
+    await open(page);
+    const row = page.locator('.hero-backed');
+    await expect(row.getByRole('heading', { name: 'Backed by' })).toBeVisible();
+    await expect(row.getByRole('listitem')).toHaveCount(7);
+    await expect(row.getByText('LAUNCH (Jason Calacanis)')).toBeVisible();
+    const [art, backed] = await Promise.all([page.locator('.hero-art').boundingBox(), row.boundingBox()]);
+    expect(backed!.y).toBeGreaterThanOrEqual(art!.y + art!.height);
+  });
+
   test('never scrolls sideways', async ({ page }) => {
     await open(page);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);

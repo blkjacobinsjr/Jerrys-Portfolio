@@ -1,6 +1,6 @@
 import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { earlier, path, person, projects, testimonials } from '../../src/data/site';
+import { backedBy, earlier, path, person, projects, testimonials } from '../../src/data/site';
 
 const allCopy = JSON.stringify({
   person: { ...person, email: '' },
@@ -8,11 +8,17 @@ const allCopy = JSON.stringify({
   earlier: earlier.map(({ thumb, ...e }) => e),
   path: path.map(({ photos, ...s }) => s),
   testimonials,
+  backedBy,
 });
 
 describe('content', () => {
   it('uses no em or en dashes anywhere (house style)', () => {
     expect(allCopy).not.toMatch(/[—–]/);
+  });
+
+  it('lists the seven programmes that back the work, once each', () => {
+    expect(backedBy).toHaveLength(7);
+    expect(new Set(backedBy).size).toBe(7);
   });
 
   it('has a diorama for every stop on the path', () => {

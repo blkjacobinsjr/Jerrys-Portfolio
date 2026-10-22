@@ -58,6 +58,17 @@ export const person = {
   cv: '/jerry-doughan-cv.pdf',
 } as const;
 
+/** Programmes and funds behind the work, as a quiet text row under the hero desk. */
+export const backedBy = [
+  'Microsoft for Startups',
+  'Google for Startups',
+  'NVIDIA Inception',
+  'ElevenLabs Startup Program',
+  'Deepgram Startup Program',
+  'Draper University',
+  'LAUNCH (Jason Calacanis)',
+] as const;
+
 export interface Project {
   id: string;
   name: string;
