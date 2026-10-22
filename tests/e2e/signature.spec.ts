@@ -85,11 +85,18 @@ test('draws the inline signature once, keeps its reserved box stable, and stays 
   expect(await signature.evaluate((element) => ({
     previous: element.previousElementSibling?.className,
     next: element.nextElementSibling?.className,
-  }))).toEqual({ previous: 'hero-links', next: 'hero-recs' });
+  }))).toEqual({ previous: 'hero-bio', next: 'hero-links' });
   await expect(masks).toHaveCount(3);
   await expect(fills).toHaveCount(3);
+  const drawSeconds = await masks.evaluateAll((paths) => Math.max(...paths.map((path) => {
+    const style = getComputedStyle(path);
+    return Number.parseFloat(style.animationDelay) + Number.parseFloat(style.animationDuration);
+  })));
+  expect(drawSeconds).toBeGreaterThan(1.5);
+  expect(drawSeconds).toBeLessThanOrEqual(1.85);
+  if (testInfo.project.name === 'mobile') expect((await signature.boundingBox())!.width).toBeLessThanOrEqual(128.5);
   await expect.poll(() => page.locator('html').getAttribute('data-signature-progressed')).toBe('true');
-  await expect.poll(() => page.locator('html').getAttribute('data-signature-ends'), { timeout: 7_000 }).toBe('3');
+  await expect.poll(() => page.locator('html').getAttribute('data-signature-ends'), { timeout: 4_000 }).toBe('3');
   await expect(page.locator('html')).toHaveAttribute('data-signature-starts', '3');
 
   const endOffsets = await masks.evaluateAll((paths) => paths.map((path) => Number.parseFloat(getComputedStyle(path).strokeDashoffset)));

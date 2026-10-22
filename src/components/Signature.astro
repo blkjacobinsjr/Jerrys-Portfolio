@@ -1,5 +1,10 @@
 ---
 import signature from './signature-data.json';
+
+// The traced timings run ~4.1s; play them at DRAW_SECONDS in total.
+const DRAW_SECONDS = 1.8;
+const last = signature.strokes[signature.strokes.length - 1]!.timing;
+const speed = DRAW_SECONDS / (last.start + last.duration);
 ---
 
 <svg
@@ -15,7 +20,7 @@ import signature from './signature-data.json';
 
     return (
       <g
-        style={`--signature-delay:${stroke.timing.start}s;--signature-duration:${stroke.timing.duration}s;--signature-easing:${easing}`}
+        style={`--signature-delay:${(stroke.timing.start * speed).toFixed(3)}s;--signature-duration:${(stroke.timing.duration * speed).toFixed(3)}s;--signature-easing:${easing}`}
       >
         <mask
           id={maskId}
@@ -53,10 +58,10 @@ import signature from './signature-data.json';
     color: var(--fg);
   }
 
-  /* On phones a 16rem signature pushes the teaser far down; ~11.5rem keeps it a flourish. */
+  /* On phones a 16rem signature pushes the teaser far down; ~8rem keeps it a flourish. */
   @media (max-width: 767px) {
     .hero-signature {
-      width: min(100%, 11.5rem);
+      width: min(100%, 8rem);
     }
   }
 
