@@ -1,0 +1,76 @@
+---
+import signature from './signature-data.json';
+---
+
+<svg
+  class="hero-signature"
+  data-signature
+  viewBox={signature.viewBox}
+  role="img"
+  aria-label="Jerry’s signature"
+>
+  {signature.strokes.map((stroke, index) => {
+    const maskId = `hero-signature-mask-${index}`;
+    const easing = `linear(${stroke.timing.stops.map((stop) => `${stop[1] ?? 0} ${((stop[0] ?? 0) * 100).toFixed(2)}%`).join(', ')})`;
+
+    return (
+      <g
+        style={`--signature-delay:${stroke.timing.start}s;--signature-duration:${stroke.timing.duration}s;--signature-easing:${easing}`}
+      >
+        <mask
+          id={maskId}
+          x="0"
+          y="0"
+          width={signature.width}
+          height={signature.height}
+          maskUnits="userSpaceOnUse"
+          maskContentUnits="userSpaceOnUse"
+          style="mask-type: luminance"
+        >
+          <path
+            class="signature-mask"
+            data-signature-mask
+            d={stroke.centerline}
+            fill="none"
+            stroke="white"
+            stroke-width={stroke.maskWidth}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            pathLength="1"
+          />
+        </mask>
+        <path data-signature-fill d={stroke.fill} fill="currentColor" mask={`url(#${maskId})`} />
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .hero-signature {
+    display: block;
+    width: min(100%, 16rem);
+    aspect-ratio: 554 / 354;
+    color: var(--fg);
+  }
+
+  .signature-mask {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .signature-mask {
+      animation: signature-reveal var(--signature-duration) linear var(--signature-delay) 1 both;
+      animation-timing-function: var(--signature-easing);
+    }
+  }
+
+  @keyframes signature-reveal {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

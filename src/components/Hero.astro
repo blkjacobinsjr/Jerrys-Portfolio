@@ -6,6 +6,7 @@ import desk from '../assets/icons/desk.webp';
 import { person } from '../data/site';
 import { teaser } from '../data/recommendations';
 import MinimalTestimonial from './MinimalTestimonial';
+import Signature from './Signature.astro';
 
 interface Props {
   sprite: string;
@@ -42,6 +43,7 @@ const quotes = await Promise.all(
       <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
       <a href={person.github} rel="me noopener" target="_blank">GitHub</a>
     </p>
+    <Signature />
     <div class="hero-recs" role="group" aria-label="From my recommendations">
       <MinimalTestimonial client:afterload testimonials={quotes} />
       <a class="hero-recs-all" href="#recommendations">All six recommendations</a>
@@ -153,6 +155,9 @@ const quotes = await Promise.all(
       animation-delay: 150ms;
     }
     .hero-copy > :nth-child(4) {
+      animation-delay: 220ms;
+    }
+    .hero-copy > :nth-child(5) {
       animation-delay: 220ms;
     }
     .hero-art {

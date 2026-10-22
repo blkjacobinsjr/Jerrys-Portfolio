@@ -101,6 +101,13 @@ each item), never `absolute inset-0`. The longest item then sizes the box at eve
 The scaled active avatar covers 2px more of its neighbour. At the published 8px overlap the middle
 avatar keeps only 22px clear, so the overlap is 7px.
 
+### Traced signature masks (Oct 2026)
+
+The final frame adds the oval's top edge and the diagonal slash close together. Classify slash pixels by
+distance from its fitted axis, then keep the remaining late oval pixels in stroke 2 and extend that
+centreline through their centroids. Derive each mask width from the furthest final fill pixel to its
+rasterized centreline; source brush thickness alone can leave unmasked fill at the end of the dash.
+
 ### Pages of their own (Oct 2026)
 
 - `/writing`, `/consultancy` and `/contact` use `layouts/Page.astro`: Base + the dock with `page=` set,
