@@ -3,7 +3,7 @@ import { getImage, Picture } from 'astro:assets';
 import Mascot from './Mascot';
 import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
-import { person } from '../data/site';
+import { backedBy, person } from '../data/site';
 import { teaser } from '../data/recommendations';
 import MinimalTestimonial from './MinimalTestimonial';
 import Signature from './Signature.astro';
@@ -50,6 +50,7 @@ const quotes = await Promise.all(
     </div>
   </div>
 
+  <div class="hero-art-col">
   <figure class="hero-art" data-hero-art>
     <Picture
       src={desk}
@@ -64,6 +65,13 @@ const quotes = await Promise.all(
       fetchpriority="high"
     />
   </figure>
+  <section class="hero-backed" aria-labelledby="backed-by">
+    <h2 id="backed-by">Backed by</h2>
+    <ul>
+      {backedBy.map((name) => <li>{name}</li>)}
+    </ul>
+  </section>
+  </div>
 </header>
 
 <style>
@@ -128,10 +136,43 @@ const quotes = await Promise.all(
     color: var(--fg-2);
   }
 
-  .hero-art {
+  .hero-art-col {
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
     justify-self: center;
     width: min(72vw, 34rem);
+  }
+
+  .hero-art {
+    width: 100%;
     will-change: transform;
+  }
+
+  .hero-backed {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--fg-2);
+  }
+
+  .hero-backed h2 {
+    font-size: inherit;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .hero-backed ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
 
   .hero-art :global(picture) {
