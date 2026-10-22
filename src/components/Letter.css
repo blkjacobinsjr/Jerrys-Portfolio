@@ -1,5 +1,5 @@
 /* The /contact letter: a sheet of writing paper on the desk, the postage ticket clipped to
-   its top right corner, the draft note under it. Typewriter face: Geist Mono. */
+   its top right corner, the paper it folds from. Typewriter face: Geist Mono. */
 .letter-desk {
   --paper: #f4f0e8;
   --ink: #1c1b19;
@@ -227,34 +227,39 @@
   background: repeating-linear-gradient(90deg, #1c1b19 0 2px, transparent 2px 4px, #1c1b19 4px 5px, transparent 5px 8px);
 }
 
-/* The draft note, under the letter on the left. */
-.letter-note {
+.letter-actions {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   align-items: center;
-  margin-top: 1.5rem;
-}
-
-.letter-note > :first-child {
-  width: 240px;
-}
-
-.letter-note-still {
-  width: 240px;
-  height: auto;
-  rotate: -3deg;
-  box-shadow: 0 10px 24px -12px rgb(var(--shadow-tint) / 0.35);
 }
 
 .letter-reset {
   min-height: 44px;
   padding: 0.5rem 0.9rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule);
   border-radius: var(--r-pill);
   background: transparent;
+  color: inherit;
   font-family: var(--font-sans-stack);
   font-size: var(--text-sm);
   cursor: pointer;
+}
+
+/* While the paper folds the live letter waits underneath, unseen but laid out (no layout shift). */
+.letter[data-hidden] > * {
+  visibility: hidden;
+}
+
+.letter[data-hidden] {
+  box-shadow: none;
+  background: transparent;
+}
+
+/* The crumple scene covers the letter plus a margin so a balled-up sheet has room to sit. */
+.letter-paper {
+  position: absolute;
+  pointer-events: none;
 }
 
 /* Phones: the ticket follows the letter instead of overlapping it. */
@@ -270,9 +275,5 @@
     display: grid;
     justify-items: center;
     margin-top: 1.5rem;
-  }
-
-  .letter-note {
-    justify-content: center;
   }
 }

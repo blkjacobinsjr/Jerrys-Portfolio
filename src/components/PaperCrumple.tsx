@@ -39,6 +39,11 @@ export interface PaperCrumpleProps {
   detail?: number;
   disabled?: boolean;
   resetKey?: number | string;
+  /** Drives the crumple without a pointer: true crumples the sheet, false opens it again. */
+  crumpled?: boolean;
+  /** Begin fully crumpled the moment the paper is ready, then follow `crumpled`. */
+  startCrumpled?: boolean;
+  onReady?: () => void;
   onStateChange?: (state: PaperCrumpleState) => void;
   onError?: (error: Error) => void;
   className?: string;
@@ -326,6 +331,9 @@ const PaperCrumple = ({
   detail = 64,
   disabled = false,
   resetKey = 0,
+  crumpled,
+  startCrumpled = false,
+  onReady,
   onStateChange,
   onError,
   className = '',
@@ -337,6 +345,7 @@ const PaperCrumple = ({
   const hitRef = useRef<HTMLButtonElement>(null);
   const resetRef = useRef<(() => void) | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
+  const driveRef = useRef<((crumple: boolean) => void) | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const options = useRef({
     releaseBehavior,
@@ -349,6 +358,8 @@ const PaperCrumple = ({
     dragRadius,
     returnToOrigin,
     disabled,
+    crumpled,
+    onReady,
     onStateChange,
     onError
   });
@@ -363,6 +374,8 @@ const PaperCrumple = ({
     dragRadius,
     returnToOrigin,
     disabled,
+    crumpled,
+    onReady,
     onStateChange,
     onError
   };
@@ -857,6 +870,20 @@ const PaperCrumple = ({
     resetRef.current = reset;
     cancelRef.current = () => finish(true);
 
+    function drive(crumple: boolean) {
+      if (crumple) {
+        if (held) return;
+        start();
+      } else if (held) {
+        finish();
+      } else {
+        amount.target = memory.target = 0;
+        publish('flat');
+        wake();
+      }
+    }
+    driveRef.current = drive;
+
     function start() {
       held = true;
       peak = amount.value;
@@ -1075,6 +1102,13 @@ const PaperCrumple = ({
           ready = true;
           setStatus('ready');
           hit.disabled = options.current.disabled;
+          if (startCrumpled) {
+            amount.value = amount.target = clamp(finite(options.current.crumpleAmount, 0.85), 0, 1);
+            peak = amount.value;
+            publish('crumpled');
+          }
+          drive(!!options.current.crumpled);
+          options.current.onReady?.();
           wake();
         })
         .catch(error => {
@@ -1091,7 +1125,7 @@ const PaperCrumple = ({
       disposed = true;
       cancelAnimationFrame(frame);
       if (pointerId !== null && hit.hasPointerCapture(pointerId)) hit.releasePointerCapture(pointerId);
-      resetRef.current = cancelRef.current = null;
+      resetRef.current = cancelRef.current = driveRef.current = null;
       observer.disconnect();
       intersectionObserver.disconnect();
       hit.removeEventListener('pointerdown', pointerDown);
@@ -1136,12 +1170,16 @@ const PaperCrumple = ({
     shadowOpacity,
     rotation,
     seed,
-    detail
+    detail,
+    startCrumpled
   ]);
 
   useEffect(() => {
     resetRef.current?.();
   }, [resetKey]);
+  useEffect(() => {
+    if (crumpled !== undefined) driveRef.current?.(crumpled);
+  }, [crumpled]);
   useEffect(() => {
     if (disabled) cancelRef.current?.();
   }, [disabled]);
