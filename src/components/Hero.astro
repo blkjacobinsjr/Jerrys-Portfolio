@@ -115,13 +115,17 @@ const quotes = await Promise.all(
     color: var(--fg-2);
   }
 
+  /* The teaser spans both columns; the link and the temporary style switch share the line below. */
   .hero-recs {
     display: grid;
-    justify-items: start;
-    gap: 0.75rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.25rem 1rem;
   }
 
   .hero-recs-all {
+    grid-area: 2 / 1;
+    justify-self: start;
     font-size: var(--text-sm);
     color: var(--fg-2);
   }

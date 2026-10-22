@@ -1,13 +1,12 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
-import UniqueTestimonial from './UniqueTestimonial';
+import MinimalTestimonial from './MinimalTestimonial';
 import './HeroTeaser.css';
 
 /**
- * The recommendations teaser above the fold, in three ready-made styles so Jerry can pick one on
- * the live site: A = 21st.dev Unique Testimonial, B = 21st.dev Minimal Testimonial,
- * C = 21st.dev Animated Testimonials (radiumcoders). Only the selected one renders; A ships with
- * the page, the others load when chosen. The choice lives in ?t=a|b|c and localStorage.
- * Temporary: once Jerry picks, this switch and the other two components go.
+ * The recommendations teaser above the fold, in two ready-made styles so Jerry can pick one on
+ * the live site: A = 21st.dev Unique Testimonial, B = 21st.dev Minimal Testimonial. Only the
+ * selected one renders; B is the default and ships with the page, A loads when chosen. The choice
+ * lives in ?t=a|b and localStorage. Temporary: once Jerry picks, this switch and the other component go.
  */
 export interface TeaserQuote {
   quote: string;
@@ -17,36 +16,38 @@ export interface TeaserQuote {
   logo?: string;
 }
 
-type Variant = 'a' | 'b' | 'c';
+type Variant = 'a' | 'b';
 const KEY = 'teaser-style';
 
 type Props = { quotes: TeaserQuote[] };
-const MinimalTestimonial = lazy(async () => {
-  const { default: Minimal } = await import('./MinimalTestimonial');
-  return { default: ({ quotes }: Props) => <Minimal testimonials={quotes} /> };
+const Unique = lazy(async () => {
+  const { default: UniqueTestimonial } = await import('./UniqueTestimonial');
+  return {
+    default: ({ quotes }: Props) => (
+      <UniqueTestimonial testimonials={quotes.map(({ quote, name, role, image, logo }) => ({ quote, author: name, role, avatar: image, logo }))} />
+    ),
+  };
 });
 
-const VARIANTS: { id: Variant; label: string; title: string; available: boolean }[] = [
-  { id: 'a', label: 'A', title: 'Unique testimonial', available: true },
-  { id: 'b', label: 'B', title: 'Minimal testimonial', available: true },
-  // The radiumcoders source is not in the repo yet (21st.dev retrieval limit); C turns on once it is.
-  { id: 'c', label: 'C', title: 'Animated testimonials (coming)', available: false },
+const VARIANTS: { id: Variant; label: string; title: string }[] = [
+  { id: 'a', label: 'A', title: 'Unique testimonial' },
+  { id: 'b', label: 'B', title: 'Minimal testimonial' },
 ];
 
-function Unique({ quotes }: Props) {
-  return <UniqueTestimonial testimonials={quotes.map(({ quote, name, role, image, logo }) => ({ quote, author: name, role, avatar: image, logo }))} />;
+function Minimal({ quotes }: Props) {
+  return <MinimalTestimonial testimonials={quotes} />;
 }
 
-const RENDER: Record<Variant, ComponentType<Props>> = { a: Unique, b: MinimalTestimonial, c: Unique };
+const RENDER: Record<Variant, ComponentType<Props>> = { a: Unique, b: Minimal };
 
 export function readVariant(search: string, stored: string | null): Variant {
   const pick = new URLSearchParams(search).get('t') ?? stored;
-  const found = VARIANTS.find((v) => v.id === pick && v.available);
-  return found ? found.id : 'a';
+  const found = VARIANTS.find((v) => v.id === pick);
+  return found ? found.id : 'b';
 }
 
 export default function HeroTeaser({ quotes }: Props) {
-  const [variant, setVariant] = useState<Variant>('a');
+  const [variant, setVariant] = useState<Variant>('b');
   useEffect(() => setVariant(readVariant(location.search, localStorage.getItem(KEY))), []);
 
   const choose = (next: Variant) => {
@@ -60,7 +61,7 @@ export default function HeroTeaser({ quotes }: Props) {
   const Selected = RENDER[variant];
   return (
     <div className="hero-teaser" data-variant={variant}>
-      <Suspense fallback={<Unique quotes={quotes} />}>
+      <Suspense fallback={<Minimal quotes={quotes} />}>
         <Selected quotes={quotes} />
       </Suspense>
       <div className="teaser-switch" role="radiogroup" aria-label="Testimonial style">
@@ -72,16 +73,14 @@ export default function HeroTeaser({ quotes }: Props) {
             aria-checked={variant === v.id}
             aria-label={v.title}
             title={v.title}
-            disabled={!v.available}
             tabIndex={variant === v.id ? 0 : -1}
             onClick={() => choose(v.id)}
             onKeyDown={(event) => {
               if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
               event.preventDefault();
-              const open = VARIANTS.filter((x) => x.available);
-              const at = open.findIndex((x) => x.id === variant);
+              const at = VARIANTS.findIndex((x) => x.id === variant);
               const step = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
-              const next = open[(at + step + open.length) % open.length]!;
+              const next = VARIANTS[(at + step + VARIANTS.length) % VARIANTS.length]!;
               choose(next.id);
               (event.currentTarget.parentElement?.querySelector(`[data-v="${next.id}"]`) as HTMLElement | null)?.focus();
             }}

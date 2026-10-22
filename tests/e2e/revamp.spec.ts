@@ -191,37 +191,38 @@ test('a path drawer leads with the organisation mark, then the title, role and o
 test('the hero teaser shows a recommendation above the fold and leads to the full section', async ({ page, isMobile }) => {
   await open(page);
   const teaser = page.locator('.hero-recs');
-  await expect(teaser.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
-  await expect(teaser).toContainText('One of the scrappiest builders I know');
-  await expect(teaser).toContainText('Akatos');
-  await expect(teaser.locator('.ut-person img')).toHaveCount(3);
-  await expect(teaser.locator('.ut-logo')).toHaveCount(1);
-  if (!isMobile) await expect(teaser.locator('.ut-quote')).toBeInViewport({ ratio: 1 });
+  await expect(teaser.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
+  await expect(teaser.locator('.mt-quote.is-active')).toContainText('One of the scrappiest builders I know');
+  await expect(teaser.locator('.mt-author.is-active')).toContainText('Akatos');
+  await expect(teaser.locator('.mt-avatar img')).toHaveCount(3);
+  await expect(teaser.locator('.mt-author.is-active .mt-logo')).toHaveCount(1);
+  if (!isMobile) await expect(teaser.locator('.mt-quote.is-active')).toBeInViewport({ ratio: 1 });
   // Picking a person swaps the quote in place.
   await teaser.getByRole('button', { name: 'Christoph Suessmeier, Exxeta' }).click();
-  await expect(teaser.locator('.ut-quote')).toHaveText('Extraordinary eye for user experience');
+  await expect(teaser.locator('.mt-quote.is-active')).toHaveText('"Extraordinary eye for user experience"');
   await teaser.getByRole('link', { name: 'All six recommendations' }).click();
   await expect(page.locator('#recommendations')).toBeInViewport();
   await expect(page.locator('#recommendations .rec')).toHaveCount(6);
 });
 
-test('the A · B · C switch swaps the teaser style, by keyboard too, and remembers it', async ({ page }) => {
+test('the A · B switch swaps the teaser style, by keyboard too, and remembers it', async ({ page }) => {
   await open(page);
   const radios = page.getByRole('radiogroup', { name: 'Testimonial style' });
-  const minimal = radios.getByRole('radio', { name: 'Minimal testimonial' });
-  await minimal.click();
-  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
-  await expect(page.locator('.mt-quote.is-active')).toContainText('One of the scrappiest builders I know');
-  await expect(page.locator('.ut-quote')).toHaveCount(0);
-  expect(new URL(page.url()).searchParams.get('t')).toBe('b');
-  await minimal.press('ArrowLeft');
+  await expect(radios.getByRole('radio')).toHaveCount(2);
+  const unique = radios.getByRole('radio', { name: 'Unique testimonial' });
+  await unique.click();
   await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
-  await expect(radios.getByRole('radio', { name: 'Unique testimonial' })).toBeFocused();
-  await radios.getByRole('radio', { name: 'Minimal testimonial' }).click();
+  await expect(page.locator('.ut-quote')).toHaveText('One of the scrappiest builders I know');
+  await expect(page.locator('.mt-quote')).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.get('t')).toBe('a');
+  await unique.press('ArrowRight');
+  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
+  await expect(radios.getByRole('radio', { name: 'Minimal testimonial' })).toBeFocused();
+  await radios.getByRole('radio', { name: 'Unique testimonial' }).click();
   await page.goto('/');
-  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
-  await page.goto('/?t=a');
   await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
+  await page.goto('/?t=b');
+  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
 });
 
 test('path cards carry the mark and one when-and-where line, with nothing over the model', async ({ page }) => {

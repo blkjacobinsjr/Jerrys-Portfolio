@@ -77,15 +77,33 @@ renders the band across that edge with and without containment and requires them
   `src/data/site.ts`. `node tools/fetch-logos.mjs` refetches them: from logo.dev with `LOGO_DEV_TOKEN`
   set, otherwise from each organisation's own icon. Personal stops get no mark.
 
-### Hero recommendations teaser (Oct 2026, temporary A · B · C switch)
+### Hero recommendations teaser (Oct 2026, temporary A · B switch)
 
 `components/HeroTeaser.tsx` shows three verbatim fragments (`teaser` in `data/recommendations.ts`, which
 also carries each person's portrait and company logo from the same records, never a copy) in one of
-three ready-made 21st.dev components: A Unique Testimonial (default, ships with the page), B Minimal
-Testimonial (lazy chunk), C radiumcoders Animated Testimonials (not yet in the repo: 21st.dev's free
-retrieval limit). The choice is `?t=a|b|c` plus localStorage `teaser-style`. Their Tailwind classes are
-translated one for one into plain CSS with the site tokens; the site has no Tailwind. When Jerry picks
-one: delete the switch and the other components, render the pick directly from Hero.astro.
+two ready-made 21st.dev components: B Minimal Testimonial (default, server-rendered, ships with the
+page) and A Unique Testimonial (lazy chunk). The choice is `?t=a|b` plus localStorage `teaser-style`.
+Their Tailwind classes are translated one for one into plain CSS with the site tokens; the site has no
+Tailwind. C (radiumcoders Animated Testimonials) was dropped: its source is behind 21st.dev sign-in,
+and it is not Aceternity's open component of the same name. The switch sits on the "All six
+recommendations" line (`.hero-recs` is a two-column grid, `.hero-teaser` is `display: contents`).
+When Jerry picks one: delete the switch and the other component, render the pick directly from
+Hero.astro, and make `.hero-recs` one column again. `tests/e2e/teaser-b.spec.ts` checks B at 390, 768,
+1024 and 1440 in light and dark.
+
+### Stacked crossfades and shrink-to-fit columns (Oct 2026)
+
+**What broke:** teaser B's last quote line ran under the avatars, the quote wrapped in a 157px column
+and "Jerry Jiang" broke onto two lines.
+**Root cause:** the 21st.dev source stacks its quotes and bylines with `absolute inset-0` in a box with a
+fixed `min-height`. Absolute children add no width or height. Inside a `justify-items: start` grid the
+teaser shrank to the width of the avatar row, so the name column was 0px wide. The 2-line min-height
+could not hold a 3-line quote either.
+**The rule:** stack crossfading items in one grid cell (`display: grid` on the box, `grid-area: 1 / 1` on
+each item), never `absolute inset-0`. The longest item then sizes the box at every width.
+**Also:** overlapping avatar buttons must leave 24px unobscured (WCAG 2.5.8, Lighthouse `target-size`).
+The scaled active avatar covers 2px more of its neighbour. At the published 8px overlap the middle
+avatar keeps only 22px clear, so the overlap is 7px.
 
 ### Pages of their own (Oct 2026)
 

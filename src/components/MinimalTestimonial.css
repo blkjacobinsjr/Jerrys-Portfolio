@@ -1,22 +1,25 @@
-/* 21st.dev Minimal Testimonial: its Tailwind classes, one for one, in the site's tokens and
-   sized for the hero. Quotes and bylines are stacked in place, so switching never moves the page. */
+/* 21st.dev Minimal Testimonial: its Tailwind classes, one for one, in the site's tokens. The
+   published quotes and bylines are `absolute inset-0` in a fixed-height box; here they share one
+   grid cell instead, so the longest quote and the widest name size the box: switching never moves
+   the page, and nothing can spill onto the avatar row or wrap in a collapsed column. */
 .mt {
   width: 100%;
-  max-width: 28rem;
+  max-width: 36rem;
 }
 
 .mt-quotes {
-  position: relative;
-  min-height: calc(2 * 1.45 * var(--text-lg));
-  margin-bottom: 1rem;
+  display: grid;
+  min-height: 80px;
+  margin-bottom: 3rem;
 }
 
+/* Published: font-light. The reference render has no 300 face and shows it at 400; Geist has a
+   true Light, which read thinner than the original, so the weight follows the render. */
 .mt-quote {
-  position: absolute;
-  inset: 0;
-  font-size: var(--text-lg);
+  grid-area: 1 / 1;
+  font-size: 1.25rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.625;
   color: var(--fg);
   opacity: 0;
   translate: 0 1rem;
@@ -26,6 +29,12 @@
     opacity 500ms var(--ease-out),
     translate 500ms var(--ease-out),
     filter 500ms var(--ease-out);
+}
+
+@media (min-width: 768px) {
+  .mt-quote {
+    font-size: 1.5rem;
+  }
 }
 
 .mt-quote.is-active {
@@ -38,16 +47,17 @@
 .mt-row {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .mt-avatars {
   display: flex;
 }
 
-/* Published: -space-x-2. A lighter overlap keeps every avatar a full 24px tap target (WCAG 2.5.8). */
+/* Published: -space-x-2 (8px). At 8px the middle avatar keeps only 22px clear of its neighbours
+   while the first one is scaled up; 7px leaves exactly the 24px tap target of WCAG 2.5.8. */
 .mt-avatars > * + * {
-  margin-left: -0.125rem;
+  margin-left: -7px;
 }
 
 .mt-avatar {
@@ -91,14 +101,13 @@
 }
 
 .mt-authors {
-  position: relative;
+  display: grid;
   flex: 1;
   min-height: 44px;
 }
 
 .mt-author {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -116,21 +125,29 @@
   pointer-events: auto;
 }
 
+.mt-name,
+.mt-role {
+  white-space: nowrap;
+}
+
 .mt-name {
   font-size: var(--text-sm);
+  line-height: 1.25rem;
   font-weight: 500;
   color: var(--fg);
 }
 
 .mt-role {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.375rem;
   font-size: var(--text-xs);
+  line-height: 1rem;
   color: var(--fg-2);
 }
 
 .mt-logo {
+  flex: none;
   width: 14px;
   height: 14px;
   border-radius: 4px;
