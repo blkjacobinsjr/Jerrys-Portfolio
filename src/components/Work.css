@@ -76,13 +76,20 @@
 
 /* The photo stands in the right half; the wrist leaves through the bottom edge.
    Not rendered, so its lazy image is not fetched, until the card comes near:
-   lazy loading alone reaches this far on a slow phone and competes with the hero. */
+   lazy loading alone reaches this far on a slow phone and competes with the hero.
+   content-visibility implies paint containment, which clips at the padding box, so the padding
+   is room for the phone's shadow (it falls down and to the left); the offsets cancel it out. */
 .work-shot {
+  --shade-l: 80px;
+  --shade-b: 80px;
+  --shade-tr: 24px;
   position: absolute;
-  right: 8%;
-  bottom: -15%;
+  right: calc(8% - var(--shade-tr));
+  bottom: calc(-15% - var(--shade-b));
+  box-sizing: content-box;
   height: 106%;
   aspect-ratio: 2 / 3;
+  padding: var(--shade-tr) var(--shade-tr) var(--shade-b) var(--shade-l);
   pointer-events: none;
   content-visibility: auto;
   contain-intrinsic-size: auto 400px auto 600px;
@@ -189,9 +196,9 @@
   .work-shot {
     right: auto;
     left: 50%;
-    bottom: -24%;
+    bottom: calc(-24% - var(--shade-b));
     height: 92%;
-    translate: -50% 0;
+    translate: calc(-50% + (var(--shade-tr) - var(--shade-l)) / 2) 0;
   }
 }
 
@@ -231,6 +238,7 @@
   border-radius: var(--r-tile);
   box-shadow: -16px 20px 40px -16px rgb(var(--shadow-tint) / 0.3);
   overflow: hidden;
+  padding: 0;
 }
 
 .work-shot-site .work-phone { filter: none; animation: none; object-fit: cover; }

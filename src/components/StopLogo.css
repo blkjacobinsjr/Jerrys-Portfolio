@@ -1,0 +1,16 @@
+/* The organisation's mark: small, on a white tile so dark marks read in both
+   schemes, with a neutral hairline for depth. */
+.stop-logo {
+  flex: none;
+  border-radius: 6px;
+  background: #fff;
+  object-fit: contain;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .stop-logo {
+    outline-color: oklch(1 0 0 / 0.1);
+  }
+}

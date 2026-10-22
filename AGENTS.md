@@ -34,6 +34,29 @@ Only real wheel input reproduced it.
   `tests/e2e/overlays.spec.ts` opens every drawer entry point at 1024x640 and 390x664. It scrolls
   each one to its last line by wheel or touch and checks that the page behind did not move.
 
+### Scrollbar gutter and the scroll lock (Oct 2026)
+
+**What broke:** closing the first path drawer on a 1024px laptop left the page 47px off.
+**Root cause:** `scrollbar-gutter: stable` was set only on `html[data-scroll-locked]`. Headless
+Chromium reports no scrollbar until overflow is hidden, so the gutter appeared only on lock, the page
+narrowed by 15px and every 16/10 work card got shorter behind the drawer.
+**The rule:** the gutter is reserved on `html` at all times; never add layout-affecting styles only
+while locked.
+
+### Shadows and content-visibility (Oct 2026)
+
+**What broke:** a hard vertical line ran down every selected-work card at about 45% of its width.
+**Root cause:** `.work-shot` has `content-visibility: auto` (it keeps the phone image from loading
+early). That implies paint containment, which clips everything its children paint at the box edge,
+including the `drop-shadow` on the phone image inside it.
+**The fix:** `.work-shot` is padded (content-box sizing, offsets cancelled) so the clip edge sits
+beyond the shadow. Moving the filter onto `.work-shot` itself also removed the line, but it made the
+browser re-rasterise the filter every frame of the phone-rise scroll animation (p95 frame 100ms+).
+**The rule:** a child of a box with `content-visibility: auto`, `contain: paint` or `overflow: clip`
+may only paint inside its padding box; give a shadowed child room with padding, and keep filters
+on the element that animates rather than on a static ancestor. `tests/e2e/work-cards.spec.ts`
+renders the band across that edge with and without containment and requires them to match.
+
 ### Link previews
 
 - `public/og.jpg` is the share image (the keyring, with the locket photo pixelated). Keep it.
@@ -44,6 +67,8 @@ Only real wheel input reproduced it.
 
 ### Path drawers
 
+- The rail card (`Path.astro`) reads: `when · where`, the model with nothing on top of it, then the
+  mark and organisation, then the role. The mark is `StopLogo`, the same component as the drawer's.
 - Order, for every stop (`src/components/PathSheet.tsx`): model, header (mark, organisation, role, one
   muted `when · where` line), story, notes, then the before-and-after wheel, then photos and link.
   The wheel closes the text; `tests/e2e/overlays.spec.ts` checks it sits below the notes and scrolls
@@ -51,3 +76,13 @@ Only real wheel input reproduced it.
 - Organisation marks live in `src/assets/stops/logos/<stop id>.png`, set as `logo` on the stop in
   `src/data/site.ts`. `node tools/fetch-logos.mjs` refetches them: from logo.dev with `LOGO_DEV_TOKEN`
   set, otherwise from each organisation's own icon. Personal stops get no mark.
+
+### Hero recommendations teaser (Oct 2026, temporary A · B · C switch)
+
+`components/HeroTeaser.tsx` shows three verbatim fragments (`teaser` in `data/recommendations.ts`, which
+also carries each person's portrait and company logo from the same records, never a copy) in one of
+three ready-made 21st.dev components: A Unique Testimonial (default, ships with the page), B Minimal
+Testimonial (lazy chunk), C radiumcoders Animated Testimonials (not yet in the repo: 21st.dev's free
+retrieval limit). The choice is `?t=a|b|c` plus localStorage `teaser-style`. Their Tailwind classes are
+translated one for one into plain CSS with the site tokens; the site has no Tailwind. When Jerry picks
+one: delete the switch and the other components, render the pick directly from Hero.astro.

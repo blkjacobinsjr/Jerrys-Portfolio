@@ -1,0 +1,37 @@
+/* The A · B · C style switch: tiny, quiet, beside the teaser. Temporary until Jerry picks. */
+.hero-teaser {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+}
+
+.teaser-switch {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--r-pill);
+  background: var(--bg-sunk);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.teaser-switch button {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+  transition: background var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
+}
+
+.teaser-switch button[aria-checked='true'] {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.teaser-switch button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

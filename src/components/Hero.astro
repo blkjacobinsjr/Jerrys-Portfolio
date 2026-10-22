@@ -1,15 +1,27 @@
 ---
-import { Picture } from 'astro:assets';
+import { getImage, Picture } from 'astro:assets';
 import Mascot from './Mascot';
 import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
 import { person } from '../data/site';
+import { teaser } from '../data/recommendations';
+import HeroTeaser from './HeroTeaser';
 
 interface Props {
   sprite: string;
   still: string;
 }
 const { sprite, still } = Astro.props;
+// Three verbatim lines from the recommendations (data/recommendations.ts), portraits at 2x their 40px.
+const quotes = await Promise.all(
+  teaser.map(async ({ name, fragment, org, portrait, logo }) => ({
+    quote: fragment.charAt(0).toUpperCase() + fragment.slice(1),
+    name,
+    role: org,
+    image: (await getImage({ src: portrait, width: 80, height: 80, format: 'webp' })).src,
+    logo: logo && (await getImage({ src: logo, width: 28, height: 28, format: 'webp' })).src,
+  })),
+);
 ---
 
 <header class="hero wide" id="top">
@@ -30,6 +42,10 @@ const { sprite, still } = Astro.props;
       <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
       <a href={person.github} rel="me noopener" target="_blank">GitHub</a>
     </p>
+    <div class="hero-recs" role="group" aria-label="From my recommendations">
+      <HeroTeaser client:afterload quotes={quotes} />
+      <a class="hero-recs-all" href="#recommendations">All six recommendations</a>
+    </div>
   </div>
 
   <figure class="hero-art" data-hero-art>
@@ -99,6 +115,17 @@ const { sprite, still } = Astro.props;
     color: var(--fg-2);
   }
 
+  .hero-recs {
+    display: grid;
+    justify-items: start;
+    gap: 0.75rem;
+  }
+
+  .hero-recs-all {
+    font-size: var(--text-sm);
+    color: var(--fg-2);
+  }
+
   .hero-art {
     justify-self: center;
     width: min(72vw, 34rem);
@@ -124,6 +151,9 @@ const { sprite, still } = Astro.props;
     }
     .hero-copy > :nth-child(3) {
       animation-delay: 150ms;
+    }
+    .hero-copy > :nth-child(4) {
+      animation-delay: 220ms;
     }
     .hero-art {
       animation: hero-art-in var(--dur-reveal) var(--ease-out) both;

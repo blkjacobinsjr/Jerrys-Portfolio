@@ -4,6 +4,7 @@ import { Image, getImage } from 'astro:assets';
 import NowBadge from './NowBadge';
 import DecryptedText from './DecryptedText';
 import PathSheet, { type Picture, type StopView } from './PathSheet';
+import StopLogo from './StopLogo';
 import { path } from '../data/site';
 
 const icons = import.meta.glob<{ default: ImageMetadata }>('../assets/icons/*.webp', { eager: true });
@@ -41,16 +42,22 @@ const views: StopView[] = await Promise.all(
     <div class="path-scroller" data-path-scroller>
       <ol class="path-track" data-path-track>
         {
-          path.map((stop) => (
+          path.map((stop, i) => (
             <li class="stop" data-flag={stop.flag} style={`--glow: ${stop.glow}`}>
               <button class="stop-btn" type="button" data-stop={stop.id} aria-haspopup="dialog">
-                <span class="stop-when">{stop.flag === 'now' ? <NowBadge client:afterload /> : stop.when}</span>
+                {/* When and where on one muted line, the same as the drawer's meta line. */}
+                <span class="stop-when">
+                  {stop.flag === 'now' ? <NowBadge client:afterload /> : stop.when}
+                  <span class="stop-where">{` · ${stop.where}`}</span>
+                </span>
                 <span class="stop-art">
                   <span class="stop-glow" aria-hidden="true"></span>
                   <Image src={icon(stop.id)} alt="" widths={[240, 360, 480]} sizes="(min-width: 900px) 260px, 56vw" loading="lazy" />
-                  <span class="stop-code" aria-hidden="true">{stop.code}</span>
                 </span>
-                <span class="stop-place">{stop.place}</span>
+                <span class="stop-place">
+                  {views[i]!.logo && <StopLogo src={views[i]!.logo} name={stop.place} size={18} decorative />}
+                  {stop.place}
+                </span>
                 <span class="stop-title">{stop.title}</span>
               </button>
             </li>
@@ -159,9 +166,13 @@ const views: StopView[] = await Promise.all(
   }
 
   .stop-when {
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: 0.3em;
     min-height: 1.75rem;
+    text-wrap: balance;
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
     color: var(--fg-2);
@@ -227,29 +238,14 @@ const views: StopView[] = await Promise.all(
     }
   }
 
-  /* City and country on a small plaque at the model's base, like a station sign. */
-  .stop-code {
-    position: absolute;
-    bottom: 3%;
-    left: 50%;
-    translate: -50% 0;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    background: var(--bg-elev);
-    color: var(--fg);
-    box-shadow: 0 6px 14px -6px rgb(var(--shadow-tint) / 0.35);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    line-height: 1.4;
-    white-space: nowrap;
-  }
-
   [data-flag='declined'] .stop-art :global(img) {
     filter: saturate(0.4);
   }
 
   .stop-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-weight: 500;
   }
 

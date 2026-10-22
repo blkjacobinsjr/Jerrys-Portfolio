@@ -7,6 +7,7 @@ import { useMachine } from '@xstate/react';
 import { interactionMachine, type InteractionState } from '../lib/interaction';
 import OptionWheel from './OptionWheel';
 import ModelLoader from './ModelLoader';
+import StopLogo from './StopLogo';
 
 export interface Picture {
   src: string;
@@ -183,7 +184,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
             {/* Mark, organisation, role, then one muted line of when and where. */}
             <header key={`${stop.id}-caption`} className="model-caption" style={stagger(1)}>
               {stop.logo && (
-                <img className="model-logo" src={stop.logo} width={24} height={24} alt={`${stop.place} logo`} loading="lazy" decoding="async" />
+                <StopLogo className="model-logo" src={stop.logo} name={stop.place} size={24} />
               )}
               <Sheet.Title className="detail-title">{stop.place}</Sheet.Title>
               <Sheet.Description className="model-role">{stop.title}</Sheet.Description>

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ImageMetadata } from 'astro';
 import { describe, expect, it, vi } from 'vitest';
-import { recommendations, honoraryMention } from '../../src/data/recommendations';
+import { recommendations, honoraryMention, pull, teaser } from '../../src/data/recommendations';
 import astroConfig from '../../astro.config.mjs';
 import { path, projects } from '../../src/data/site';
 
@@ -136,4 +136,30 @@ describe('portfolio revamp content', () => {
     }
   });
 
+});
+
+describe('recommendations teaser', () => {
+  it('lifts three short fragments verbatim from the recommendations, with who said them', () => {
+    expect(teaser.map(({ name, org }) => `${name}, ${org}`)).toEqual([
+      'Jerry Jiang, Akatos',
+      'Iñigo Martín-Calero, Google',
+      'Christoph Suessmeier, Exxeta',
+    ]);
+    for (const line of teaser) {
+      expect(recommendations.find((rec) => rec.name === line.name)?.quote).toContain(line.fragment);
+      expect(line.fragment.split(' ').length).toBeLessThanOrEqual(10);
+      // The same photo and company mark as the full section, never a second copy.
+      const rec = recommendations.find((item) => item.name === line.name)!;
+      expect(line.portrait).toBe(rec.portrait);
+      expect(line.logo).toBe(rec.position.kind === 'employer' ? rec.position.logo : undefined);
+      expect(line.logo).toBeDefined();
+    }
+  });
+
+  it('names a headline role when there is no employer, and refuses a misquote', () => {
+    expect(pull('Ian Green', 'doesn’t settle for mediocre').org).toBe('Product Design Leader');
+    expect(pull('Ian Green', 'doesn’t settle for mediocre').logo).toBeUndefined();
+    expect(() => pull('Ian Green', 'the best designer alive')).toThrow(/not in Ian Green/);
+    expect(() => pull('Nobody', 'anything')).toThrow(/not in Nobody/);
+  });
 });

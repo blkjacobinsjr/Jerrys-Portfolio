@@ -72,7 +72,8 @@ test('uses real project logos, adds Leapfrog AI and points metadata at the new d
 
 test('presents six consistent local recommendations and the honorary mention', async ({ page }) => {
   await open(page);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 'recommendations do not widen the mobile viewport').toBe(0);
+  // At most the viewport: the reserved scrollbar gutter (global.css) can leave scrollWidth a few px under clientWidth.
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 'recommendations do not widen the mobile viewport').toBeLessThanOrEqual(0);
   const track = page.locator('[data-recs-track]');
   await expect(track.locator('.rec-byline > a')).toHaveText([
     'Iñigo Martín-Calero', 'Woundioun Sissoko', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
@@ -185,4 +186,51 @@ test('a path drawer leads with the organisation mark, then the title, role and o
   expect(await logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), 'the mark loads').toBe(true);
   await expect(header.locator(':scope > *')).toHaveText(['', 'Coventry University', 'BA Advertising and Marketing', '2013 · Coventry, UK']);
   await expect(page.locator('dialog[open] .detail-list li')).toContainText(['Classes of 30+', 'Full circle, 2024']);
+});
+
+test('the hero teaser shows a recommendation above the fold and leads to the full section', async ({ page, isMobile }) => {
+  await open(page);
+  const teaser = page.locator('.hero-recs');
+  await expect(teaser.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
+  await expect(teaser).toContainText('One of the scrappiest builders I know');
+  await expect(teaser).toContainText('Akatos');
+  await expect(teaser.locator('.ut-person img')).toHaveCount(3);
+  await expect(teaser.locator('.ut-logo')).toHaveCount(1);
+  if (!isMobile) await expect(teaser.locator('.ut-quote')).toBeInViewport({ ratio: 1 });
+  // Picking a person swaps the quote in place.
+  await teaser.getByRole('button', { name: 'Christoph Suessmeier, Exxeta' }).click();
+  await expect(teaser.locator('.ut-quote')).toHaveText('Extraordinary eye for user experience');
+  await teaser.getByRole('link', { name: 'All six recommendations' }).click();
+  await expect(page.locator('#recommendations')).toBeInViewport();
+  await expect(page.locator('#recommendations .rec')).toHaveCount(6);
+});
+
+test('the A · B · C switch swaps the teaser style, by keyboard too, and remembers it', async ({ page }) => {
+  await open(page);
+  const radios = page.getByRole('radiogroup', { name: 'Testimonial style' });
+  const minimal = radios.getByRole('radio', { name: 'Minimal testimonial' });
+  await minimal.click();
+  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
+  await expect(page.locator('.mt-quote.is-active')).toContainText('One of the scrappiest builders I know');
+  await expect(page.locator('.ut-quote')).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.get('t')).toBe('b');
+  await minimal.press('ArrowLeft');
+  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
+  await expect(radios.getByRole('radio', { name: 'Unique testimonial' })).toBeFocused();
+  await radios.getByRole('radio', { name: 'Minimal testimonial' }).click();
+  await page.goto('/');
+  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'b');
+  await page.goto('/?t=a');
+  await expect(page.locator('.hero-teaser')).toHaveAttribute('data-variant', 'a');
+});
+
+test('path cards carry the mark and one when-and-where line, with nothing over the model', async ({ page }) => {
+  await open(page);
+  const card = page.locator('[data-stop="coventry"]');
+  await expect(card.locator('.stop-when')).toHaveText('2013 · Coventry, UK');
+  await expect(card.locator('.stop-place img')).toHaveAttribute('width', '18');
+  await expect(card.locator('.stop-place img')).toHaveAttribute('alt', '');
+  await expect(card.locator('.stop-place')).toHaveText('Coventry University');
+  await expect(page.locator('.stop-art .stop-code, .stop-art [class*="code"]')).toHaveCount(0);
+  await expect(page.locator('[data-stop="workinghana"] .stop-place img')).toHaveCount(0);
 });
