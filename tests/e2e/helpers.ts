@@ -12,7 +12,7 @@ export async function open(page: Page, path = '/') {
   // Idle islands (mascot, work, dock) hydrate after load; visible-only islands wait until scrolled to.
   await expect(page.locator('astro-island[client="idle"][ssr]')).toHaveCount(0, { timeout: 10_000 });
   // The pages of their own have no media-gated islands, so every after-load island hydrates there.
-  if (path !== '/') await expect(page.locator('astro-island[client="afterload"][ssr]')).toHaveCount(0, { timeout: 10_000 });
+  if (path.split('?')[0] !== '/') await expect(page.locator('astro-island[client="afterload"][ssr]')).toHaveCount(0, { timeout: 10_000 });
   return errors;
 }
 

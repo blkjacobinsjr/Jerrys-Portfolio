@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import ContactCTA from './ContactCTA';
 import DecryptedText from './DecryptedText';
+import FooterGhost from './FooterGhost';
 import Keyring from './Keyring.astro';
 import far from '../assets/roof/far.webp';
 import mid from '../assets/roof/mid.webp';
@@ -24,6 +25,8 @@ const layers = [
       ))
     }
   </div>
+
+  <FooterGhost client:visible={{ rootMargin: '600px' }} />
 
   <Keyring />
 
