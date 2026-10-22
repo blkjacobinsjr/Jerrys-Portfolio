@@ -39,7 +39,7 @@ const layers = [
         Playlist
       </a>
     </p>
-    <p class="contact-fine muted">© {new Date().getFullYear()} {person.name}. Berlin.</p>
+    <p class="contact-fine muted">© {new Date().getFullYear()} {person.name}. Berlin. · <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="true">Sound on</button></p>
   </div>
   </div>
 </footer>
@@ -200,6 +200,13 @@ const layers = [
   .contact-fine {
     margin-top: 1rem;
     font-size: var(--text-xs);
+  }
+
+  .sound-toggle {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
   }
 
   /* The old site's vinyl, kept: it spins while you hover. */

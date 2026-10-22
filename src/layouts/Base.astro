@@ -47,7 +47,10 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <script>
       // Motion is an enhancement: fetch it a beat after the page has loaded,
       // once idle (same timing as client:afterload).
-      const start = () => import('../motion').then((motion) => motion.start());
+      const start = () => {
+        import('../motion').then((motion) => motion.start());
+        import('../lib/sound').then((sound) => sound.initSound());
+      };
       const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 1500 }) : setTimeout(start, 1));
       const later = () => setTimeout(idle, 250);
       if (document.readyState === 'complete') later();

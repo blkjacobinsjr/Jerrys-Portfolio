@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import TearTicket from './TearTicket';
 import { canUseGL } from '../lib/gl';
 import { onFirstIntent } from '../lib/intent';
+import { cue } from '../lib/sound';
 import { mailto, TOPICS, type Topic } from '../lib/letter';
 import './Letter.css';
 
@@ -28,6 +29,7 @@ export default function Letter({ email, note }: { email: string; note: string })
   const ready = body.trim().length > 0;
   const status = sent ? 'Sent to your mail app' : ready ? 'Ready to send' : 'Being written';
   const reset = () => {
+    cue('crumple');
     setTopic(TOPICS[0]);
     setFrom('');
     setBody('');
@@ -37,6 +39,7 @@ export default function Letter({ email, note }: { email: string; note: string })
   };
   const send = () => {
     setSent((n) => n + 1);
+    cue('success');
     location.href = mailto(email, { topic, from, body, name });
   };
 
