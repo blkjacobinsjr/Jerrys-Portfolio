@@ -84,5 +84,50 @@ for (const { name, viewport, touch } of VIEWPORTS) {
         expect(Math.abs((await page.evaluate(() => scrollY)) - pageTop), `${label} returns to the same place`).toBeLessThan(2);
       }
     });
+
+    test('every path stop ends its text before the before-and-after wheel, which scrolls into reach', async ({ page }, info) => {
+      test.skip(info.project.name !== 'desktop', 'Runs once, in Chromium, at its own viewports.');
+      test.setTimeout(120_000);
+      await open(page);
+      const stops = page.locator('[data-stop]');
+      const count = await stops.count();
+      expect(count).toBeGreaterThan(5);
+
+      for (let i = 0; i < count; i++) {
+        const entry = stops.nth(i);
+        const label = (await entry.getAttribute('data-stop')) ?? `stop ${i}`;
+        await entry.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(250);
+        await entry.click();
+        const sheet = page.locator('dialog[open]');
+        const panel = sheet.locator('[data-overlay]');
+        const wheel = panel.locator('.model-wheel');
+        await expect(wheel, label).toBeVisible();
+
+        // In the DOM and on screen, the header, story and notes all come first.
+        const order = await panel.evaluate((el) => {
+          const nav = el.querySelector('.model-wheel')!;
+          const text = [...el.querySelectorAll('.sheet-body > :is(.model-caption, .detail-story, .detail-list)')];
+          const top = nav.getBoundingClientRect().top;
+          return {
+            texts: text.length,
+            before: text.every((n) => Boolean(n.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING)),
+            gap: Math.min(...text.map((n) => top - n.getBoundingClientRect().bottom)),
+          };
+        });
+        expect(order.texts, `${label} has a caption and notes`).toBeGreaterThanOrEqual(2);
+        expect(order.before, `${label} keeps the wheel after its text in the DOM`).toBe(true);
+        expect(order.gap, `${label} sets the wheel visibly below its text`).toBeGreaterThanOrEqual(16);
+
+        // The visitor's own wheel or touch brings the whole wheel into view.
+        await expect(async () => {
+          await scrollBy(page, panel, touch);
+          await expect(wheel).toBeInViewport({ ratio: 1, timeout: 400 });
+        }, label).toPass({ timeout: 15_000 });
+
+        await sheet.locator('.scrollsheet-close').click();
+        await expect(page.locator('dialog[open]'), label).toHaveCount(0);
+      }
+    });
   });
 }

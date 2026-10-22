@@ -47,6 +47,25 @@
   text-align: center;
 }
 
+/* The organisation's mark: small, on a white tile so dark marks read in both
+   schemes, with a neutral hairline for depth. */
+.model-logo {
+  width: 24px;
+  height: 24px;
+  margin: 0.5rem 0 0.25rem;
+  border-radius: 6px;
+  background: #fff;
+  object-fit: contain;
+  outline: 1px solid oklch(0 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .model-logo {
+    outline-color: oklch(1 0 0 / 0.1);
+  }
+}
+
 .model-role {
   font-size: var(--text-lg);
   color: var(--fg);
@@ -101,13 +120,14 @@
 }
 
 /* Before and after: React Bits OptionWheel, flat and centred under the
-   caption, three rows tall so it shows exactly the neighbouring stops.
-   Turn it, drag it, or tap a stop to go there. */
+   story and notes, three rows tall so it shows exactly the neighbouring stops.
+   It closes the entry, so the text is read first, then the wheel offers the
+   way on. Turn it, drag it, or tap a stop to go there. */
 .model-wheel {
   position: relative;
   width: min(100%, 19rem);
   height: calc(3 * 1.0625rem * 1.75);
-  margin: 0 auto 1.5rem;
+  margin: 2rem auto 1.5rem;
   font-variant-numeric: tabular-nums;
 }
 

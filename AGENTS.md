@@ -41,3 +41,13 @@ Only real wheel input reproduced it.
   with `npm run build && npm run og:video` (`tools/og-video.mjs`); it is not part of the build.
   The script pixelates the baby photo in every frame and refuses to capture an unpixelated locket.
   `tests/unit/og-video.test.ts` keeps the reel silent, fast-start and within its 1.5 MB budget.
+
+### Path drawers
+
+- Order, for every stop (`src/components/PathSheet.tsx`): model, header (mark, organisation, role, one
+  muted `when · where` line), story, notes, then the before-and-after wheel, then photos and link.
+  The wheel closes the text; `tests/e2e/overlays.spec.ts` checks it sits below the notes and scrolls
+  into reach at 1024x640 and 390x664.
+- Organisation marks live in `src/assets/stops/logos/<stop id>.png`, set as `logo` on the stop in
+  `src/data/site.ts`. `node tools/fetch-logos.mjs` refetches them: from logo.dev with `LOGO_DEV_TOKEN`
+  set, otherwise from each organisation's own icon. Personal stops get no mark.

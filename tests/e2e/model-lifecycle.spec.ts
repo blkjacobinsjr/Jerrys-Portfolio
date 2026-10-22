@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { open } from './helpers';
+import { open, revealInSheet } from './helpers';
 
 const models = [
   { stop: 'desk', chunk: /\/Desk\.[^/]+\.js$/, image: /\/desk\.[^/]+\.webp$/, title: 'My Berlin desk' },
@@ -65,6 +65,8 @@ for (const model of models) {
     await expect.poll(() => fallback.evaluate((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0)).toBe(true);
     const wheel = sheet.getByRole('listbox', { name: 'Stops on the path' });
     await expect(wheel).toBeVisible();
+    // The wheel closes the entry, under the notes.
+    await revealInSheet(page, '.model-wheel');
     await wheel.getByRole('option', { name: '2024 · Draper University', exact: true }).click();
     await expect(sheet.getByRole('heading', { name: 'Draper University', exact: true })).toBeVisible();
     await expect(sheet.locator('.sheet-body')).toHaveAttribute('data-drawer-state', 'ready');

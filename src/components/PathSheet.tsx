@@ -31,6 +31,7 @@ export interface StopView {
   link?: { href: string; label: string };
   badge?: { front: string; back: string; strap: string };
   modelKind?: 'desk';
+  logo?: string;
 }
 
 const stagger = (i: number) => ({ '--i': i }) as CSSProperties;
@@ -179,14 +180,31 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
             </figure>
             )}
 
+            {/* Mark, organisation, role, then one muted line of when and where. */}
             <header key={`${stop.id}-caption`} className="model-caption" style={stagger(1)}>
+              {stop.logo && (
+                <img className="model-logo" src={stop.logo} width={24} height={24} alt={`${stop.place} logo`} loading="lazy" decoding="async" />
+              )}
               <Sheet.Title className="detail-title">{stop.place}</Sheet.Title>
               <Sheet.Description className="model-role">{stop.title}</Sheet.Description>
               <p className="model-meta">
-                {stop.when}, {stop.where}
+                {stop.when} · {stop.where}
               </p>
             </header>
 
+            {stop.story && (
+              <p key={`${stop.id}-story`} className="detail-story" style={stagger(2)}>
+                {stop.story}
+              </p>
+            )}
+
+            <ul key={`${stop.id}-notes`} className="detail-list" style={stagger(3)}>
+              {stop.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+
+            {/* Where to next: the neighbouring stops sit under the story, once it has been read. */}
             <nav className="model-wheel" aria-label="Before and after">
               <OptionWheel
                 key={visit}
@@ -207,18 +225,6 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
                 active={open}
               />
             </nav>
-
-            {stop.story && (
-              <p key={`${stop.id}-story`} className="detail-story" style={stagger(2)}>
-                {stop.story}
-              </p>
-            )}
-
-            <ul key={`${stop.id}-notes`} className="detail-list" style={stagger(3)}>
-              {stop.notes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
 
             {stop.photos.length > 0 && (
               <div

@@ -27,3 +27,18 @@ export async function scrollSheetToEnd(page: Page) {
   await expect(sheet).toHaveAttribute('data-scrollsheet-at-max', '');
   await sheet.locator('.sheet').evaluate((panel) => panel.scrollTo({ top: panel.scrollHeight, behavior: 'instant' }));
 }
+
+/**
+ * Bring a drawer element into reach the way a visitor does: grow the phone sheet to full height first,
+ * then scroll the native content port. Letting Playwright scroll a part-height WebKit sheet can snap it shut.
+ */
+export async function revealInSheet(page: Page, selector: string) {
+  const sheet = page.locator('dialog[open]');
+  if ((page.viewportSize()?.width ?? 0) < 768) await sheet.locator('.scrollsheet-handle').click();
+  await expect(sheet).toHaveAttribute('data-scrollsheet-at-max', '');
+  await sheet.locator('.sheet').evaluate((panel, s) => {
+    const target = panel.querySelector(s)!;
+    panel.scrollTo({ top: panel.scrollTop + target.getBoundingClientRect().top - panel.getBoundingClientRect().top - 24, behavior: 'instant' });
+  }, selector);
+  await expect(sheet.locator(selector)).toBeInViewport({ ratio: 1 });
+}

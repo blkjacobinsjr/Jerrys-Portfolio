@@ -36,6 +36,17 @@ import logoLeapfrog from '../assets/work/logos/leapfrog.webp';
 import badgeFront from '../assets/lanyard/buildspace-front.webp';
 import badgeBack from '../assets/lanyard/buildspace-back.webp';
 import badgeStrap from '../assets/lanyard/buildspace-strap.webp';
+// Organisation marks for the path drawers, fetched by tools/fetch-logos.mjs.
+import markCoventry from '../assets/stops/logos/coventry.png';
+import markOpentable from '../assets/stops/logos/opentable.png';
+import markDotdigital from '../assets/stops/logos/dotdigital.png';
+import markSiteminder from '../assets/stops/logos/siteminder.png';
+import markPeloton from '../assets/stops/logos/peloton.png';
+import markTiktokdeclined from '../assets/stops/logos/tiktokdeclined.png';
+import markBenify from '../assets/stops/logos/benify.png';
+import markHkw from '../assets/stops/logos/hkw.png';
+import markWbs from '../assets/stops/logos/wbs.png';
+import markDraper from '../assets/stops/logos/draper.png';
 
 export const person = {
   name: 'Jerry Doughan',
@@ -248,19 +259,28 @@ export interface Stop {
   /** A badge recreated from the photos, hung on a 3D lanyard in the drawer. */
   badge?: { front: ImageMetadata; back: ImageMetadata; strap: ImageMetadata };
   modelKind?: 'desk';
+  /** The organisation's mark, small above the title in the drawer. Personal stops have none. */
+  logo?: ImageMetadata;
 }
 
 /** Career path, oldest first. Dioramas live in src/assets/icons/<id>.webp. */
 export const path: Stop[] = [
   {
     id: 'coventry',
+    logo: markCoventry,
     code: 'COV · UK',
     glow: '#d0623f',
     when: '2013',
     place: 'Coventry University',
     title: 'BA Advertising and Marketing',
     where: 'Coventry, UK',
-    notes: ['Dissertation: sustainable development as a marketing strategy.', 'Before that, a BTEC in creative media production at Telford College.'],
+    notes: [
+      'Dissertation: sustainable development as a marketing strategy.',
+      'Before that, a BTEC in creative media production at Telford College.',
+      'Classes of 30+: taught German at Linguae Mundi while studying, after 3 months’ tutor training.',
+      'Door-to-door fundraiser for Save the Children, Cancer Research UK, and more.',
+      'Full circle, 2024: back as a client. Coventry’s MBA programme took on SceneXtras: 3 consultancy teams, ~15 MBA students, 12 weeks, reports delivered July 2024.',
+    ],
   },
   {
     id: 'workinghana',
@@ -275,6 +295,7 @@ export const path: Stop[] = [
   },
   {
     id: 'opentable',
+    logo: markOpentable,
     code: 'LDN · UK',
     glow: '#2f6a4a',
     when: '2017',
@@ -285,6 +306,7 @@ export const path: Stop[] = [
   },
   {
     id: 'dotdigital',
+    logo: markDotdigital,
     code: 'LDN · UK',
     glow: '#6f9fc8',
     when: '2018',
@@ -295,6 +317,7 @@ export const path: Stop[] = [
   },
   {
     id: 'siteminder',
+    logo: markSiteminder,
     code: 'LDN · UK',
     glow: '#c79a55',
     when: '2020',
@@ -305,6 +328,7 @@ export const path: Stop[] = [
   },
   {
     id: 'peloton',
+    logo: markPeloton,
     code: 'LDN · UK',
     glow: '#d49a5e',
     when: '2021',
@@ -315,6 +339,7 @@ export const path: Stop[] = [
   },
   {
     id: 'tiktokdeclined',
+    logo: markTiktokdeclined,
     code: 'BER · DE',
     glow: '#e0a640',
     when: '2022',
@@ -327,6 +352,7 @@ export const path: Stop[] = [
   },
   {
     id: 'benify',
+    logo: markBenify,
     code: 'BER · DE',
     glow: '#c98a4b',
     when: '2022',
@@ -337,6 +363,7 @@ export const path: Stop[] = [
   },
   {
     id: 'hkw',
+    logo: markHkw,
     code: 'BER · DE',
     glow: '#5fb3c4',
     when: '2023',
@@ -347,6 +374,7 @@ export const path: Stop[] = [
   },
   {
     id: 'wbs',
+    logo: markWbs,
     code: 'BER · DE',
     glow: '#a04a2c',
     when: '2023',
@@ -373,6 +401,7 @@ export const path: Stop[] = [
   },
   {
     id: 'draper',
+    logo: markDraper,
     code: 'SFO · US',
     when: '2024',
     place: 'Draper University',
@@ -406,6 +435,7 @@ export const path: Stop[] = [
   },
   {
     id: 'scenaryo',
+    logo: logoScenaryo,
     code: 'BER · DE',
     glow: '#e5483a',
     when: 'Now',

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { open, scrollSheetToEnd } from './helpers';
+import { open, revealInSheet, scrollSheetToEnd } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -91,6 +91,8 @@ test('the option wheel shows the stops before and after, then navigates by keybo
   const sheet = page.locator('dialog[open]');
   const wheel = sheet.getByRole('listbox', { name: 'Stops on the path' });
   await expect(wheel.getByRole('option', { selected: true })).toHaveText('2024 · buildspace');
+  // The wheel closes the entry, under the notes.
+  await revealInSheet(page, '.model-wheel');
   for (const label of ['2023 · WBS Coding School', '2024 · Draper University']) {
     const neighbor = wheel.getByRole('option', { name: label, exact: true });
     await expect(neighbor).toBeVisible();
@@ -170,4 +172,17 @@ test('hover decrypt animates only on a fine hover pointer and settles to the rea
     await expect(heading.locator('.decrypting')).toHaveCount(0);
   }
   await expect(heading).toHaveAccessibleName('Jerry Doughan');
+});
+
+test('a path drawer leads with the organisation mark, then the title, role and one when-and-where line', async ({ page }) => {
+  await open(page);
+  await page.locator('[data-stop="coventry"]').click();
+  const header = page.locator('dialog[open] .model-caption');
+  const logo = header.getByRole('img', { name: 'Coventry University logo' });
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute('width', '24');
+  await expect(logo).toHaveAttribute('height', '24');
+  expect(await logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), 'the mark loads').toBe(true);
+  await expect(header.locator(':scope > *')).toHaveText(['', 'Coventry University', 'BA Advertising and Marketing', '2013 · Coventry, UK']);
+  await expect(page.locator('dialog[open] .detail-list li')).toContainText(['Classes of 30+', 'Full circle, 2024']);
 });
