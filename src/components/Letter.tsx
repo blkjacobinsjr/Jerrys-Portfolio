@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import TearTicket from './TearTicket';
 import { canUseGL } from '../lib/gl';
+import { cue } from '../lib/sound';
 import { mailto, openMail, sheetImage, TOPICS, type Topic } from '../lib/letter';
 import './Letter.css';
 
@@ -86,6 +87,7 @@ export default function Letter({ email }: { email: string }) {
     setDraft((n) => n + 1);
   };
   const startOver = () => {
+    cue('crumple');
     if (act || !play('reset')) blank();
   };
   // The paper is on screen: for the intro it opens by itself, for a reset it crumples first, the letter is wiped while it is balled up, then it opens blank.
@@ -101,6 +103,7 @@ export default function Letter({ email }: { email: string }) {
   };
   const send = () => {
     setSent((n) => n + 1);
+    cue('success');
     openMail(mailto(email, { topic, from, body, name }));
   };
 

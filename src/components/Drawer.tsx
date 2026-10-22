@@ -1,6 +1,7 @@
 import { useEffect, type CSSProperties, type ReactNode } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { OVERLAY_ATTR, lockScroll } from '../lib/overlay';
+import { cue } from '../lib/sound';
 import { useMedia } from '../lib/useMedia';
 import '../styles/sheet.css';
 
@@ -35,6 +36,7 @@ export default function Drawer({
 }) {
   const wide = useMedia('(min-width: 768px)');
   useEffect(() => (open ? lockScroll() : undefined), [open]);
+  useEffect(() => { if (open) cue('bloom'); }, [open]);
 
   return (
     <Sheet.Root open={open} onOpenChange={onOpenChange} side="bottom" desktopSide="right" detents={wide ? [desktop] : phone}>

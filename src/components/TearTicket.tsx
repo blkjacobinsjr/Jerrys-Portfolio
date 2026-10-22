@@ -13,6 +13,7 @@ import React, {
 } from 'react';
 import { motion, useMotionTemplate, useReducedMotion, useSpring, useTransform } from 'motion/react';
 
+import { cue } from '../lib/sound';
 import './TearTicket.css';
 
 export type TearTicketOrientation = 'horizontal' | 'vertical';
@@ -441,6 +442,7 @@ const TearTicket: React.FC<TearTicketProps> = ({
       });
       if (left === 0) {
         s.phase = 'free';
+        cue('tear');
         s.bv -= 150;
       }
     } else if (s.phase === 'free') {
