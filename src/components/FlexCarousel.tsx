@@ -574,6 +574,8 @@ const FlexCarousel = ({
       startX: 0,
       startY: 0,
       startPos: 0,
+      target: 0,
+      pending: 0,
       dragging: false,
       touch: false,
       samples: [] as { x: number; t: number }[]
@@ -1127,6 +1129,7 @@ const FlexCarousel = ({
       pointer.x = x;
       pointer.y = y;
       pointer.startPos = pos;
+      pointer.target = mode === 'spring' ? goal : pos;
       pointer.dragging = false;
       pointer.samples = [{ x, t: performance.now() }];
       interactedAt = performance.now();
@@ -1156,6 +1159,8 @@ const FlexCarousel = ({
             pointer.dragging = true;
             pointer.startX = x;
             pointer.startPos = pos;
+            // A step still settling (arrow key, button): the swipe goes on from the card it was heading to.
+            pointer.pending = pointer.target - pos;
             closeFocus();
             try {
               container.setPointerCapture(e.pointerId);
@@ -1196,7 +1201,7 @@ const FlexCarousel = ({
           velocity = -((lastSample.x - first.x) / (lastSample.t - first.t)) * 1000;
         }
         vel = velocity;
-        const landing = snapPoint(m, pos + velocity * 0.32);
+        const landing = snapPoint(m, pos + pointer.pending + velocity * 0.32);
         goal = landing;
         if (Math.abs(velocity) > 400 && Math.abs(landing - pos) < 1) step(m, velocity > 0 ? 1 : -1);
         mode = 'spring';

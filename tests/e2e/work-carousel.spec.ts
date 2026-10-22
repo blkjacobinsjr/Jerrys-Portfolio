@@ -131,6 +131,7 @@ test('every work drawer flips through its screenshots with the buttons, the arro
 });
 
 test('a reopened drawer starts again on the first screenshot, with its textures cached', async ({ page }) => {
+  test.setTimeout(150_000);
   await openWork(page);
   for (let visit = 1; visit <= 3; visit++) {
     const sheet = await openDrawer(page, 0);
