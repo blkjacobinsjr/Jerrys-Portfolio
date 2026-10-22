@@ -53,6 +53,13 @@ import signature from './signature-data.json';
     color: var(--fg);
   }
 
+  /* On phones a 16rem signature pushes the teaser far down; ~11.5rem keeps it a flourish. */
+  @media (max-width: 767px) {
+    .hero-signature {
+      width: min(100%, 11.5rem);
+    }
+  }
+
   .signature-mask {
     stroke-dasharray: 1;
     stroke-dashoffset: 0;
