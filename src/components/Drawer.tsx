@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { OVERLAY_ATTR, lockScroll } from '../lib/overlay';
 import { cue } from '../lib/sound';
@@ -37,9 +37,21 @@ export default function Drawer({
   const wide = useMedia('(min-width: 768px)');
   useEffect(() => (open ? lockScroll() : undefined), [open]);
   useEffect(() => { if (open) cue('bloom'); }, [open]);
+  const detents = wide ? [desktop] : phone;
+  // Controlled, so a drawer that closed fully expanded opens at its first detent again, not at the last one.
+  const [detent, setDetent] = useState<DetentSpec>();
 
   return (
-    <Sheet.Root open={open} onOpenChange={onOpenChange} side="bottom" desktopSide="right" detents={wide ? [desktop] : phone}>
+    <Sheet.Root
+      open={open}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={(isOpen) => isOpen || setDetent(undefined)}
+      activeDetent={detent !== undefined && detents.includes(detent) ? detent : detents[0]}
+      onActiveDetentChange={setDetent}
+      side="bottom"
+      desktopSide="right"
+      detents={detents}
+    >
       {trigger}
       <Sheet.Content className={className ? `sheet ${className}` : 'sheet'} style={style} {...{ [OVERLAY_ATTR]: '' }}>
         <Sheet.Handle />

@@ -43,6 +43,21 @@ narrowed by 15px and every 16/10 work card got shorter behind the drawer.
 **The rule:** the gutter is reserved on `html` at all times; never add layout-affecting styles only
 while locked.
 
+### Flex Carousel in work drawers (Oct 2026)
+
+- Keep `FlexCarousel.tsx` and `.css` identical to the React Bits TS-CSS registry source. Drawer
+  integration belongs in `WorkGallery`: lazy import after the open gallery is at least 25% visible,
+  `canUseGL()` gating, and a live reduced-motion preference through `useMedia`.
+- Set `captureWheel={false}` and override the library's `overscroll-behavior: contain` to `auto`
+  inside the work drawer. The non-scrolling carousel box must chain vertical input to the drawer.
+- Reserve the same gallery height for the static strip and WebGL view. Use the existing Astro image
+  candidates for textures, capped at 1200px, rather than original assets.
+- The library has no imperative navigation API. Buttons dispatch its existing arrow-key events;
+  dispatch `Home` on mount so cached textures cannot select the phone screenshot at the loop edge.
+  Closing the drawer or enabling reduced motion unmounts the component and releases its context.
+- `tests/e2e/work-carousel.spec.ts` covers these contracts. A browser launch failure does not verify
+  scrolling, swipe handling, context disposal or layout stability.
+
 ### Shadows and content-visibility (Oct 2026)
 
 **What broke:** a hard vertical line ran down every selected-work card at about 45% of its width.

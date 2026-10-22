@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, type CSSProperties } from 'react';
 import { Sheet } from 'scrollsheet/auto';
 import Drawer from './Drawer';
+import WorkGallery from './WorkGallery';
 import './Work.css';
 
 const BotAvatar = lazy(() => import('bot-avatars').then((m) => ({ default: m.BotAvatar })));
@@ -11,6 +12,11 @@ export interface Shot {
   width: number;
   height: number;
   alt: string;
+}
+
+/** A drawer screenshot, with one ~1200px candidate from srcset for the carousel's WebGL texture. */
+export interface Screenshot extends Shot {
+  texture: string;
 }
 
 export interface WorkItem {
@@ -29,7 +35,7 @@ export interface WorkItem {
   story: string;
   shaped: string[];
   proof?: string;
-  shots: [Shot, Shot, Shot];
+  shots: [Screenshot, Screenshot, Screenshot];
   phone: Shot;
 }
 
@@ -117,21 +123,7 @@ export default function Work({ items }: { items: WorkItem[] }) {
             </ul>
             {item.proof && <p className="detail-proof muted">{item.proof}</p>}
 
-            <div className="detail-gallery" style={{ '--i': 4 } as CSSProperties} data-scrollsheet-nested-scroll tabIndex={0} role="group" aria-label={`${item.name} screenshots`}>
-              {item.shots.map((shot) => (
-                <img
-                  key={shot.src}
-                  src={shot.src}
-                  srcSet={shot.srcset}
-                  sizes="(min-width: 768px) 480px, 90vw"
-                  width={shot.width}
-                  height={shot.height}
-                  alt={shot.alt}
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
-            </div>
+            <WorkGallery name={item.name} shots={item.shots} open={openId === item.id} />
 
             <a className="pill-link detail-visit" style={{ '--i': 5 } as CSSProperties} href={item.url} target="_blank" rel="noopener">
               Visit {item.urlLabel}
