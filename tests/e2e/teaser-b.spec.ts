@@ -50,6 +50,8 @@ test('the quote, the avatar row and the byline never collide', async ({ page }) 
       expect(m.quotes.width, `${at}: the quote uses the full column`).toBeGreaterThanOrEqual(m.teaser.width - 0.5);
       // Every quote fits two lines from 1024px; the narrower columns allow three.
       for (const lines of m.quoteLines) expect(lines, `${at}: quote lines`).toBeLessThanOrEqual(width >= 1024 ? 2 : 3);
+      // Phones reserve only the tallest quote (20px x 1.625 per line), no empty floor below it.
+      if (width < 768) expect(m.quotes.height, `${at}: no empty space under the quote`).toBeLessThanOrEqual(Math.max(...m.quoteLines) * 32.5 + 1);
       expect(m.nameLines, `${at}: each name on one line`).toEqual([1, 1, 1]);
       expect(m.roleLines, `${at}: each role on one line`).toEqual([1, 1, 1]);
     }

@@ -38,6 +38,14 @@
   }
 }
 
+/* Phones: the quotes share one grid cell, so the tallest already reserves its height and switching
+   cannot shift anything; the published 80px floor only added empty space under a one-line quote. */
+@media (max-width: 767px) {
+  .mt-quotes {
+    min-height: 0;
+  }
+}
+
 .mt-quote.is-active {
   opacity: 1;
   translate: 0 0;
