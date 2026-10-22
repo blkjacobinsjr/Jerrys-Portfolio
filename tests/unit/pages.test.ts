@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mailto, TOPICS } from '../../src/lib/letter';
+import { mailto, openMail, sheetImage, TOPICS } from '../../src/lib/letter';
 import { canUseGL, glAllowed, probeWebGL2 } from '../../src/lib/gl';
 
 const decode = (url: string) => {
@@ -27,6 +27,23 @@ describe('the /contact letter', () => {
     const mail = decode(mailto('jerry@example.com', { topic: 'Just a hello', from: ' ', body: 'Hi', name: '' }));
     expect(mail.subject).toBe('Just a hello');
     expect(mail.body).toBe('Dear Jerry,\n\nHi\n\nSincerely,\nA visitor');
+  });
+});
+
+describe('handing the letter to the mail app', () => {
+  it('clicks a real mailto link and cleans it up, the one path for the button and the torn stub', () => {
+    const log: string[] = [];
+    const link = { href: '', click: () => log.push(`click ${link.href}`), remove: () => log.push('remove') };
+    const doc = { createElement: (tag: string) => (log.push(tag), link), body: { append: () => log.push('append') } } as unknown as Document;
+    openMail('mailto:jerry@example.com?subject=Hi', doc);
+    expect(log).toEqual(['a', 'append', 'click mailto:jerry@example.com?subject=Hi', 'remove']);
+  });
+
+  it('draws the blank sheet the crumple folds, at the letter’s own size and colour', () => {
+    const svg = decodeURIComponent(sheetImage(640.4, 800.6, 'rgb(244, 240, 232)').replace('data:image/svg+xml,', ''));
+    expect(svg).toContain('width="640" height="801"');
+    expect(svg).toContain('fill="rgb(244, 240, 232)"');
+    expect(sheetImage(0, 0, '#fff')).toContain(encodeURIComponent('width="1" height="1"'));
   });
 });
 

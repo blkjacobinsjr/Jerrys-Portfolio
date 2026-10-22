@@ -264,6 +264,7 @@ const TearTicket: React.FC<TearTicketProps> = ({
     [width, height, stubSize, radius, holes, holeSize, notch, roughness, vertical]
   );
   const cfg = useRef<Cfg>({} as Cfg);
+  const fired = useRef(false);
   cfg.current = { geo, tearAngle, stretch, resistance, height, notch, reduce, onTear, controlled };
   const sim = useRef<Sim>({
     raf: 0,
@@ -394,11 +395,15 @@ const TearTicket: React.FC<TearTicketProps> = ({
     return busy;
   };
 
+  const fire = () => {
+    if (fired.current) return;
+    fired.current = true;
+    cfg.current.onTear?.();
+  };
   const finish = () => {
-    const c = cfg.current;
     if (stubRef.current) stubRef.current.style.visibility = 'hidden';
-    if (!c.controlled) setInner(true);
-    c.onTear?.();
+    if (!cfg.current.controlled) setInner(true);
+    fire();
   };
 
   const step = (now: number) => {
@@ -495,6 +500,7 @@ const TearTicket: React.FC<TearTicketProps> = ({
   const reset = () => {
     const s = sim.current;
     cancelAnimationFrame(s.raf);
+    fired.current = false;
     Object.assign(s, {
       raf: 0,
       phase: 'idle',
@@ -606,6 +612,8 @@ const TearTicket: React.FC<TearTicketProps> = ({
     } catch {}
     setGrabbing(false);
     if (s.phase === 'free') {
+      // The stub is off: send now, inside the release gesture. Browsers refuse to open the mail app from the animation frame that ends the fall.
+      fire();
       const still = performance.now() - s.pt > 80;
       s.vx = still ? 0 : clamp(s.pvx, -1600, 1600);
       s.vy = still ? 0 : clamp(s.pvy, -1600, 1200);
