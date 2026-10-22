@@ -1,0 +1,84 @@
+---
+import Page from '../layouts/Page.astro';
+import ConsultancyBadge from '../components/ConsultancyBadge';
+import front from '../assets/lanyard/leapfrog-front.webp';
+import back from '../assets/lanyard/leapfrog-back.webp';
+import strap from '../assets/lanyard/leapfrog-strap.webp';
+
+const LFG = 'https://lfg-ai.com';
+---
+
+<Page
+  page="consultancy"
+  title="Consultancy, Jerry Doughan, Founder of Leapfrog AI"
+  description="I run Leapfrog AI, an AI consultancy that designs and ships AI products and workflows for mid-market companies."
+>
+  <link slot="head" rel="preload" as="image" href={front.src} fetchpriority="high" />
+  <h1 class="sr-only">Jerry Doughan, Founder of Leapfrog AI</h1>
+  <section class="badge-stage" aria-label="My Leapfrog AI badge. Drag it, or tap to flip it.">
+    <ConsultancyBadge
+      client:afterload
+      image={front.src}
+      alt="A green Leapfrog AI badge: Jerry Doughan, Founder of Leapfrog AI"
+      options={{
+        frontImage: front.src,
+        alt: 'A green Leapfrog AI badge: Jerry Doughan, Founder of Leapfrog AI',
+        backImage: back.src,
+        strapImage: strap.src,
+        strapColor: '#064E3B',
+        finish: 'glossy',
+        metal: 'silver',
+        cornerRadius: 0.25,
+        size: 0.62,
+        strapLength: 0.42,
+        breeze: 0.2,
+      }}
+    />
+  </section>
+  <p class="lfg">
+    <a href={LFG} rel="noopener" target="_blank">lfg-ai.com <span aria-hidden="true">↗</span></a>
+  </p>
+</Page>
+
+<style>
+  .badge-stage {
+    position: relative;
+    width: min(100% - 2 * var(--gutter), 44rem);
+    height: min(62svh, 40rem);
+    margin-inline: auto;
+  }
+
+  /* The photo stands in for the hanging card until the physics wakes. */
+  .badge-stage :global([data-model-state='static'] .model-loader__fallback) {
+    inset: 8% 0 0;
+    height: 92%;
+    filter: drop-shadow(0 24px 40px rgb(var(--shadow-tint) / 0.22));
+  }
+
+  .lfg {
+    margin-top: clamp(1.5rem, 5vh, 3rem);
+    text-align: center;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .lfg a {
+    display: inline-block;
+    padding: 0.6rem 1.1rem;
+    border-radius: var(--r-pill);
+    background: var(--bg-sunk);
+    text-decoration: none;
+    transition: background var(--dur-ui) var(--ease-out), scale var(--dur-press) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .lfg a:hover {
+      background: var(--line);
+    }
+  }
+
+  .lfg a:active {
+    scale: 0.97;
+  }
+</style>

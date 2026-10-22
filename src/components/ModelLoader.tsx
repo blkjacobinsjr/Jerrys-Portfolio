@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useMachine } from '@xstate/react';
 import { interactionMachine, type InteractionState } from '../lib/interaction';
 import type { LanyardProps } from './Lanyard';
+import './ModelLoader.css';
 
 type DeskComponent = typeof import('./Desk').default;
 type LanyardComponent = typeof import('./Lanyard').default;

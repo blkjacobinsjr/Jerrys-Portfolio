@@ -39,6 +39,7 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <meta property="og:video:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-sans" preload />
+    <slot name="head" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

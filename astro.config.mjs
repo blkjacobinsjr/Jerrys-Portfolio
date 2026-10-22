@@ -31,5 +31,15 @@ export default defineConfig({
         variants: [{ src: ['@fontsource-variable/geist/files/geist-latin-wght-normal.woff2'], weight: '100 900', style: 'normal' }],
       },
     },
+    {
+      // The typewriter face of the /contact letter; loaded on that page only.
+      provider: fontProviders.local(),
+      name: 'Geist Mono',
+      cssVariable: '--font-mono',
+      fallbacks: ['ui-monospace', 'monospace'],
+      options: {
+        variants: [{ src: ['@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2'], weight: '100 900', style: 'normal' }],
+      },
+    },
   ],
 });

@@ -1,16 +1,18 @@
 import { expect, type Page } from '@playwright/test';
 
 /** Open the page, wait for islands, and collect console errors for the test to assert on. */
-export async function open(page: Page) {
+export async function open(page: Page, path = '/') {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
-  await page.goto('/');
+  await page.goto(path);
   await page.waitForLoadState('networkidle');
   // Idle islands (mascot, work, dock) hydrate after load; visible-only islands wait until scrolled to.
   await expect(page.locator('astro-island[client="idle"][ssr]')).toHaveCount(0, { timeout: 10_000 });
+  // The pages of their own have no media-gated islands, so every after-load island hydrates there.
+  if (path !== '/') await expect(page.locator('astro-island[client="afterload"][ssr]')).toHaveCount(0, { timeout: 10_000 });
   return errors;
 }
 

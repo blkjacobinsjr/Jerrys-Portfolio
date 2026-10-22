@@ -1,0 +1,278 @@
+/* The /contact letter: a sheet of writing paper on the desk, the postage ticket clipped to
+   its top right corner, the draft note under it. Typewriter face: Geist Mono. */
+.letter-desk {
+  --paper: #f4f0e8;
+  --ink: #1c1b19;
+  --rule: color-mix(in oklch, var(--ink) 14%, transparent);
+  position: relative;
+  width: min(100% - 2 * var(--gutter), 46rem);
+  margin-inline: auto;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--text-sm);
+}
+
+.letter {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1.5rem, 6vw, 3.5rem);
+  padding-right: clamp(1.5rem, 6vw, 13rem);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.6) inset,
+    0 30px 60px -30px rgb(var(--shadow-tint) / 0.35),
+    0 2px 6px rgb(var(--shadow-tint) / 0.08);
+}
+
+.letter-head {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.letter-head h1 {
+  font-family: var(--font-sans-stack);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.letter-head p {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--ink) 72%, transparent);
+}
+
+.letter-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.letter-date {
+  min-height: 1.5em;
+  color: color-mix(in oklch, var(--ink) 72%, transparent);
+}
+
+.letter-re {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.letter-re legend {
+  float: left;
+  margin-right: 0.5rem;
+  color: color-mix(in oklch, var(--ink) 72%, transparent);
+}
+
+.letter-re label {
+  display: inline-flex;
+  gap: 0.4em;
+  align-items: center;
+  min-height: 24px;
+  cursor: pointer;
+}
+
+.letter-re input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.letter-re label:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.letter-line {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  border-bottom: 1px solid var(--rule);
+}
+
+.letter-line span {
+  flex: none;
+  color: color-mix(in oklch, var(--ink) 72%, transparent);
+}
+
+.letter input[type='email'],
+.letter input[type='text'],
+.letter textarea {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.35rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.letter ::placeholder {
+  color: color-mix(in oklch, var(--ink) 42%, transparent);
+}
+
+.letter-line:focus-within,
+.letter-body:focus-within {
+  border-color: var(--accent);
+}
+
+/* Ruled lines under the message, one per line of text. */
+.letter-body textarea {
+  --lh: 2.25rem;
+  resize: vertical;
+  line-height: var(--lh);
+  padding: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--lh) - 1px), var(--rule) calc(var(--lh) - 1px) var(--lh));
+  background-attachment: local;
+}
+
+.letter-sincerely {
+  margin-top: 0.5rem;
+}
+
+.letter-send {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-sans-stack);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--dur-ui) var(--ease-out), scale var(--dur-press) var(--ease-out);
+}
+
+.letter-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.letter-send:not(:disabled):active {
+  scale: 0.97;
+}
+
+/* The postage ticket, clipped over the paper's top right corner. */
+.letter-ticket {
+  position: absolute;
+  top: -1.5rem;
+  right: -2rem;
+  z-index: 1;
+}
+
+.ticket-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem 0.75rem;
+  padding: 1.1rem 1rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ticket-body dt {
+  color: color-mix(in oklch, #1c1b19 72%, transparent);
+}
+
+.ticket-body dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.ticket-body .ticket-title {
+  grid-column: 1 / -1;
+  color: #1c1b19;
+  font-weight: 600;
+}
+
+.ticket-body .ticket-title + dd {
+  grid-column: 1 / -1;
+  text-align: left;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed color-mix(in oklch, #1c1b19 25%, transparent);
+}
+
+.ticket-stub {
+  display: grid;
+  gap: 0.5rem;
+  place-items: center;
+  height: 100%;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ticket-barcode {
+  width: 70%;
+  height: 28px;
+  background: repeating-linear-gradient(90deg, #1c1b19 0 2px, transparent 2px 4px, #1c1b19 4px 5px, transparent 5px 8px);
+}
+
+/* The draft note, under the letter on the left. */
+.letter-note {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.letter-note > :first-child {
+  width: 240px;
+}
+
+.letter-note-still {
+  width: 240px;
+  height: auto;
+  rotate: -3deg;
+  box-shadow: 0 10px 24px -12px rgb(var(--shadow-tint) / 0.35);
+}
+
+.letter-reset {
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  font-family: var(--font-sans-stack);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+/* Phones: the ticket follows the letter instead of overlapping it. */
+@media (max-width: 760px) {
+  .letter {
+    padding-right: clamp(1.5rem, 6vw, 3.5rem);
+  }
+
+  .letter-ticket {
+    position: relative;
+    top: auto;
+    right: auto;
+    display: grid;
+    justify-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .letter-note {
+    justify-content: center;
+  }
+}

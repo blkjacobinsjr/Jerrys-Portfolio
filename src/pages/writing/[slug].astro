@@ -1,0 +1,58 @@
+---
+import { render } from 'astro:content';
+import Page from '../../layouts/Page.astro';
+import { published, type Post } from '../../lib/writing';
+
+export async function getStaticPaths() {
+  return (await published()).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const { Content } = await render(post);
+const day = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Page page="writing" title={`${post.data.title}, Jerry Doughan`} description={post.data.description}>
+  <article class="col post">
+    <header>
+      <a class="back muted" href="/writing">Writing</a>
+      <h1>{post.data.title}</h1>
+      <time class="muted" datetime={post.data.date.toISOString()}>{day.format(post.data.date)}</time>
+    </header>
+    <div class="prose"><Content /></div>
+  </article>
+</Page>
+
+<style>
+  .post header {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+  }
+
+  h1 {
+    font-size: var(--text-statement);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .back,
+  time {
+    font-size: var(--text-sm);
+  }
+
+  .prose :global(:is(p, ul, ol, blockquote, pre)) {
+    margin-block: 1.1em;
+  }
+
+  .prose :global(:is(h2, h3)) {
+    margin-top: 2em;
+    font-weight: 600;
+  }
+
+  .prose :global(ul) {
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+</style>

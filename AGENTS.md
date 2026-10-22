@@ -86,3 +86,21 @@ Testimonial (lazy chunk), C radiumcoders Animated Testimonials (not yet in the r
 retrieval limit). The choice is `?t=a|b|c` plus localStorage `teaser-style`. Their Tailwind classes are
 translated one for one into plain CSS with the site tokens; the site has no Tailwind. When Jerry picks
 one: delete the switch and the other components, render the pick directly from Hero.astro.
+
+### Pages of their own (Oct 2026)
+
+- `/writing`, `/consultancy` and `/contact` use `layouts/Page.astro`: Base + the dock with `page=` set,
+  so it is shown from the start and that tab is `aria-current="page"`. The dock has four tabs (About,
+  Writing, Consultancy, Contact) so it still fits a 390px phone; Work and Path are the home page's own
+  scroll and the mascot goes back to the top (home, on a page of its own).
+- Writing is an Astro content collection (`src/content.config.ts`, markdown in `src/content/writing`,
+  `_template.md` shows the frontmatter; files starting with `_` are ignored). Posts appear on /writing,
+  at /writing/<slug>, in /rss.xml (@astrojs/rss) and in /sitemap.xml. No CMS. The empty-collection
+  warning at build time is expected until the first post.
+- /consultancy reuses `ModelLoader` + `Lanyard` (the buildspace badge) with the Leapfrog AI textures from
+  `tools/consultancy-badge.mjs`. The still badge is the LCP; the physics load on first intent behind
+  `lib/gl.ts` `canUseGL()` (the WebGL gate from odyn-astro-starter), never with reduced motion.
+- /contact is a letter (`components/Letter.tsx`) with React Bits TearTicket (tear the stub to send) and
+  PaperCrumple (crumple the draft to start over; three.js, loaded on first intent behind the GL gate).
+  There is no form backend, so it sends through `mailto:` (`lib/letter.ts`), like the copy-email CTA.
+- Model loader and stage styles live in `ModelLoader.css` (shared by the drawers and /consultancy).

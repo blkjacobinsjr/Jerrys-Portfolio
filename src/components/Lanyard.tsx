@@ -24,6 +24,8 @@ interface PathLike {
 
 export interface LanyardProps {
   frontImage?: string;
+  /** Alt text for the still badge shown until the 3D card is ready. */
+  alt?: string;
   backImage?: string;
   imageFit?: ImageFit;
   cardColor?: string;
@@ -894,6 +896,7 @@ const stepSimulation = (sim: Simulation, dt: number, physics: Physics, time: num
 
 const Lanyard = ({
   frontImage,
+  alt = 'Buildspace nights and weekends season 5 badge',
   backImage,
   imageFit = 'cover',
   cardColor = '#ffffff',
@@ -1557,7 +1560,7 @@ const Lanyard = ({
 
   return <div className={`lanyard ${className}`.trim()} style={style} data-renderer-state={snapshot.value}>
     <div ref={containerRef} className="lanyard-stage" data-scrollsheet-no-drag data-renderer-state={snapshot.value}>
-      <img className="lanyard-fallback" src={frontImage} alt="Buildspace nights and weekends season 5 badge" onError={() => failRef.current()} />
+      <img className="lanyard-fallback" src={frontImage} alt={alt} onError={() => failRef.current()} />
     </div>
     <div className="model-controls">
       <button type="button" disabled={!snapshot.matches('ready')} onClick={() => flipRef.current?.()}>Flip badge</button>

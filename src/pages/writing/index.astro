@@ -1,0 +1,85 @@
+---
+import Page from '../../layouts/Page.astro';
+import { published, WRITING } from '../../lib/writing';
+
+const posts = await published();
+const day = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+
+<Page page="writing" title={WRITING.title} description={WRITING.description}>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={WRITING.title} href="/rss.xml" />
+  <div class="col writing">
+    <header>
+      <h1>Writing</h1>
+      <p class="muted">Product design, frontend craft and building with AI.</p>
+    </header>
+    {
+      posts.length > 0 ? (
+        <ol class="posts">
+          {posts.map((post) => (
+            <li>
+              <a href={`/writing/${post.id}`}>
+                <span class="post-title">{post.data.title}</span>
+                <time class="muted" datetime={post.data.date.toISOString()}>{day.format(post.data.date)}</time>
+              </a>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p class="empty" data-empty>
+          Nothing published yet. The first notes are being written;{' '}
+          <a href="/rss.xml">follow the RSS feed</a> to get them when they land.
+        </p>
+      )
+    }
+  </div>
+</Page>
+
+<style>
+  .writing {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  h1 {
+    font-size: var(--text-statement);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  header p {
+    margin-top: 0.75rem;
+  }
+
+  .posts {
+    border-top: 1px solid var(--line);
+  }
+
+  .posts a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .post-title {
+    font-weight: 500;
+  }
+
+  time {
+    flex: none;
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .empty {
+    padding: 1.25rem 1.375rem;
+    border-radius: var(--r-tile);
+    background: var(--bg-sunk);
+    color: var(--fg-2);
+  }
+</style>

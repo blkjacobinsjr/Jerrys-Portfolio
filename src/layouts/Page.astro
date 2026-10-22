@@ -1,0 +1,31 @@
+---
+// A page of its own (writing, consultancy, contact): the same shell as the home page,
+// with the dock always shown and its tab for this page marked current.
+import Base from './Base.astro';
+import Dock, { type Page as DockPage } from '../components/Dock';
+import sprite from '../assets/mascot/sprite.webp';
+import still from '../assets/mascot/still.webp';
+
+interface Props {
+  title: string;
+  description: string;
+  page: DockPage;
+}
+
+const { title, description, page } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <slot name="head" slot="head" />
+  <main id="main" class={`subpage subpage-${page}`}>
+    <slot />
+  </main>
+  <Dock client:afterload sprite={sprite.src} still={still.src} page={page} />
+</Base>
+
+<style>
+  .subpage {
+    min-height: 100svh;
+    padding-block: clamp(4rem, 12vh, 8rem) clamp(7rem, 16vh, 10rem);
+  }
+</style>
