@@ -45,13 +45,26 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <a class="skip-link" href="#main">Skip to content</a>
     <slot />
     <script>
+      const userIntents = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
+      const recordUserIntent = () => {
+        document.documentElement.dataset.userIntent = 'true';
+        for (const type of userIntents) removeEventListener(type, recordUserIntent, true);
+      };
+      const trackUserIntent = () => {
+        for (const type of userIntents) addEventListener(type, recordUserIntent, { capture: true, passive: true, once: true });
+      };
+
       // Motion is an enhancement: fetch it a beat after the page has loaded,
       // once idle (same timing as client:afterload).
       const start = () => import('../motion').then((motion) => motion.start());
       const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(start, { timeout: 1500 }) : setTimeout(start, 1));
       const later = () => setTimeout(idle, 250);
-      if (document.readyState === 'complete') later();
-      else addEventListener('load', later, { once: true });
+      const afterLoad = () => {
+        trackUserIntent();
+        later();
+      };
+      if (document.readyState === 'complete') afterLoad();
+      else addEventListener('load', afterLoad, { once: true });
     </script>
   </body>
 </html>

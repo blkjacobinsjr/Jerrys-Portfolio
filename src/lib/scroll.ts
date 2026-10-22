@@ -9,6 +9,9 @@ export { gsap, ScrollTrigger };
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Base records input at load, before the dock and motion modules hydrate.
+export const hasUserIntent = () => document.documentElement.dataset.userIntent === 'true';
+
 let lenis: Lenis | undefined;
 
 /**
@@ -59,7 +62,11 @@ export function scrollToEnd() {
 
 /** Jump to a scroll offset with no animation (keyboard-driven moves should not animate). */
 export function jumpTo(y: number) {
-  if (lenis) return lenis.scrollTo(y, { immediate: true });
+  if (lenis) {
+    // Lenis clamps to the limit it measured last. A pin spacer can have grown the page since.
+    lenis.resize();
+    return lenis.scrollTo(y, { immediate: true });
+  }
   scrollTo({ top: y, behavior: 'instant' });
 }
 
