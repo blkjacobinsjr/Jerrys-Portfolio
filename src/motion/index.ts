@@ -68,6 +68,9 @@ function path() {
   document.documentElement.classList.add('is-pinned');
   // The stage is as wide as the section (no scrollbar), which is where the last stop has to come to rest.
   const distance = () => Math.max(0, track.scrollWidth - pin.clientWidth);
+  // Where, as progress through the pin, each stop rests in the middle. Layout offsets: the circular gallery bends
+  // each stop with a transform, which would skew a bounding box.
+  const restAt = (stop: HTMLElement) => gsap.utils.clamp(0, 1, (stop.offsetLeft - track.offsetLeft + stop.offsetWidth / 2 - pin.clientWidth / 2) / distance());
 
   const travel = gsap.to(track, {
     x: () => -distance(),
@@ -77,7 +80,19 @@ function path() {
       pin: true,
       start: 'center center',
       end: () => `+=${distance()}`,
-      scrub: 1,
+      // Lenis already smooths the wheel, and the circular gallery eases the drawn position itself (React Bits scrollEase),
+      // so the scrub follows the scroll one to one instead of adding a second second of lag.
+      scrub: true,
+      // React Bits CircularGallery snap-on-end: once input stops for 140ms, glide to the nearest stop.
+      snap: {
+        snapTo: (progress) => {
+          const rests = [...track.querySelectorAll<HTMLElement>('.stop')].map(restAt);
+          return rests.reduce((best, at) => (Math.abs(at - progress) < Math.abs(best - progress) ? at : best), rests[0] ?? progress);
+        },
+        delay: 0.14,
+        duration: { min: 0.25, max: 0.6 },
+        ease: 'power2.out',
+      },
       invalidateOnRefresh: true,
       onUpdate: (self) => ruler.style.setProperty('--progress', String(self.progress)),
     },
@@ -121,10 +136,7 @@ function path() {
     const stop = (event.target as HTMLElement).closest<HTMLElement>('.stop');
     const st = travel.scrollTrigger;
     if (!stop || !st) return;
-    // Layout offsets: the circular gallery bends each stop with a transform, which would skew a bounding box.
-    const offset = stop.offsetLeft - track.offsetLeft;
-    const progress = gsap.utils.clamp(0, 1, (offset + stop.offsetWidth / 2 - innerWidth / 2) / distance());
-    jumpTo(st.start + progress * (st.end - st.start));
+    jumpTo(st.start + restAt(stop) * (st.end - st.start));
   };
   track.addEventListener('focusin', onFocus);
 
