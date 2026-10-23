@@ -809,6 +809,62 @@ const GhostCursor = ({
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     document.documentElement.addEventListener('pointerleave', onLeave);
 
+    const onTouchMove = event => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      const rect = container.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      const inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
+      if (inside) {
+        if (!pointer.inside && !ghost.ready) {
+          ghost.x = ghost.px = x;
+          ghost.y = ghost.py = y;
+          ghost.vx = ghost.vy = 0;
+          ghost.ready = true;
+        } else if (!pointer.inside && presence < 0.05) {
+          ghost.x = ghost.px = x;
+          ghost.y = ghost.py = y;
+          ghost.vx = ghost.vy = 0;
+        }
+        pointer.x = x;
+        pointer.y = y;
+        pointer.inside = true;
+        pointer.moved = performance.now();
+        wake();
+      }
+    };
+
+    const onTouchStart = event => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      const rect = container.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      const inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
+      if (inside) {
+        introLive = false;
+        if (!pointer.inside && !ghost.ready) {
+          ghost.x = ghost.px = x;
+          ghost.y = ghost.py = y;
+          ghost.vx = ghost.vy = 0;
+          ghost.ready = true;
+        } else if (!pointer.inside && presence < 0.05) {
+          ghost.x = ghost.px = x;
+          ghost.y = ghost.py = y;
+          ghost.vx = ghost.vy = 0;
+        }
+        pointer.x = x;
+        pointer.y = y;
+        pointer.inside = true;
+        pointer.moved = performance.now();
+        wake();
+      }
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: true });
+
     const onLost = event => {
       event.preventDefault();
       lost = true;
@@ -848,6 +904,8 @@ const GhostCursor = ({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
       document.documentElement.removeEventListener('pointerleave', onLeave);
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
       document.removeEventListener('visibilitychange', onVisibility);
       canvas.removeEventListener('webglcontextlost', onLost);
       canvas.removeEventListener('webglcontextrestored', onRestored);
