@@ -366,7 +366,8 @@ const galleryStops = await Promise.all(
       z-index: 1;
       position: relative;
       height: 4.5rem;
-      margin-top: -5.5rem;
+      /* Net zero layout height (4.5 - 5.5 + 1): turning the gallery on never moves what follows (deep links). */
+      margin-block: -5.5rem 1rem;
       pointer-events: none;
     }
     .path-caption-item {
