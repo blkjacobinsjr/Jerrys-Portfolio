@@ -101,6 +101,15 @@ may only paint inside its padding box; give a shadowed child room with padding, 
 on the element that animates rather than on a static ancestor. `tests/e2e/work-cards.spec.ts`
 renders the band across that edge with and without containment and requires them to match.
 
+### WebGL never starts on its own during load (Oct 2026)
+
+**What broke:** /consultancy Lighthouse TBT went from ~0 to 152s when the lanyard physics started on `requestIdleCallback`.
+**Root cause:** headless Chromium renders WebGL in software; every lanyard frame was a ~700ms long task, and the breeze
+keeps the loop from ever resting.
+**The rule:** load-time motion is CSS (transform/opacity on the poster: `badge-swing` in `consultancy.astro`); three.js,
+FluidGlass and other WebGL start only on `onFirstIntent` (plus `touchstart` on phones). `tests/perf/perf.spec.ts` checks
+the home page; the consultancy LH TBT gate catches it there.
+
 ### Link previews
 
 - `public/og.jpg` is the share image (the keyring, with the locket photo pixelated). Keep it.
