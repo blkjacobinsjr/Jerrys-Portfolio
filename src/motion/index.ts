@@ -135,9 +135,7 @@ function path() {
   const onFocus = (event: FocusEvent) => {
     const stop = (event.target as HTMLElement).closest<HTMLElement>('.stop');
     const st = travel.scrollTrigger;
-    // Only keyboard focus: a mouse press also focuses the button, and jumping then moves the stop out from under the
-    // pointer, so pointerup lands on a neighbour and the click never opens the drawer.
-    if (!stop || !st || !(event.target as HTMLElement).matches(':focus-visible')) return;
+    if (!stop || !st) return;
     jumpTo(st.start + restAt(stop) * (st.end - st.start));
   };
   track.addEventListener('focusin', onFocus);
