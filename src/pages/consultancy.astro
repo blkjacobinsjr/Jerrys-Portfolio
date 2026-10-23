@@ -34,7 +34,6 @@ const LFG = 'https://lfg-ai.com';
         strapLength: 0.42,
         breeze: 0.2,
         intro: false,
-        swing: 2.2,
       }}
     />
   </section>
@@ -82,6 +81,18 @@ const LFG = 'https://lfg-ai.com';
     width: 100%;
     height: 100%;
     object-fit: contain;
+    /* Swing in on load from the strap's top anchor: a damped pendulum, transform only. */
+    transform-origin: 50% 0;
+    animation: badge-swing 1.8s cubic-bezier(0.37, 0, 0.63, 1) both;
+  }
+
+  @keyframes badge-swing {
+    0% { transform: rotate(9deg); }
+    28% { transform: rotate(-5deg); }
+    52% { transform: rotate(2.6deg); }
+    74% { transform: rotate(-1.1deg); }
+    90% { transform: rotate(0.4deg); }
+    100% { transform: rotate(0deg); }
   }
 
   /* The live model's own flat fallback must never show: the poster covers it while loading, and once the canvas
@@ -99,6 +110,10 @@ const LFG = 'https://lfg-ai.com';
   @media (prefers-reduced-motion: reduce) {
     .badge-stage :global(.badge-poster) {
       transition: none;
+    }
+
+    .badge-stage :global(.badge-poster img) {
+      animation: none;
     }
   }
 

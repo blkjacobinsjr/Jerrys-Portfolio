@@ -46,7 +46,7 @@ test('/consultancy is the Leapfrog AI badge, with lfg-ai.com under it', async ({
   await expect(link).toBeInViewport();
 });
 
-test('/consultancy paints the poster first, then swings the lanyard in on its own', async ({ page }) => {
+test('/consultancy paints the poster first and swings it in, then hangs it on the lanyard at the first intent', async ({ page }) => {
   let release = () => {};
   const held = new Promise<void>((resolve) => (release = resolve));
   await page.route(/Lanyard/, async (route) => {
@@ -59,7 +59,12 @@ test('/consultancy paints the poster first, then swings the lanyard in on its ow
   const poster = page.locator('.badge-poster img');
   await expect(poster).toBeVisible();
   expect(await poster.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
-  // No pointer, wheel or key: the physics load by themselves, and the poster stays until the first frame.
+  // The swing-in is the poster's own CSS animation; no pointer, wheel or key means no physics yet.
+  expect(await poster.evaluate((img) => getComputedStyle(img).animationName)).toBe('badge-swing');
+  await page.waitForTimeout(1500);
+  expect(await page.evaluate(() => performance.getEntriesByType('resource').some((r) => /Lanyard/.test(r.name)))).toBe(false);
+  await page.keyboard.press('Shift');
+  // The poster stays until the first frame.
   await expect(page.locator('.model-loader[data-model-state="loading"]')).toHaveCount(1, { timeout: 10_000 });
   await expect(page.locator('.badge-poster')).toHaveAttribute('data-covered', 'true');
   release();
@@ -75,6 +80,9 @@ test('/consultancy poster is the first frame of the physics, pixel for pixel', a
     window.requestAnimationFrame = () => 0;
   });
   await page.goto('/consultancy');
+  // Let the poster's swing-in come to rest, then wake the physics.
+  await page.locator('.badge-poster img').evaluate((img) => Promise.all(img.getAnimations().map((a) => a.finished)));
+  await page.keyboard.press('Shift');
   await expect(page.locator('.model-loader[data-model-state="ready"]')).toHaveCount(1, { timeout: 15_000 });
   const stage = page.locator('.badge-stage');
   const withPoster = await stage.screenshot();

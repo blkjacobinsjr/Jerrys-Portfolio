@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import ModelLoader from './ModelLoader';
 import { canUseGL } from '../lib/gl';
+import { onFirstIntent } from '../lib/intent';
 import type { LanyardProps } from './Lanyard';
 
 /**
  * The buildspace lanyard from the path drawer, wearing the Leapfrog AI badge. The poster is the page's first
  * paint: the lanyard's own first WebGL frame (tools/consultancy-poster.mjs), at rest, in the same box the canvas
- * fills. The physics (three.js) start when the browser is idle after load, hang from that same pose and swing in.
+ * fills. It swings in on load (CSS); the physics (three.js) start on the first intent and hang from the same rest pose.
  * The poster fades out only once that first frame is drawn. Without WebGL or with reduced motion it stays.
  */
 export default function ConsultancyBadge({ image, alt, options }: { image: string; alt: string; options: LanyardProps }) {
@@ -14,14 +15,15 @@ export default function ConsultancyBadge({ image, alt, options }: { image: strin
   const [covered, setCovered] = useState(true);
   const [gone, setGone] = useState(false);
   useEffect(() => {
-    if (!canUseGL()) return undefined;
-    let off = false;
-    const go = () => !off && setLive(true);
-    // Safari has no requestIdleCallback.
-    if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 1000 });
-    else setTimeout(go, 200);
+    // The poster swings in on load by itself (CSS, compositor only). The physics (three.js) wait for the first
+    // pointer move, wheel, key or touch: a WebGL loop running during load blocks the main thread on slow or
+    // software-rendered GPUs (Lighthouse measured 150s of blocking time when it started on idle).
+    const wake = () => canUseGL() && setLive(true);
+    const off = onFirstIntent(wake);
+    addEventListener('touchstart', wake, { once: true, passive: true });
     return () => {
-      off = true;
+      off();
+      removeEventListener('touchstart', wake);
     };
   }, []);
 
