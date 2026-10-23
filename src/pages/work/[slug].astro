@@ -230,7 +230,7 @@ const site = item.presentation === 'website';
     inset: -10%;
     z-index: -1;
     background:
-      radial-gradient(ellipse at 75% 70%, color-mix(in oklch, var(--surface) 50%, var(--glow, #b89170)) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 70%, color-mix(in oklch, var(--surface) 50%, var(--glow, var(--glow-default))) 0%, transparent 55%),
       radial-gradient(ellipse at 30% 20%, color-mix(in oklch, var(--surface) 65%, white), transparent 65%);
     pointer-events: none;
   }

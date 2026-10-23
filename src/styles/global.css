@@ -13,6 +13,7 @@
   --accent: oklch(0.66 0.19 42);
   --accent-ink: oklch(0.5 0.17 40);
   --shadow-tint: 30 20 10;
+  --glow-default: #b89170;
 
   --font-sans-stack: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 

@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import ContactCTA from './ContactCTA';
+import ContactGlass from './ContactGlass';
 import DecryptedText from './DecryptedText';
 import FooterGhost from './FooterGhost';
 import Keyring from './Keyring.astro';
@@ -32,6 +33,7 @@ const layers = [
 
   <div class="contact-body col">
     <h2 id="contact-title"><DecryptedText client:afterload="(hover: hover) and (pointer: fine)" text="Have an app that should feel this good?" maxIterations={10} speed={40} encryptedClassName="decrypting" /></h2>
+    <ContactGlass client:idle />
     <ContactCTA client:visible={{ rootMargin: '600px' }} email={person.email} />
     <p class="contact-links">
       <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
@@ -189,6 +191,11 @@ const layers = [
     letter-spacing: -0.03em;
     line-height: 1.1;
     max-width: 16ch;
+  }
+
+  /* ContactGlass redraws the heading in its canvas; the DOM text stays for readers and selection. */
+  h2[data-glass] {
+    color: transparent;
   }
 
   .contact-links {

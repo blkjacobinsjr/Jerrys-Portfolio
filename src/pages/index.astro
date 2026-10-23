@@ -13,7 +13,7 @@ import '../styles/work-transition.css';
 import { getImage } from 'astro:assets';
 import desk from '../assets/icons/desk.webp';
 // The hero desk is the mobile LCP: preload the same AVIF set the <Picture> in Hero picks from.
-const deskLcp = await getImage({ src: desk, widths: [320, 400, 480, 560, 640, 760, 1040], format: 'avif', quality: 58 });
+const deskLcp = await getImage({ src: desk, widths: [320, 400, 480, 560, 640, 760, 1040], format: 'avif', quality: 46 });
 ---
 
 <Base
