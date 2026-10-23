@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { open } from './helpers';
 
 test('a photo in a Path drawer expands into the lightbox above it; Escape closes only the lightbox', async ({ page }) => {
-  await open(page, '/?gl=off');
+  const errors = await open(page, '/?gl=off');
   await page.locator('[data-stop="buildspace"]').focus();
   await page.keyboard.press('Enter');
   const sheet = page.locator('dialog[open]');
@@ -16,6 +16,8 @@ test('a photo in a Path drawer expands into the lightbox above it; Escape closes
   const box = page.locator('.pswp');
   await expect(box).toHaveAttribute('data-opened', '');
   await expect(box.locator('.pswp__counter')).toHaveText(`1 / ${count}`);
+  // Opaque backdrop: the drawer's text must not ghost through behind the photo (phones showed it at 0.92).
+  await expect(box.locator('.pswp__bg')).toHaveCSS('opacity', '1');
   // Shown above the drawer: the topmost element in the middle of the screen belongs to the lightbox.
   const vp = page.viewportSize()!;
   expect(await page.evaluate(([x, y]) => Boolean(document.elementFromPoint(x!, y!)?.closest('.pswp')), [vp.width / 2, vp.height / 2])).toBe(true);
@@ -33,4 +35,5 @@ test('a photo in a Path drawer expands into the lightbox above it; Escape closes
   await box.locator('.pswp__button--close').click();
   await expect(page.locator('.pswp')).toHaveCount(0);
   await expect(sheet).toHaveCount(1);
+  expect(errors).toEqual([]);
 });
