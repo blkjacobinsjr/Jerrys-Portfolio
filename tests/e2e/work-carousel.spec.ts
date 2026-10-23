@@ -1,40 +1,30 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { open, revealInSheet, scrollToSelector } from './helpers';
+import { open } from './helpers';
 
 /**
- * The screenshots in every selected-work drawer (components/WorkGallery.tsx): React Bits Flex Carousel
- * (WebGL) once the drawer is open and the gallery is on screen, the static strip otherwise.
+ * The screenshots on every project page (components/WorkGallery.tsx): React Bits Flex Carousel
+ * (WebGL) once the gallery is on screen, the static strip otherwise.
  * It flips with its buttons, the arrow keys and a swipe, announces each step, lets a vertical wheel
- * or touch scroll the drawer, and releases its WebGL context when the drawer closes.
+ * or touch scroll the page, and releases its WebGL context when reduced motion is switched on.
  */
 const CHUNK = /\/FlexCarousel\.[^/]+\.js$/;
 
-async function openWork(page: Page, path = '/') {
-  await open(page, path);
-  // The cards are server-rendered; wait for the island so the first click opens a drawer.
-  await expect(page.locator('astro-island:has(.work-list)')).not.toHaveAttribute('ssr', '');
-  await scrollToSelector(page, '#work');
-  return page.locator('.work-card').count();
+/** The project slugs, from the cards on the home page. */
+async function slugs(page: Page) {
+  await page.goto('/');
+  const hrefs = await page.locator('.work-card').evaluateAll((cards) => cards.map((card) => card.getAttribute('href')!));
+  return hrefs.map((href) => href.replace('/work/', ''));
 }
 
-async function openDrawer(page: Page, index: number) {
-  const card = page.locator('.work-card').nth(index);
-  await card.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(250);
-  await card.click();
-  const sheet = page.locator('dialog[open]');
-  await expect(sheet.locator('[data-overlay]')).toBeVisible();
-  await expect(page.locator('html')).toHaveAttribute('data-scroll-locked', '');
-  return sheet;
+async function openProject(page: Page, slug: string, query = '') {
+  await open(page, `/work/${slug}${query}`);
 }
 
-async function closeDrawer(page: Page, sheet: Locator) {
-  const close = sheet.locator('.scrollsheet-close');
-  await close.scrollIntoViewIfNeeded();
-  await close.click();
-  await expect(page.locator('dialog[open]')).toHaveCount(0);
-  await expect(page.locator('html')).not.toHaveAttribute('data-scroll-locked', '');
+/** Bring the gallery to the middle of the screen the way a visitor scrolls to it. */
+async function revealGallery(page: Page) {
+  await page.locator('.work-gallery').evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await expect(page.locator('.work-gallery')).toBeInViewport({ ratio: 1 });
 }
 
 /** A horizontal swipe across the carousel that rests before lifting, so it lands on the neighbouring card. */
@@ -74,21 +64,21 @@ async function swipe(page: Page, carousel: Locator, direction: -1 | 1, browserNa
   );
 }
 
-test('every work drawer flips through its screenshots with the buttons, the arrow keys and a swipe', async ({ page, browserName }, info) => {
+test('every project page flips through its screenshots with the buttons, the arrow keys and a swipe', async ({ page, browserName }, info) => {
   test.setTimeout(150_000);
   const touch = info.project.name !== 'desktop';
-  const count = await openWork(page);
-  expect(count).toBeGreaterThanOrEqual(5);
+  const all = await slugs(page);
+  expect(all.length).toBeGreaterThanOrEqual(5);
 
-  for (let i = 0; i < count; i++) {
-    const sheet = await openDrawer(page, i);
-    const label = (await sheet.locator('.detail-title').textContent()) ?? `drawer ${i}`;
+  for (const slug of all) {
+    await openProject(page, slug);
+    const label = (await page.getByRole('heading', { level: 1 }).textContent()) ?? slug;
+    await revealGallery(page);
     const pageTop = await page.evaluate(() => scrollY);
-    await revealInSheet(page, '.work-gallery');
 
-    await expect(sheet.locator('.work-carousel canvas'), label).toBeVisible({ timeout: 15_000 });
-    await expect(sheet.locator('.work-gallery .detail-gallery'), `${label} swaps the strip out`).toHaveCount(0);
-    const group = sheet.getByRole('group', { name: `${label} screenshots` });
+    await expect(page.locator('.work-carousel canvas'), label).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.work-gallery .detail-gallery'), `${label} swaps the strip out`).toHaveCount(0);
+    const group = page.getByRole('group', { name: `${label} screenshots` });
     await expect(group).toBeVisible();
     const carousel = group.locator('.flex-carousel');
     const live = carousel.locator('.flex-carousel__live');
@@ -121,60 +111,38 @@ test('every work drawer flips through its screenshots with the buttons, the arro
       await expect(live, `${label} swipe right`).toHaveText(/, 1 of 3$/);
     }
 
-    expect(await page.evaluate(() => scrollY), `${label} leaves the page behind alone`).toBe(pageTop);
-    const gl = await carousel.locator('canvas').evaluateHandle((canvas) => (canvas as HTMLCanvasElement).getContext('webgl2'));
-    await closeDrawer(page, sheet);
-    expect(Math.abs((await page.evaluate(() => scrollY)) - pageTop), `${label} returns to the same place`).toBeLessThan(2);
-    await expect(page.locator('.flex-carousel')).toHaveCount(0);
-    expect(await gl.evaluate((context) => context!.isContextLost()), `${label} releases its WebGL context`).toBe(true);
+    expect(await page.evaluate(() => scrollY), `${label} leaves the page alone`).toBe(pageTop);
   }
 });
 
-test('a reopened drawer starts again on the first screenshot, with its textures cached', async ({ page }) => {
+test('a revisited project starts again on the first screenshot, with its textures cached', async ({ page }) => {
   test.setTimeout(150_000);
-  await openWork(page);
+  const [first] = await slugs(page);
   for (let visit = 1; visit <= 3; visit++) {
-    const sheet = await openDrawer(page, 0);
-    // Not revealInSheet: scrollsheet leaves data-scrollsheet-at-max off when the same drawer reopens
-    // (with or without the carousel), though the drawer is fully open.
-    if ((page.viewportSize()?.width ?? 0) < 768) {
-      await sheet.locator('.scrollsheet-handle').click();
-      await page.waitForTimeout(700);
-    }
-    await sheet.locator('[data-overlay]').evaluate((panel) => {
-      const gallery = panel.querySelector('.work-gallery')!;
-      panel.scrollTo({ top: panel.scrollTop + gallery.getBoundingClientRect().top - panel.getBoundingClientRect().top - 24, behavior: 'instant' });
-    });
-    await expect(sheet.locator('.work-gallery')).toBeInViewport({ ratio: 1 });
-    await expect(sheet.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
-    const live = sheet.locator('.flex-carousel__live');
+    await openProject(page, first!);
+    await revealGallery(page);
+    await expect(page.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
+    const live = page.locator('.flex-carousel__live');
     await expect(live, `visit ${visit}`).toHaveText(/, 1 of 3$/);
     await page.waitForTimeout(600);
     await expect(live, `visit ${visit} stays on the first`).toHaveText(/, 1 of 3$/);
-    await sheet.getByRole('button', { name: 'Next screenshot' }).click();
+    await page.getByRole('button', { name: 'Next screenshot' }).click();
     await expect(live, `visit ${visit} still steps`).toHaveText(/, 2 of 3$/);
-    await closeDrawer(page, sheet);
   }
 });
 
-test('a vertical wheel or touch scroll over the carousel scrolls the drawer, not the carousel or the page', async ({ page }, info) => {
+test('a vertical wheel or touch scroll over the carousel scrolls the page, not the carousel', async ({ page }, info) => {
   test.skip(info.project.name === 'safari', 'Playwright has no wheel or touch scroll gesture in mobile WebKit.');
-  // A short laptop, so the drawer still has room to scroll once the carousel is in view.
+  // A short laptop, so the page still has room to scroll once the carousel is in view.
   if (info.project.name === 'desktop') await page.setViewportSize({ width: 1024, height: 640 });
-  await openWork(page);
-  const sheet = await openDrawer(page, 0);
-  const panel = sheet.locator('[data-overlay]');
-  await revealInSheet(page, '.work-gallery');
-  const carousel = sheet.locator('.flex-carousel');
+  const [first] = await slugs(page);
+  await openProject(page, first!);
+  await revealGallery(page);
+  const carousel = page.locator('.flex-carousel');
   await expect(carousel.locator('canvas')).toBeVisible({ timeout: 15_000 });
-  // Park the carousel at the bottom of the drawer, so the drawer has room left to scroll.
-  await panel.evaluate((el) => {
-    const gallery = el.querySelector('.work-gallery')!.getBoundingClientRect();
-    el.scrollTo({ top: el.scrollTop + gallery.bottom - Math.min(el.getBoundingClientRect().bottom, innerHeight) + 8, behavior: 'instant' });
-  });
   await expect(carousel).toBeInViewport();
   const live = carousel.locator('.flex-carousel__live');
-  const before = { top: await panel.evaluate((el) => el.scrollTop), page: await page.evaluate(() => scrollY), live: await live.textContent() };
+  const before = { page: await page.evaluate(() => scrollY), live: await live.textContent() };
   const box = (await carousel.boundingBox())!;
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
@@ -188,8 +156,7 @@ test('a vertical wheel or touch scroll over the carousel scrolls the drawer, not
     await cdp.detach();
   }
 
-  await expect.poll(() => panel.evaluate((el) => el.scrollTop), 'the drawer scrolls').toBeGreaterThan(before.top);
-  expect(await page.evaluate(() => scrollY), 'the page behind stays put').toBe(before.page);
+  await expect.poll(() => page.evaluate(() => scrollY), 'the page scrolls').toBeGreaterThan(before.page);
   await expect(live, 'a vertical scroll does not flip the carousel').toHaveText(before.live!);
 });
 
@@ -206,25 +173,25 @@ test('the carousel loads only once its gallery is on screen and swaps in without
     await route.continue();
   });
   try {
-    await openWork(page);
-    const sheet = await openDrawer(page, 0);
-    const gallery = sheet.locator('.work-gallery');
+    const [first] = await slugs(page);
+    await openProject(page, first!);
+    const gallery = page.locator('.work-gallery');
     await expect(gallery, 'the gallery starts below the fold').not.toBeInViewport();
     await page.waitForTimeout(800);
     expect(requested, 'no WebGL code before the gallery is on screen').toEqual([]);
 
-    await revealInSheet(page, '.work-gallery');
+    await revealGallery(page);
     await expect.poll(() => requested.length, 'the carousel is requested once the gallery is on screen').toBe(1);
-    await expect(sheet.locator('.work-gallery .detail-gallery img'), 'the strip stays while the carousel loads').toHaveCount(3);
+    await expect(page.locator('.work-gallery .detail-gallery img'), 'the strip stays while the carousel loads').toHaveCount(3);
     const measure = () =>
-      sheet.evaluate((el) => {
-        const box = el.querySelector('.work-gallery')!.getBoundingClientRect();
-        const link = el.querySelector('.detail-visit')!.getBoundingClientRect();
-        return { top: Math.round(box.top), height: Math.round(box.height), link: Math.round(link.top) };
+      page.evaluate(() => {
+        const box = document.querySelector('.work-gallery')!.getBoundingClientRect();
+        const link = document.querySelector('.detail-visit')!.getBoundingClientRect();
+        return { top: Math.round(box.top + scrollY), height: Math.round(box.height), link: Math.round(link.top + scrollY) };
       });
     const before = await measure();
     resume();
-    await expect(sheet.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
     expect(await measure(), 'the carousel fills the strip’s box exactly').toEqual(before);
   } finally {
     resume();
@@ -232,30 +199,30 @@ test('the carousel loads only once its gallery is on screen and swaps in without
 });
 
 test('no axe violations with the carousel running', async ({ page }) => {
-  await openWork(page);
-  const sheet = await openDrawer(page, 0);
-  await revealInSheet(page, '.work-gallery');
-  await expect(sheet.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
+  const [first] = await slugs(page);
+  await openProject(page, first!);
+  await revealGallery(page);
+  await expect(page.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
   // The caption and counter appear once the intro has played.
-  await expect(sheet.locator('.flex-carousel__caption')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('.flex-carousel__caption')).toBeVisible({ timeout: 10_000 });
   const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
-  const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(tags).analyze();
+  const { violations } = await new AxeBuilder({ page }).include('main').withTags(tags).analyze();
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
 });
 
 test('changing to reduced motion releases the running carousel and keeps the strip', async ({ page }) => {
-  await openWork(page);
-  const sheet = await openDrawer(page, 0);
-  await revealInSheet(page, '.work-gallery');
-  const canvas = sheet.locator('.work-carousel canvas');
+  const [first] = await slugs(page);
+  await openProject(page, first!);
+  await revealGallery(page);
+  const canvas = page.locator('.work-carousel canvas');
   await expect(canvas).toBeVisible({ timeout: 15_000 });
   const gl = await canvas.evaluateHandle((el) => (el as HTMLCanvasElement).getContext('webgl2'));
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(sheet.locator('.flex-carousel')).toHaveCount(0);
-  await expect(sheet.locator('.detail-gallery img')).toHaveCount(3);
+  await expect(page.locator('.flex-carousel')).toHaveCount(0);
+  await expect(page.locator('.detail-gallery img')).toHaveCount(3);
   expect(await gl.evaluate((context) => context!.isContextLost())).toBe(true);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await expect(sheet.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('.work-carousel canvas')).toBeVisible({ timeout: 15_000 });
 });
 
 for (const fallback of ['data saver', 'no WebGL', 'failed chunk']) {
@@ -274,42 +241,41 @@ for (const fallback of ['data saver', 'no WebGL', 'failed chunk']) {
     } else {
       await page.route(CHUNK, (route) => route.abort());
     }
-    await openWork(page);
-    const sheet = await openDrawer(page, 0);
-    await revealInSheet(page, '.work-gallery');
-    const strip = sheet.locator('.detail-gallery');
+    const [first] = await slugs(page);
+    await openProject(page, first!);
+    await revealGallery(page);
+    const strip = page.locator('.detail-gallery');
     await expect(strip).toBeVisible();
     await expect(strip.locator('img')).toHaveCount(3);
     await expect.poll(() => strip.locator('img').first().evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     await page.waitForTimeout(600);
-    await expect(sheet.locator('.work-gallery canvas')).toHaveCount(0);
-    await expect(sheet.locator('.detail-visit')).toHaveAttribute('href', 'https://scenaryo.app/research');
+    await expect(page.locator('.work-gallery canvas')).toHaveCount(0);
+    await expect(page.locator('.detail-visit')).toHaveAttribute('href', 'https://scenaryo.app/research');
   });
 }
 
-for (const { name, path, reduce } of [
-  { name: 'reduced motion', path: '/', reduce: true },
-  { name: '?gl=off', path: '/?gl=off', reduce: false },
+for (const { name, query, reduce } of [
+  { name: 'reduced motion', query: '', reduce: true },
+  { name: '?gl=off', query: '?gl=off', reduce: false },
 ]) {
-  test(`${name} keeps the static strip in every work drawer`, async ({ page }) => {
+  test(`${name} keeps the static strip on every project page`, async ({ page }) => {
     test.setTimeout(90_000);
     if (reduce) await page.emulateMedia({ reducedMotion: 'reduce' });
     const requested: string[] = [];
     page.on('request', (request) => {
       if (CHUNK.test(new URL(request.url()).pathname)) requested.push(request.url());
     });
-    const count = await openWork(page, path);
-    for (let i = 0; i < count; i++) {
-      const sheet = await openDrawer(page, i);
-      await revealInSheet(page, '.work-gallery');
-      const strip = sheet.locator('.work-gallery .detail-gallery');
-      await expect(strip).toBeVisible();
+    const all = await slugs(page);
+    for (const slug of all) {
+      await openProject(page, slug, query);
+      await revealGallery(page);
+      const strip = page.locator('.work-gallery .detail-gallery');
+      await expect(strip, slug).toBeVisible();
       await expect(strip.locator('img')).toHaveCount(3);
       const first = strip.locator('img').first();
       await expect.poll(() => first.evaluate((img) => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth > 0)).toBe(true);
       await page.waitForTimeout(400);
-      await expect(sheet.locator('.flex-carousel, .work-gallery canvas')).toHaveCount(0);
-      await closeDrawer(page, sheet);
+      await expect(page.locator('.flex-carousel, .work-gallery canvas')).toHaveCount(0);
     }
     expect(requested, 'the WebGL carousel is never fetched').toEqual([]);
   });

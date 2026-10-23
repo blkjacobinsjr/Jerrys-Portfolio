@@ -1,0 +1,39 @@
+/* A selected-work card opens its own page (pages/work/[slug].astro) as a cross-document view transition.
+   Page side-by-side (transitions.dev 08): the home page leaves 8px to the left, blurred 3px, the project page
+   arrives from the right; 250ms, the smooth-out ease. The card face and its phone carry the names the page's hero
+   repeats, so the browser morphs one into the other (and back, on return). Only the home page and the project pages
+   opt in, so no other navigation animates. Reduced motion gets a plain, instant page change. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: var(--dur-ui);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-old(root) {
+    animation: page-out var(--dur-ui) var(--ease-out) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: page-in var(--dur-ui) var(--ease-out) both;
+  }
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    transform: translateX(-8px);
+    filter: blur(3px);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+    filter: blur(3px);
+  }
+}

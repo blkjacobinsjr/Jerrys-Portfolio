@@ -1,5 +1,4 @@
 import { expect } from '@playwright/test';
-import { scrollSheetToEnd } from '../e2e/helpers';
 import { createBdd } from 'playwright-bdd';
 
 const { Given, When, Then } = createBdd();
@@ -16,7 +15,26 @@ Given('I prefer reduced motion', async ({ page }) => {
 
 When('I open the project {string}', async ({ page }, name: string) => {
   await page.evaluate(() => document.getElementById('work')?.scrollIntoView({ behavior: 'instant' }));
-  await page.getByRole('button', { name: new RegExp(`^${name}:`) }).click();
+  await page.getByRole('link', { name: new RegExp(`^${name}:`) }).click();
+  await page.waitForURL(/\/work\//);
+});
+
+Then('I see a project page titled {string}', async ({ page }, title: string) => {
+  await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+});
+
+Then('the page links to {string}', async ({ page }, host: string) => {
+  await expect(page.getByRole('main').getByRole('link', { name: new RegExp(host.replace('.', '\\.')) })).toBeVisible();
+});
+
+When('I go back to the selected work', async ({ page }) => {
+  await page.getByRole('link', { name: 'Selected work' }).click();
+  await page.waitForURL('**/#work');
+});
+
+Then('I am on the home page at its work section', async ({ page }) => {
+  await expect(page.locator('#work')).toBeAttached();
+  expect(new URL(page.url()).pathname).toBe('/');
 });
 
 Then('I see a sheet titled {string}', async ({ page }, title: string) => {
@@ -119,8 +137,9 @@ Then('the lanyard is visible', async ({ page }) => {
   await expect(page.locator('.lanyard-canvas')).toBeVisible();
 });
 
-When('I scroll the sheet to its end', async ({ page }) => {
-  await scrollSheetToEnd(page);
+When('I scroll the page to its end', async ({ page }) => {
+  await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  await page.waitForTimeout(400);
 });
 
 Then('its research CTA is fully visible', async ({ page }) => {

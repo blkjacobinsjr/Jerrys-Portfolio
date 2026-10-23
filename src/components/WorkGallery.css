@@ -1,15 +1,13 @@
-/* A work drawer's screenshots (WorkGallery.tsx). One fixed box holds the static strip or the
-   WebGL carousel, so swapping one for the other moves nothing. It bleeds to the panel's edges. */
+/* A project page's screenshots (WorkGallery.tsx). One fixed box holds the static strip or the WebGL
+   carousel, so swapping one for the other moves nothing. The box runs edge to edge of the screen, and
+   its contents keep one gutter (--bleed) from each edge, so no slide ever sits flush against it: the
+   padding and the scroll padding are the same gutter, and the strip snaps (x mandatory) to it. The
+   gutter is the page's own, or half of what is left beside the text column on a wide screen. */
 .work-gallery {
-  --bleed: 1.5rem;
+  --bleed: max(var(--gutter), (100vw - var(--col)) / 2);
   height: 340px;
-  margin: 1.5rem calc(-1 * var(--bleed));
-}
-
-@media (min-width: 768px) {
-  .work-gallery {
-    --bleed: 2rem;
-  }
+  width: 100vw;
+  margin: 1.5rem calc(50% - 50vw);
 }
 
 .work-gallery > .detail-gallery {
@@ -29,7 +27,7 @@
 }
 
 /* The library contains overscroll on its overflow: hidden box. Nothing in it scrolls, so a vertical wheel or
-   swipe over it scrolled nothing at all; it has to chain to the drawer (the overlay contract, lib/overlay.ts). */
+   swipe over it scrolled nothing at all; it has to chain to the page. */
 .work-carousel .flex-carousel {
   overscroll-behavior: auto;
 }
@@ -91,5 +89,72 @@
 @media (hover: hover) and (pointer: fine) {
   .work-carousel-step:hover {
     background: var(--bg-sunk);
+  }
+}
+
+/* A shot opens the lightbox: its link is the strip's slide. */
+.work-gallery > .detail-gallery > .work-shot-link {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-tile);
+  scroll-snap-align: start;
+  -webkit-tap-highlight-color: transparent;
+  transition: scale var(--dur-press) var(--ease-out);
+}
+
+/* The last slide settles one gutter in from the right edge, as the first sits one gutter in from the left. */
+.work-gallery > .detail-gallery > .work-shot-link:last-child {
+  scroll-snap-align: end;
+}
+
+.work-gallery > .detail-gallery > .work-shot-link:active {
+  scale: 0.985;
+}
+
+.work-gallery > .detail-gallery > .work-shot-link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.work-gallery > .detail-gallery img {
+  scroll-snap-align: none;
+}
+
+.work-carousel {
+  cursor: zoom-in;
+}
+
+/* Top right of the box, level with the carousel's first frame. */
+.work-carousel-expand {
+  position: absolute;
+  top: 0.25rem;
+  right: var(--bleed);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--bg-elev);
+  color: var(--fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: scale var(--dur-press) var(--ease-out);
+}
+
+.work-carousel-expand:active {
+  scale: 0.94;
+}
+
+.work-carousel-expand:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-gallery > .detail-gallery > .work-shot-link,
+  .work-carousel-expand {
+    transition: none;
   }
 }

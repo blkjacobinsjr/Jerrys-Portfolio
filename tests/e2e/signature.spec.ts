@@ -81,10 +81,10 @@ test('draws the inline signature once, keeps its reserved box stable, and stays 
   const masks = signature.locator('[data-signature-mask]');
   const fills = signature.locator('[data-signature-fill]');
   await expect(signature).toBeVisible();
-  await expect(page.locator('.hero-copy > [data-signature]')).toHaveCount(1);
+  await expect(page.locator('.hero-copy > [data-signature-replay] > [data-signature]')).toHaveCount(1);
   expect(await signature.evaluate((element) => ({
-    previous: element.previousElementSibling?.className,
-    next: element.nextElementSibling?.className,
+    previous: element.parentElement?.previousElementSibling?.className,
+    next: element.parentElement?.nextElementSibling?.className,
   }))).toEqual({ previous: 'hero-bio', next: 'hero-links' });
   await expect(masks).toHaveCount(3);
   await expect(fills).toHaveCount(3);
@@ -165,4 +165,31 @@ test('shows the complete signature without animation for reduced motion', async 
   await expect(masks).toHaveCount(3);
   expect(await masks.evaluateAll((paths) => paths.map((path) => Number.parseFloat(getComputedStyle(path).strokeDashoffset)))).toEqual([0, 0, 0]);
   expect(await masks.evaluateAll((paths) => paths.map((path) => getComputedStyle(path).animationName))).toEqual(['none', 'none', 'none']);
+});
+
+const dashOffsets = (page: import('@playwright/test').Page) =>
+  page.locator('[data-signature-mask]').evaluateAll((paths) => paths.map((path) => Number.parseFloat(getComputedStyle(path).strokeDashoffset)));
+
+test('clicking or pressing Enter on the signature replays the draw-in', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await open(page);
+  const replay = page.getByRole('button', { name: 'Replay signature' });
+  await expect(replay).toBeVisible();
+  // Let the first draw-in finish: every stroke fully revealed.
+  await expect.poll(() => dashOffsets(page), { timeout: 10_000 }).toEqual([0, 0, 0]);
+
+  for (const press of [() => replay.click(), async () => { await replay.focus(); await page.keyboard.press('Enter'); }, async () => { await replay.focus(); await page.keyboard.press('Space'); }]) {
+    await press();
+    // The first stroke starts hidden again, then the strokes redraw to complete.
+    await expect.poll(async () => (await dashOffsets(page)).some((offset) => offset > 0.02), { timeout: 3000 }).toBe(true);
+    await expect.poll(() => dashOffsets(page), { timeout: 10_000 }).toEqual([0, 0, 0]);
+  }
+});
+
+test('replaying the signature under reduced motion redraws it instantly, without animation', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await open(page);
+  await page.getByRole('button', { name: 'Replay signature' }).click();
+  expect(await dashOffsets(page)).toEqual([0, 0, 0]);
+  expect(await page.locator('[data-signature]').evaluate((svg) => svg.getAnimations({ subtree: true }).length)).toBe(0);
 });

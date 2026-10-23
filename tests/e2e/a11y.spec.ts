@@ -13,15 +13,14 @@ for (const colorScheme of ['light', 'dark'] as const) {
   });
 }
 
-test('no axe violations with a project sheet open', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await open(page);
-  await scrollToSelector(page, '#work');
-  await page.locator('.work-card').first().click();
-  await expect(page.locator('dialog[open]')).toBeVisible();
-  const { violations } = await new AxeBuilder({ page }).include('dialog[open]').withTags(TAGS).analyze();
-  expect(violations.map((v) => v.id)).toEqual([]);
-});
+for (const colorScheme of ['light', 'dark'] as const) {
+  test(`no axe violations on a project page (${colorScheme})`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+    await open(page, '/work/scenaryo');
+    const { violations } = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+    expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
+  });
+}
 
 test('no axe violations with a path drawer open', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

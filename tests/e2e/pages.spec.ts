@@ -158,19 +158,61 @@ test('/contact: the stub also sends from the keyboard', async ({ page }) => {
   await expect.poll(async () => (await mail()).length).toBe(1);
 });
 
-test('/contact: the whole letter opens from a crumpled sheet on load, still under reduced motion', async ({ page, browser }) => {
-  const papers = await countPaper(page);
-  await open(page, '/contact');
+/** The letter's scale and the ball's opacity at a given point of the intro, sampled by pausing every animation there. */
+const sampleIntro = (page: Page, at: number) =>
+  page.evaluate((time) => {
+    for (const animation of document.getAnimations()) {
+      animation.pause();
+      animation.currentTime = time;
+    }
+    const letter = getComputedStyle(document.querySelector('form.letter')!);
+    const ball = document.querySelector('.letter-ball')!.getBoundingClientRect();
+    return { scale: new DOMMatrix(letter.transform).a, ball: Number(getComputedStyle(document.querySelector('.letter-ball')!).opacity), ballWidth: ball.width };
+  }, at);
+
+test('/contact: the letter starts as a crumpled paper ball and unfolds open, with no WebGL on load', async ({ page }) => {
+  const webgl: string[] = [];
+  page.on('request', (request) => /PaperCrumple|three/i.test(new URL(request.url()).pathname) && webgl.push(request.url()));
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/contact', { waitUntil: 'domcontentloaded' });
+  const ball = page.locator('.letter-ball');
+  await expect(ball).toBeVisible();
+  await expect(ball).toHaveJSProperty('complete', true);
+  expect(await ball.evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  const start = await sampleIntro(page, 100);
+  expect(start.ball, 'the ball is showing').toBe(1);
+  expect(start.ballWidth, 'the ball is a ball, not the sheet').toBeLessThan(200);
+  expect(start.scale, 'the letter is folded away under it').toBeLessThan(0.15);
+  const unfolding = await sampleIntro(page, 1000);
+  expect(unfolding.scale, 'the letter is part way open').toBeGreaterThan(0.2);
+  expect(unfolding.scale).toBeLessThan(1);
+  const end = await sampleIntro(page, 1500);
+  expect(end.scale).toBe(1);
+  expect(end.ball).toBe(0);
+  expect(webgl, 'the crumple scene is not fetched on load').toEqual([]);
+});
+
+test('/contact: after about two seconds the letter is open and usable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/contact', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(2200);
   const letter = page.locator('form.letter');
-  await expect(page.locator('.letter-paper')).toHaveCount(0, { timeout: 10_000 });
-  expect(await papers()).toBe(1);
+  expect(await letter.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).isIdentity), 'the letter is full size').toBe(true);
+  expect(await page.locator('.letter-ball').evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
   await expect(letter).not.toHaveAttribute('data-hidden', '');
   await expect(letter.getByRole('textbox', { name: 'Your message' })).toBeVisible();
+  await expect(page.locator('.letter-ticket')).toHaveCSS('opacity', '1');
+});
+
+test('/contact: under reduced motion the letter is open immediately, with no ball', async ({ browser }) => {
   const still = await browser.newContext({ reducedMotion: 'reduce' });
   const calm = await still.newPage();
+  await calm.goto('/contact', { waitUntil: 'domcontentloaded' });
+  await expect(calm.locator('.letter-ball')).toBeHidden();
+  expect(await calm.locator('form.letter').evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  expect(await calm.evaluate(() => document.getAnimations().length)).toBe(0);
+  await expect(calm.getByRole('textbox', { name: 'Your message' })).toBeVisible();
   await open(calm, '/contact');
-  await expect(calm.locator('.letter-paper')).toHaveCount(0);
-  await expect(calm.locator('form.letter[data-hidden]')).toHaveCount(0);
   await calm.getByRole('textbox', { name: 'Your message' }).fill('x');
   await calm.getByRole('button', { name: 'Start over' }).click();
   await expect(calm.getByRole('textbox', { name: 'Your message' })).toHaveValue('');
@@ -182,14 +224,14 @@ test('/contact: Start over lives in the letter, crumples it and opens it blank',
   await open(page, '/contact');
   const letter = page.locator('form.letter');
   await expect(page.locator('.letter-paper')).toHaveCount(0, { timeout: 10_000 });
-  expect(await papers()).toBe(1);
+  expect(await papers()).toBe(0);
   await expect(page.locator('.letter-note')).toHaveCount(0);
   await expect(page.getByText('Not quite right?')).toHaveCount(0);
   await write(page);
   const message = letter.getByRole('textbox', { name: 'Your message' });
   await expect(message).not.toHaveValue('');
   await letter.getByRole('button', { name: 'Start over' }).click();
-  await expect.poll(papers).toBe(2);
+  await expect.poll(papers).toBe(1);
   await expect(page.locator('.letter-paper')).toHaveCount(0, { timeout: 10_000 });
   await expect(message).toHaveValue('');
   await expect(letter.getByRole('button', { name: 'Send with your mail app' })).toBeDisabled();

@@ -3,11 +3,11 @@ import { open } from './helpers';
 
 /**
  * The regression guard for the overlay contract (src/lib/overlay.ts, components/Drawer.tsx).
- * Every drawer entry point on the page, on a short laptop and a small phone: long content
+ * Every drawer entry point on the page (the path stops; projects have pages of their own), on a short laptop and a small phone: long content
  * scrolls to its last line with the visitor's own input (wheel or touch), the page behind
  * stays put, and the drawer still closes. New entry points are picked up automatically.
  */
-const ENTRY_POINTS = '[data-stop], .work-card';
+const ENTRY_POINTS = '[data-stop]';
 
 const VIEWPORTS = [
   { name: 'small laptop', viewport: { width: 1024, height: 640 }, touch: false },

@@ -18,7 +18,10 @@ Programmatic scrolling (`el.scrollTo`) and the old tests still passed, which is 
 Only real wheel input reproduced it.
 
 **The rule:**
-- Every overlay (drawer, sheet, modal, lightbox, menu) is built with `src/components/Drawer.tsx`.
+- Every overlay (drawer, sheet, modal, menu) is built with `src/components/Drawer.tsx`. Selected work is not an
+  overlay: each project has its own page (`pages/work/[slug].astro`). The one exception is the project
+  gallery's lightbox (`src/lib/lightbox.ts`, PhotoSwipe, fetched on the first tap): it is a library
+  `position: fixed` layer, so it follows the contract by hand (`data-overlay`, `lockScroll()`).
   Don't use `Sheet.Root`, `<dialog>` or `showModal()` anywhere else. Don't add another `position: fixed`
   layer that holds content. `tests/unit/overlay.test.ts` fails if you do.
 - Drawer applies the contract in `src/lib/overlay.ts`:
@@ -43,18 +46,20 @@ narrowed by 15px and every 16/10 work card got shorter behind the drawer.
 **The rule:** the gutter is reserved on `html` at all times; never add layout-affecting styles only
 while locked.
 
-### Flex Carousel in work drawers (Oct 2026)
+### Flex Carousel on project pages (Oct 2026)
 
-- Keep `FlexCarousel.tsx` and `.css` identical to the React Bits TS-CSS registry source. Drawer
+- Keep `FlexCarousel.tsx` and `.css` identical to the React Bits TS-CSS registry source. Page
   integration belongs in `WorkGallery`: lazy import after the open gallery is at least 25% visible,
   `canUseGL()` gating, and a live reduced-motion preference through `useMedia`.
-- Set `captureWheel={false}` and override the library's `overscroll-behavior: contain` to `auto`
-  inside the work drawer. The non-scrolling carousel box must chain vertical input to the drawer.
+- Set `captureWheel={false}` and override the library's `overscroll-behavior: contain` to `auto`.
+  The non-scrolling carousel box must chain vertical input to the page.
 - Reserve the same gallery height for the static strip and WebGL view. Use the existing Astro image
   candidates for textures, capped at 1200px, rather than original assets.
 - The library has no imperative navigation API. Buttons dispatch its existing arrow-key events;
   dispatch `Home` on mount so cached textures cannot select the phone screenshot at the loop edge.
-  Closing the drawer or enabling reduced motion unmounts the component and releases its context.
+  Enabling reduced motion unmounts the component and releases its context.
+- The gallery runs edge to edge; its slides keep one gutter from each screen edge (`padding-inline` =
+  `scroll-padding-inline`, `scroll-snap-type: x mandatory`). `tests/e2e/work-pages.spec.ts` checks it at 390px.
 - `tests/e2e/work-carousel.spec.ts` covers these contracts. A browser launch failure does not verify
   scrolling, swipe handling, context disposal or layout stability.
 
@@ -145,3 +150,20 @@ spacer above the target, realign untouched deep links after pin creation and ref
   PaperCrumple (crumple the draft to start over; three.js, loaded on first intent behind the GL gate).
   There is no form backend, so it sends through `mailto:` (`lib/letter.ts`), like the copy-email CTA.
 - Model loader and stage styles live in `ModelLoader.css` (shared by the drawers and /consultancy).
+
+### Project pages and the card transition (Oct 2026)
+
+- Selected work links to `/work/<id>` (ids from `projects` in `data/site.ts`; `getStaticPaths` builds them, `sitemap.xml.ts`
+  lists them). Old drawer links (`/#work/<id>`, `?project=<id>`) are redirected by a tiny inline script in the home head.
+- Card to page is a native cross-document view transition (`styles/work-transition.css`, transitions.dev
+  Page side-by-side): only the home page and the project pages import it, so no other navigation animates. The card face
+  and phone carry `view-transition-name: work-<id>` / `phone-<id>`; the page hero repeats them. Names must stay unique per page.
+- The Astro build does not emit the CSS of a dynamic `import()` inside an island: load such a stylesheet by `?url`
+  (see `lib/lightbox.ts`).
+
+### Contact letter intro (Oct 2026)
+
+The letter starts as a crumpled ball (`assets/ball.webp`, a PaperCrumple frame) and unfolds in CSS from the first paint of
+the server-rendered page: transform and opacity only, no script, no WebGL on load (WebGL on load cost Lighthouse 0.72).
+The letter paints at once, scaled down under the ball, so it neither shifts layout nor delays LCP. PaperCrumple stays for
+Start over only.

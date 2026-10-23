@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { open, revealInSheet, scrollSheetToEnd } from './helpers';
+import { open, revealInSheet } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -41,32 +41,30 @@ test('keeps 3D code deferred until the matching Path drawer opens', async ({ pag
   expect(errors).toEqual([]);
 });
 
-test('keeps the Scenaryo visit link reachable above the padded drawer edge', async ({ page }) => {
+test('the Scenaryo page keeps its visit link reachable at the end of the page', async ({ page }) => {
   await open(page);
-  await page.locator('.work-card').first().click();
-  const panel = page.locator('dialog[open] .sheet');
-  await scrollSheetToEnd(page);
+  await page.getByRole('link', { name: /^Scenaryo:/ }).first().click();
+  await page.waitForURL('**/work/scenaryo');
+  await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
   const visit = page.getByRole('link', { name: /Visit scenaryo\.app/ });
   await expect(visit).toHaveAttribute('href', 'https://scenaryo.app/research');
   await expect(visit).toBeInViewport({ ratio: 1 });
-  const space = await panel.evaluate((element) => {
-    const link = element.querySelector('.detail-visit');
-    if (!link) throw new Error('Missing project visit link');
-    return Math.min(innerHeight, element.getBoundingClientRect().bottom) - link.getBoundingClientRect().bottom;
-  });
+  const space = await visit.evaluate((link) => innerHeight - link.getBoundingClientRect().bottom);
   expect(space).toBeGreaterThanOrEqual(24);
 });
 
 test('uses real project logos, adds Leapfrog AI and points metadata at the new domain', async ({ page }) => {
   await open(page);
   await expect(page.locator('.work-logo')).toHaveCount(5);
-  await page.getByRole('button', { name: /^Leapfrog AI:/ }).click();
-  await expect(page.locator('dialog[open]').getByRole('heading', { name: 'Leapfrog AI' })).toBeVisible();
+  await page.getByRole('link', { name: /^Leapfrog AI:/ }).click();
+  await page.waitForURL('**/work/leapfrog');
+  await expect(page.getByRole('heading', { level: 1, name: 'Leapfrog AI' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Visit lfg-ai.com' })).toHaveAttribute('href', 'https://lfg-ai.com');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://jerrydoughan.com/');
-  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://jerrydoughan.com/');
-  const sitemap = await page.request.get('/sitemap.xml');
-  expect(await sitemap.text()).toContain('<loc>https://jerrydoughan.com/</loc>');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://jerrydoughan.com/work/leapfrog/');
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://jerrydoughan.com/work/leapfrog/');
+  const sitemap = await (await page.request.get('/sitemap.xml')).text();
+  expect(sitemap).toContain('<loc>https://jerrydoughan.com/</loc>');
+  expect(sitemap).toContain('<loc>https://jerrydoughan.com/work/leapfrog/</loc>');
 });
 
 
@@ -120,14 +118,13 @@ test('the option wheel shows the stops before and after, then navigates by keybo
   }
 });
 
-test('Scenaryo CTA is tappable at 390px after scrolling the full drawer', async ({ page, context, isMobile }) => {
+test('Scenaryo CTA is tappable at 390px after scrolling the project page', async ({ page, context, isMobile }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await context.route('https://scenaryo.app/research', (route) => route.fulfill({ body: '<title>Scenaryo research</title>' }));
   await open(page);
-  await page.getByRole('button', { name: /^Scenaryo:/ }).click();
-  const panel = page.locator('dialog[open] .sheet');
-  await scrollSheetToEnd(page);
-  const visit = panel.getByRole('link', { name: /Visit scenaryo\.app/ });
+  await page.goto('/work/scenaryo');
+  await page.evaluate(() => scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  const visit = page.getByRole('link', { name: /Visit scenaryo\.app/ });
   await expect(visit).toBeInViewport({ ratio: 1 });
   const popupEvent = page.waitForEvent('popup');
   if (isMobile) await visit.tap();

@@ -3,6 +3,7 @@ import { Font } from 'astro:assets';
 import Page from '../layouts/Page.astro';
 import Letter from '../components/Letter';
 import { person } from '../data/site';
+import ball from '../assets/ball.webp';
 ---
 
 <Page
@@ -11,7 +12,7 @@ import { person } from '../data/site';
   description="Write Jerry Doughan a letter: a new product, consultancy at Leapfrog AI, or just a hello."
 >
   <Font slot="head" cssVariable="--font-mono" preload />
-  <Letter client:afterload email={person.email} />
+  <Letter client:afterload email={person.email} ball={{ src: ball.src, width: ball.width, height: ball.height }} />
   <p class="letter-alt muted">
     Rather skip the letter? <a href={`mailto:${person.email}`}>{person.email}</a> · <a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
   </p>

@@ -1,0 +1,58 @@
+---
+import type { WorkItem } from '../lib/work';
+import './Work.css';
+
+interface Props {
+  items: WorkItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ol class="work-list">
+  {
+    items.map((item, index) => (
+      <li class="work-item" style={`--tint:${item.tint};--i:${index}`}>
+        {/* Flighty-style feature card: bold lead, muted body, the app in hand. The link is stretched over the whole card
+            and opens the project's own page (pages/work/[slug].astro); the face and the phone carry the names the
+            page's hero repeats, so the browser morphs one into the other (styles/work-transition.css). */}
+        <div class="work-face" style={`view-transition-name:work-${item.id}`}>
+          <img class="work-logo" src={item.logo} width={40} height={40} alt={`${item.name} logo`} loading="lazy" decoding="async" />
+          <div class="work-copy">
+            <h3 class="work-lead">
+              {item.name}. {item.tagline}
+            </h3>{' '}
+            <p class="work-body">{item.summary}</p>
+          </div>
+          <p class="work-facts">
+            {item.years} · {item.platform}
+          </p>
+          <span class={`work-shot${item.presentation === 'website' ? ' work-shot-site' : ''}`}>
+            <img
+              class="work-phone"
+              src={item.phone.src}
+              srcset={item.phone.srcset}
+              sizes="(min-width: 70rem) 460px, (min-width: 641px) 40vw, 70vw"
+              width={item.phone.width}
+              height={item.phone.height}
+              alt={item.phone.alt}
+              loading="lazy"
+              decoding="async"
+              style={`view-transition-name:phone-${item.id}`}
+            />
+          </span>
+          <a class="work-card t-learn" href={`/work/${item.id}`} aria-label={`${item.name}: ${item.summary} Read the project`}>
+            <span class="work-plus" aria-hidden="true">
+              <span class="t-learn-chevron">
+                <svg viewBox="0 0 16 16" width="16" height="16">
+                  <path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+                  <path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+                </svg>
+              </span>
+            </span>
+          </a>
+        </div>
+      </li>
+    ))
+  }
+</ol>
