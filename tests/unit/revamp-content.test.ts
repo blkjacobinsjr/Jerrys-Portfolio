@@ -13,9 +13,9 @@ function localAsset(image: ImageMetadata | string) {
 }
 
 describe('portfolio revamp content', () => {
-  it('presents the seven approved recommenders in the requested order', () => {
+  it('presents the six approved recommenders in the requested order', () => {
     expect(recommendations.map(({ name }) => name)).toEqual([
-      'Enrique Coscarelli', 'Iñigo Martín-Calero', 'Woundioun Sissoko', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
+      'Enrique Coscarelli', 'Iñigo Martín-Calero', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
     ]);
   });
 

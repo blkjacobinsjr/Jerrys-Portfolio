@@ -84,23 +84,6 @@ export const recommendations: Recommendation[] = [
     },
   },
   {
-    name: 'Woundioun Sissoko',
-    linkedin: 'https://www.linkedin.com/in/wunni',
-    portrait: woundiounPortrait,
-    quote:
-      'I advised Jerry as he built sceneXtras and saw a two-person team achieve impressive results through organic growth. He stays close to the work and keeps building with a clear vision. I introduced him to founders and investors because I believe in the team and in his ability to turn that vision into a product people value.',
-    context: 'Advisor to sceneXtras (2025)',
-    proof: '2B+ views for Birkenstock, Lovable, Puma · ex-Interim CMO Layla (acq. by Expedia) · ex-Growth Lovable',
-    position: {
-      kind: 'employer',
-      title: 'Co-founder & CEO',
-      detail: 'GATE STUDIOS · advisor to sceneXtras',
-      company: 'GATE STUDIOS',
-      companyUrl: 'https://www.dont-gate.com/',
-      logo: gateLogo,
-    },
-  },
-  {
     name: 'Jerry Jiang',
     linkedin: 'https://www.linkedin.com/in/jerrymjiang',
     portrait: jerryJiangPortrait,
@@ -160,6 +143,27 @@ export const recommendations: Recommendation[] = [
       company: 'Exxeta',
       companyUrl: 'https://www.exxeta.com/',
       logo: exxetaLogo,
+    },
+  },
+];
+
+/** Not live: needs Woundioun's written OK (see key-people.md). Kept in code for future reference. */
+export const pendingApproval: Recommendation[] = [
+  {
+    name: 'Woundioun Sissoko',
+    linkedin: 'https://www.linkedin.com/in/wunni',
+    portrait: woundiounPortrait,
+    quote:
+      'I advised Jerry as he built sceneXtras and saw a two-person team achieve impressive results through organic growth. He stays close to the work and keeps building with a clear vision. I introduced him to founders and investors because I believe in the team and in his ability to turn that vision into a product people value.',
+    context: 'Advisor to sceneXtras (2025)',
+    proof: '2B+ views for Birkenstock, Lovable, Puma · ex-Interim CMO Layla (acq. by Expedia) · ex-Growth Lovable',
+    position: {
+      kind: 'employer',
+      title: 'Co-founder & CEO',
+      detail: 'GATE STUDIOS · advisor to sceneXtras',
+      company: 'GATE STUDIOS',
+      companyUrl: 'https://www.dont-gate.com/',
+      logo: gateLogo,
     },
   },
 ];
