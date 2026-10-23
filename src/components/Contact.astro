@@ -26,6 +26,10 @@ const layers = [
         <Image src={img} alt="" class={`roof roof-${depth}`} widths={[768, 1280, 1536]} sizes="100vw" loading="lazy" />
       ))
     }
+    <video class="sky-video" data-sky-video muted loop playsinline preload="none" poster="/video/footer-omni-v1-poster.webp" aria-hidden="true" tabindex="-1">
+      <source data-src="/video/footer-omni-v1.webm" type="video/webm" />
+      <source data-src="/video/footer-omni-v1.mp4" type="video/mp4" />
+    </video>
   </div>
 
   <FooterGhost client:visible={{ rootMargin: '600px' }} />
@@ -268,4 +272,62 @@ const layers = [
       rotate: 1turn;
     }
   }
+
+  /* The skyline film (birds over Berlin roofs) covers the layered rooftops once it plays; until then, and
+     always under reduced motion, the static layers show. */
+  .sky-video {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: var(--w);
+    max-width: none;
+    aspect-ratio: 16 / 9;
+    translate: -50% 0;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 600ms var(--ease-out);
+  }
+
+  .sky[data-film] .sky-video {
+    opacity: 1;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .sky-video {
+      filter: brightness(0.5) saturate(0.85);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sky-video {
+      display: none;
+    }
+  }
 </style>
+
+<script>
+  // Fetched only when the footer nears, paused offscreen and in a hidden tab; reduced motion keeps the still skyline.
+  const video = document.querySelector<HTMLVideoElement>('[data-sky-video]');
+  const sky = video?.parentElement;
+  if (video && sky && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let near = false;
+    // WebKit fetches a video even with preload=none, so the sources only get their URLs once the footer nears.
+    const arm = () => {
+      if (video.dataset.armed !== undefined) return;
+      video.dataset.armed = '';
+      for (const source of video.querySelectorAll('source')) source.src = source.dataset.src!;
+      video.load();
+    };
+    const sync = () => {
+      if (near) arm();
+      if (near && document.visibilityState !== 'hidden') video.play().catch(() => {});
+      else video.pause();
+    };
+    video.addEventListener('playing', () => sky.setAttribute('data-film', ''), { once: true });
+    new IntersectionObserver(([entry]) => {
+      near = Boolean(entry?.isIntersecting);
+      sync();
+    }, { rootMargin: '200px' }).observe(sky);
+    document.addEventListener('visibilitychange', sync);
+  }
+</script>
