@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import sharp from 'sharp';
 import { open, scrollToSelector } from './helpers';
 
 /** Phase 2: the dock's pages (writing, consultancy, contact) and the dock that links them. */
@@ -45,23 +46,62 @@ test('/consultancy is the Leapfrog AI badge, with lfg-ai.com under it', async ({
   await expect(link).toBeInViewport();
 });
 
-test('/consultancy keeps the still badge until the visitor moves, then hangs it on the lanyard', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'Phones wake it with the first touch.');
-  await open(page, '/consultancy');
-  await expect(page.locator('.badge-stage [data-model-state="static"]')).toHaveCount(1);
-  expect(await page.evaluate(() => performance.getEntriesByType('resource').some((r) => /Lanyard/.test(r.name)))).toBe(false);
-  await page.mouse.move(400, 300);
-  await page.mouse.move(440, 340, { steps: 4 });
-  await expect(page.locator('.badge-stage [data-model-state="ready"]')).toHaveCount(1, { timeout: 15_000 });
+test('/consultancy paints the poster first, then swings the lanyard in on its own', async ({ page }) => {
+  let release = () => {};
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route(/Lanyard/, async (route) => {
+    await held;
+    await route.continue();
+  });
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/consultancy');
+  const poster = page.locator('.badge-poster img');
+  await expect(poster).toBeVisible();
+  expect(await poster.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  // No pointer, wheel or key: the physics load by themselves, and the poster stays until the first frame.
+  await expect(page.locator('.model-loader[data-model-state="loading"]')).toHaveCount(1, { timeout: 10_000 });
+  await expect(page.locator('.badge-poster')).toHaveAttribute('data-covered', 'true');
+  release();
+  await expect(page.locator('.model-loader[data-model-state="ready"]')).toHaveCount(1, { timeout: 15_000 });
+  await expect(page.locator('.badge-poster')).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator('.lanyard-stage canvas')).toBeVisible();
+  expect(errors).toEqual([]);
 });
 
-test('/consultancy stays a still badge with reduced motion', async ({ page }) => {
+test('/consultancy poster is the first frame of the physics, pixel for pixel', async ({ page }) => {
+  // Frozen animation frames: the canvas keeps the first frame it drew, before any physics step.
+  await page.addInitScript(() => {
+    window.requestAnimationFrame = () => 0;
+  });
+  await page.goto('/consultancy');
+  await expect(page.locator('.model-loader[data-model-state="ready"]')).toHaveCount(1, { timeout: 15_000 });
+  const stage = page.locator('.badge-stage');
+  const withPoster = await stage.screenshot();
+  await page.addStyleTag({ content: '.badge-poster{visibility:hidden!important}' });
+  const canvasOnly = await stage.screenshot();
+  const [a, b] = await Promise.all([withPoster, canvasOnly].map((png) => sharp(png).raw().toBuffer({ resolveWithObject: true })));
+  expect(a.info).toEqual(b.info);
+  let sum = 0;
+  let painted = 0;
+  for (let i = 0; i < a.data.length; i++) {
+    sum += Math.abs(a.data[i]! - b.data[i]!);
+    if (i % a.info.channels === 0 && b.data[i]! < 120) painted++;
+  }
+  // The badge is really there in the canvas (dark green face), and the poster agrees with it.
+  expect(painted).toBeGreaterThan((a.info.width * a.info.height) / 20);
+  expect(sum / a.data.length).toBeLessThan(2.5);
+});
+
+test('/consultancy stays the poster with reduced motion: no physics, no swing', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await open(page, '/consultancy');
   await page.mouse.move(400, 300);
   await page.mouse.move(440, 340, { steps: 4 });
   await page.waitForTimeout(1500);
-  await expect(page.locator('.badge-stage [data-model-state="static"]')).toHaveCount(1);
+  await expect(page.locator('.badge-poster')).toHaveAttribute('data-covered', 'true');
+  await expect(page.locator('.lanyard-stage')).toHaveCount(0);
+  expect(await page.evaluate(() => performance.getEntriesByType('resource').some((r) => /Lanyard/.test(r.name)))).toBe(false);
 });
 
 /** Record the mail the page hands to the mail app instead of launching it. */

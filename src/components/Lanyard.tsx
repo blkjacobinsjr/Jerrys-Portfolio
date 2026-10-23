@@ -45,6 +45,8 @@ export interface LanyardProps {
   breeze?: number;
   interactive?: boolean;
   intro?: boolean;
+  /** Sideways push in world units per second, given once as it starts. Hangs at rest, then swings in. */
+  swing?: number;
   className?: string;
   style?: CSSProperties;
   onReady?: () => void;
@@ -72,6 +74,7 @@ interface Settings {
   breeze: number;
   interactive: boolean;
   intro: boolean;
+  swing: number;
 }
 
 interface Images {
@@ -789,6 +792,12 @@ const placeHanging = (sim: Simulation, layout: CardLayout, intro: boolean) => {
   sim.calm = 0;
 };
 
+/** One push from rest: the card and the lower strap start moving sideways, so the first frame is still the rest pose. */
+const kick = (sim: Simulation, speed: number) => {
+  sim.body.velocity.x = speed;
+  for (let i = 1; i < JOINTS; i++) sim.velocities[i].x = (speed * i) / JOINTS;
+};
+
 const configureSimulation = (sim: Simulation, layout: CardLayout, length: number) => {
   sim.rest = length / JOINTS;
   const { width, height } = layout;
@@ -916,6 +925,7 @@ const Lanyard = ({
   breeze = 0.5,
   interactive = true,
   intro = true,
+  swing = 0,
   className = '',
   style,
   onReady,
@@ -948,7 +958,8 @@ const Lanyard = ({
     elasticity,
     breeze,
     interactive,
-    intro
+    intro,
+    swing
   };
 
   useEffect(() => {
@@ -1176,6 +1187,7 @@ const Lanyard = ({
         frameView();
         if (!placed) {
           placeHanging(sim, layout, s.intro && !reducedMotion);
+          if (s.swing && !s.intro && !reducedMotion) kick(sim, s.swing);
           placed = true;
         } else if (layoutKey !== applied.layoutKey) {
           placeHanging(sim, layout, false);
