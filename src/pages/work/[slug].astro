@@ -115,6 +115,8 @@ const site = item.presentation === 'website';
     padding-block: clamp(1.25rem, 4vh, 2.5rem) clamp(4rem, 12vh, 7rem);
     /* The gallery runs edge to edge (100vw); a classic scrollbar must not turn that into a sideways scroll. */
     overflow-x: clip;
+    /* The gallery measures its full bleed against the page's width (cqw), which excludes the scrollbar gutter. */
+    container-type: inline-size;
   }
 
   @media (prefers-color-scheme: dark) {

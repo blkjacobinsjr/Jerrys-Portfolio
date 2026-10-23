@@ -158,9 +158,9 @@ Then('the research URL opens', async ({ context }) => {
   expect(context.pages().some((page) => page.url() === 'https://scenaryo.app/research')).toBe(true);
 });
 
-Then('six recommendations share the same composition', async ({ page }) => {
+Then('seven recommendations share the same composition', async ({ page }) => {
   const cards = page.locator('.rec-card');
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(7);
   for (const card of await cards.all()) {
     await expect(card.locator(':scope > blockquote')).toHaveCount(1);
     await expect(card.locator('figcaption .rec-person img')).toHaveCount(1);

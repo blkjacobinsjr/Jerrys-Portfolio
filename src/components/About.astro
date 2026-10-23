@@ -66,83 +66,83 @@ const unit = (i: number) => `--i: ${i}; --c: ${path[i % path.length]!.glow}`;
     <ul class="recs-track" aria-labelledby="recs-title" tabindex="0" data-recs-track>
       {
         recommendations.map((recommendation) => (
-          <li class=”rec”>
-            <figure class=”rec-card”>
-              <blockquote class=”rec-quote”>
-                <p>”{recommendation.quote}”</p>
+          <li class="rec">
+            <figure class="rec-card">
+              <blockquote class="rec-quote">
+                <p>“{recommendation.quote}”</p>
               </blockquote>
-              <figcaption class=”rec-caption”>
-                <div class=”rec-person”>
+              <figcaption class="rec-caption">
+                <div class="rec-person">
                   {recommendation.linkedin ? (
                     <a
                       href={recommendation.linkedin}
-                      target=”_blank”
-                      rel=”noopener noreferrer”
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label={`${recommendation.name} on LinkedIn`}
-                      tabindex=”-1”
-                      aria-hidden=”true”
+                      tabindex="-1"
+                      aria-hidden="true"
                     >
-                      <Image src={recommendation.portrait} alt=”” widths={[96, 160]} sizes=”3.5rem” loading=”lazy” />
+                      <Image src={recommendation.portrait} alt="" widths={[96, 160]} sizes="3.5rem" loading="lazy" />
                     </a>
                   ) : (
-                    <Image src={recommendation.portrait} alt=”” widths={[96, 160]} sizes=”3.5rem” loading=”lazy” />
+                    <Image src={recommendation.portrait} alt="" widths={[96, 160]} sizes="3.5rem" loading="lazy" />
                   )}
-                  <div class=”rec-byline”>
+                  <div class="rec-byline">
                     {recommendation.linkedin ? (
-                      <a href={recommendation.linkedin} target=”_blank” rel=”noopener noreferrer”>
+                      <a href={recommendation.linkedin} target="_blank" rel="noopener noreferrer">
                         {recommendation.name}
                       </a>
                     ) : (
                       <span>{recommendation.name}</span>
                     )}
-                    <span class=”rec-role”>{recommendation.position.title}</span>
-                    <span class=”rec-detail”>{recommendation.position.detail}</span>
+                    <span class="rec-role">{recommendation.position.title}</span>
+                    <span class="rec-detail">{recommendation.position.detail}</span>
                   </div>
                 </div>
                 {
                   recommendation.position.kind === 'employer' && (
                     <a
-                      class=”rec-company”
+                      class="rec-company"
                       href={recommendation.position.companyUrl}
-                      target=”_blank”
-                      rel=”noopener noreferrer”
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label={recommendation.position.company}
                     >
-                      <Image src={recommendation.position.logo} alt={recommendation.position.company} widths={[96, 160]} sizes=”5rem” loading=”lazy” />
+                      <Image src={recommendation.position.logo} alt={recommendation.position.company} widths={[96, 160]} sizes="5rem" loading="lazy" />
                     </a>
                   )
                 }
-                <span class=”rec-proof”>{recommendation.proof}</span>
+                <span class="rec-proof">{recommendation.proof}</span>
               </figcaption>
             </figure>
           </li>
         ))
       }
     </ul>
-    <aside class=”rec-more honorary-mention” aria-labelledby=”honorary-title”>
-      <h4 class=”label” id=”honorary-title”>Honorary mention</h4>
-      <figure class=”rec-more-card”>
-        <blockquote><p><a href={honoraryMention.source.href} target=”_blank” rel=”noopener noreferrer”>”{honoraryMention.quote}”</a></p></blockquote>
+    <aside class="rec-more honorary-mention" aria-labelledby="honorary-title">
+      <h4 class="label" id="honorary-title">Honorary mention</h4>
+      <figure class="rec-more-card">
+        <blockquote><p><a href={honoraryMention.source.href} target="_blank" rel="noopener noreferrer">“{honoraryMention.quote}”</a></p></blockquote>
         <figcaption>
-          <div class=”rec-more-person”>
+          <div class="rec-more-person">
             <a
               href={honoraryMention.linkedin}
-              target=”_blank”
-              rel=”noopener noreferrer”
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label={`${honoraryMention.name} on LinkedIn`}
-              tabindex=”-1”
-              aria-hidden=”true”
+              tabindex="-1"
+              aria-hidden="true"
             >
-              <Image src={honoraryMention.portrait.image} alt=”” widths={[72, 112]} sizes=”2.75rem” loading=”lazy” />
+              <Image src={honoraryMention.portrait.image} alt="" widths={[72, 112]} sizes="2.75rem" loading="lazy" />
             </a>
-            <div class=”rec-byline”>
-              <a href={honoraryMention.linkedin} target=”_blank” rel=”noopener noreferrer”>{honoraryMention.name}</a>
-              <span class=”rec-role”>{honoraryMention.title}</span>
-              <span class=”rec-source”><a href={honoraryMention.source.href} target=”_blank” rel=”noopener noreferrer”>{honoraryMention.source.label}</a></span>
+            <div class="rec-byline">
+              <a href={honoraryMention.linkedin} target="_blank" rel="noopener noreferrer">{honoraryMention.name}</a>
+              <span class="rec-role">{honoraryMention.title}</span>
+              <span class="rec-source"><a href={honoraryMention.source.href} target="_blank" rel="noopener noreferrer">{honoraryMention.source.label}</a></span>
             </div>
           </div>
-          <a class=”rec-more-company” href={honoraryMention.companyUrl} target=”_blank” rel=”noopener noreferrer” aria-label={honoraryMention.company}>
-            <Image src={honoraryMention.logo} alt={honoraryMention.company} widths={[80, 128]} sizes=”4rem” loading=”lazy” />
+          <a class="rec-more-company" href={honoraryMention.companyUrl} target="_blank" rel="noopener noreferrer" aria-label={honoraryMention.company}>
+            <Image src={honoraryMention.logo} alt={honoraryMention.company} widths={[80, 128]} sizes="4rem" loading="lazy" />
           </a>
         </figcaption>
       </figure>

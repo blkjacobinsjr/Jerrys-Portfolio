@@ -55,6 +55,7 @@ const christoph = existingTestimonial('Christoph Suessmeier');
 export const recommendations: Recommendation[] = [
   {
     name: enrique.name,
+    linkedin: 'https://www.linkedin.com/in/enrique-coscarelli',
     portrait: enriquePortrait,
     quote: enrique.quote,
     context: enrique.context,

@@ -4,10 +4,12 @@
    padding and the scroll padding are the same gutter, and the strip snaps (x mandatory) to it. The
    gutter is the page's own, or half of what is left beside the text column on a wide screen. */
 .work-gallery {
-  --bleed: max(var(--gutter), (100vw - var(--col)) / 2);
+  --bleed: max(var(--gutter), (100cqw - var(--col)) / 2);
   height: 340px;
-  width: 100vw;
-  margin: 1.5rem calc(50% - 50vw);
+  /* cqw of .work-page (a container), not vw: 100vw includes the always-reserved scrollbar gutter,
+     which pushed the gallery's right edge 15px off screen. */
+  width: 100cqw;
+  margin: 1.5rem calc(50% - 50cqw);
 }
 
 .work-gallery > .detail-gallery {
