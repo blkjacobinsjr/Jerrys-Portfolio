@@ -66,7 +66,8 @@ function path() {
   const ruler = pin?.querySelector<HTMLElement>('.ruler');
   if (!pin || !track || !ruler) return;
   document.documentElement.classList.add('is-pinned');
-  const distance = () => Math.max(0, track.scrollWidth - innerWidth);
+  // The stage is as wide as the section (no scrollbar), which is where the last stop has to come to rest.
+  const distance = () => Math.max(0, track.scrollWidth - pin.clientWidth);
 
   const travel = gsap.to(track, {
     x: () => -distance(),
@@ -120,7 +121,8 @@ function path() {
     const stop = (event.target as HTMLElement).closest<HTMLElement>('.stop');
     const st = travel.scrollTrigger;
     if (!stop || !st) return;
-    const offset = stop.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    // Layout offsets: the circular gallery bends each stop with a transform, which would skew a bounding box.
+    const offset = stop.offsetLeft - track.offsetLeft;
     const progress = gsap.utils.clamp(0, 1, (offset + stop.offsetWidth / 2 - innerWidth / 2) / distance());
     jumpTo(st.start + progress * (st.end - st.start));
   };

@@ -5,6 +5,7 @@ import NowBadge from './NowBadge';
 import DecryptedText from './DecryptedText';
 import PathSheet, { type Picture, type StopView } from './PathSheet';
 import StopLogo from './StopLogo';
+import PathGallery from './PathGallery';
 import { path } from '../data/site';
 
 const icons = import.meta.glob<{ default: ImageMetadata }>('../assets/icons/*.webp', { eager: true });
@@ -30,6 +31,15 @@ const views: StopView[] = await Promise.all(
     photos: await Promise.all(photos.map((p) => picture(p.src, [480, 960], p.alt))),
   })),
 );
+
+// What the canvas draws: the same dioramas as the strip, one size for every screen.
+const galleryStops = await Promise.all(
+  path.map(async (stop) => ({
+    id: stop.id,
+    src: (await getImage({ src: icon(stop.id), width: 640, format: 'webp' })).src,
+    gray: stop.flag === 'declined' ? 0.6 : 0,
+  })),
+);
 ---
 
 <section class="path" id="path" aria-labelledby="path-title">
@@ -39,6 +49,7 @@ const views: StopView[] = await Promise.all(
   </div>
 
   <div class="path-pin" data-path-pin>
+    <div class="path-stage">
     <div class="path-scroller" data-path-scroller>
       <ol class="path-track" data-path-track>
         {
@@ -64,6 +75,8 @@ const views: StopView[] = await Promise.all(
           ))
         }
       </ol>
+    </div>
+    <PathGallery client:visible={{ rootMargin: '200px' }} stops={galleryStops} />
     </div>
 
     <div class="ruler" aria-hidden="true">
@@ -120,11 +133,28 @@ const views: StopView[] = await Promise.all(
     display: none;
   }
 
+  .path-stage {
+    position: relative;
+  }
+
+  /* Draws the dioramas over the strip once the gallery starts (PathGallery). It adds no layout. */
+  .path-stage :global(.path-canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* The first and the last stop each rest in the middle, so the strip has a clear start and end and its
+     length never depends on whether the gallery runs. The bottom room holds the arc's outer stops. */
   .path-track {
+    --stop-w: clamp(200px, 56vw, 280px);
     display: flex;
     gap: clamp(1.5rem, 4vw, 3.5rem);
     width: max-content;
-    padding-inline: max(var(--gutter), calc((100vw - var(--wide)) / 2));
+    padding-inline: calc(50% - var(--stop-w) / 2);
+    padding-bottom: 4rem;
   }
 
   /* Desktop with motion: GSAP pins the section and moves the track. */
@@ -135,7 +165,7 @@ const views: StopView[] = await Promise.all(
 
   .stop {
     scroll-snap-align: center;
-    width: clamp(200px, 56vw, 280px);
+    width: var(--stop-w);
   }
 
   .stop-btn {
@@ -163,6 +193,45 @@ const views: StopView[] = await Promise.all(
 
   .stop-btn:active {
     transform: scale(0.98);
+  }
+
+  /* Gallery running: the canvas draws this stop's diorama, so the flat image steps aside. Hover and press are
+     transitions.dev "Avatar group hover" (the lift is set from path-gallery.ts); the canvas follows the transform. */
+  .stop[data-gl] .stop-art :global(img) {
+    opacity: 0;
+  }
+
+  .path[data-gl] .stop-btn {
+    transform: translateY(var(--shift, 0px)) scale(var(--scale-active, 1));
+    transition: transform var(--avatar-dur) var(--avatar-ease-in);
+    will-change: transform;
+  }
+
+  .path[data-gl] .stop-btn:active {
+    transform: translateY(var(--shift, 0px)) scale(calc(var(--scale-active, 1) * 0.98));
+    transition-duration: var(--dur-press);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .path[data-gl] .stop-btn:hover {
+      background: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .path[data-gl] .stop-btn {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  :global(:root) {
+    --avatar-lift: -4px;
+    --avatar-dur: 320ms;
+    --avatar-scale: 1.05;
+    --avatar-falloff: 0.45;
+    --avatar-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
+    --avatar-ease-out: cubic-bezier(0.34, 3.85, 0.64, 1);
   }
 
   .stop-when {
