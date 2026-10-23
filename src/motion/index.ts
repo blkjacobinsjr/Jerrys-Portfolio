@@ -108,13 +108,23 @@ function path() {
     },
   });
 
+  // ScrollTrigger's getTween(true) is the snap tween, or 0 when none is running (gsap 3.13): never call .kill on 0.
+  // A throw here ran inside pointerdown and the lock listener, leaving the page half locked.
+  const stopSnap = () => {
+    try {
+      const tween = travel.scrollTrigger?.getTween(true) as unknown;
+      if (tween && typeof (tween as { kill?: unknown }).kill === 'function') (tween as { kill: () => void }).kill();
+    } catch {
+      // Stopping the glide is best effort; the lock check in snapTo still keeps the page still.
+    }
+  };
   const hold = () => {
     held = true;
-    travel.scrollTrigger?.getTween(true)?.kill();
+    stopSnap();
   };
   const release = () => requestAnimationFrame(() => { held = false; });
   track.addEventListener('pointerdown', hold);
-  const offLock = onScrollLock((locked) => locked && travel.scrollTrigger?.getTween(true)?.kill());
+  const offLock = onScrollLock((locked) => locked && stopSnap());
   addEventListener('pointerup', release);
   addEventListener('pointercancel', release);
 

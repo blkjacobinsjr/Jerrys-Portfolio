@@ -1328,7 +1328,7 @@ export function createLiquidObject(
       ringMaterial.color.set(config.highlight).multiplyScalar(15);
     }
     envTarget?.dispose();
-    envTarget = pmrem.fromScene(roomScene!, 0.6, 0.1, 1000);
+    envTarget = pmrem.fromScene(roomScene!, 0.04, 0.1, 1000) /* three caps the blur at 20 samples: 0.6 asked for 293 and warned */;
     scene.environment = envTarget.texture;
   }
 

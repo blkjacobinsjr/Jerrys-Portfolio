@@ -39,6 +39,19 @@ interface LockState {
   x: number;
   y: number;
 }
+/** A listener that throws must never strand the lock half applied (page frozen, Lenis stopped): each runs on its own. */
+function notify(locked: boolean) {
+  for (const listener of listeners) {
+    try {
+      listener(locked);
+    } catch (error) {
+      queueMicrotask(() => {
+        throw error;
+      });
+    }
+  }
+}
+
 const states = new WeakMap<HTMLElement, LockState>();
 
 /**
@@ -52,7 +65,7 @@ export function lockScroll(root: HTMLElement = document.documentElement, win: Sc
     state.x = win.scrollX;
     state.y = win.scrollY;
     root.setAttribute(LOCK_ATTR, '');
-    for (const listener of listeners) listener(true);
+    notify(true);
   }
   state.count += 1;
 
@@ -63,7 +76,7 @@ export function lockScroll(root: HTMLElement = document.documentElement, win: Sc
     state.count -= 1;
     if (state.count > 0) return;
     root.removeAttribute(LOCK_ATTR);
-    for (const listener of listeners) listener(false);
+    notify(false);
     if (win.scrollX !== state.x || win.scrollY !== state.y) win.scrollTo({ left: state.x, top: state.y, behavior: 'instant' });
   };
 }
