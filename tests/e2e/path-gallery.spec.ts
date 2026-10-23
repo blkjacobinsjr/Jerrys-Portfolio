@@ -82,3 +82,41 @@ test('phones: dragging the strip glides only the art; the caption and glow stay 
   await expect(page.locator('dialog[open]')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
+
+test('phones: mid-drag, no diorama paints over the caption', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'Touch strip');
+  test.skip(test.info().project.name === 'safari', 'Real touch drags go through CDP, which WebKit does not have.');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const errors = await open(page);
+  await scrollToSelector(page, '#path');
+  await expect(page.locator('#path[data-gl]')).toHaveCount(1, { timeout: 10_000 });
+  const caption = page.locator('#path .path-caption');
+  const s = (await page.locator('[data-path-scroller]').boundingBox())!;
+  const y = s.y + s.height * 0.4;
+  const cdp = await page.context().newCDPSession(page);
+  const x0 = s.x + s.width * 0.85;
+  const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', x: number) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  // The caption's own text is hidden for the probe, so any colour left in its box is the canvas painting there.
+  await caption.evaluate((el) => (el.style.visibility = 'hidden'));
+  const box = (await caption.boundingBox())!;
+  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const blank = async () => {
+    const png = await page.screenshot({ clip: box, animations: 'allow' });
+    const { default: sharp } = await import('sharp');
+    const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    const [r0, g0, b0] = [data[0]!, data[1]!, data[2]!];
+    let worst = 0;
+    for (let i = 0; i < info.width * info.height * 3; i += 3) worst = Math.max(worst, Math.abs(data[i]! - r0) + Math.abs(data[i + 1]! - g0) + Math.abs(data[i + 2]! - b0));
+    return worst;
+  };
+  const worst: number[] = [];
+  await touch('touchStart', x0);
+  for (let i = 1; i <= 12; i++) {
+    await touch('touchMove', x0 - (s.width * 0.7 * i) / 12);
+    if (i % 3 === 0) worst.push(await blank());
+  }
+  await touch('touchEnd', 0);
+  await cdp.detach();
+  for (const w of worst) expect(w, `canvas paint inside the caption band (bg ${bg})`).toBeLessThan(24);
+  expect(errors).toEqual([]);
+});
