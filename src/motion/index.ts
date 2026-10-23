@@ -210,6 +210,9 @@ function keyring() {
   let last = 0;
   let lastY = scrollY;
   let lastV = 0;
+  // The breeze is a lull, not a loop: after QUIET_MS without scroll or a bat the keyring rests until the next one.
+  const QUIET_MS = 2500;
+  let stirred = 0;
 
   const tick = (now: number) => {
     const dt = last ? (now - last) / 1000 : 1 / 60;
@@ -229,30 +232,40 @@ function keyring() {
       part.kick = 0;
       part.el.style.rotate = `${part.rest + part.swing.angle * (180 / Math.PI)}deg`;
     }
-    frame = visible ? requestAnimationFrame(tick) : 0;
+    if (v !== 0) stirred = now;
+    const live = visible && document.visibilityState !== 'hidden' && now - stirred < QUIET_MS;
+    frame = live ? requestAnimationFrame(tick) : 0;
   };
 
+  const wake = () => {
+    stirred = performance.now();
+    if (!visible || frame || document.visibilityState === 'hidden') return;
+    last = 0;
+    lastY = scrollY;
+    lastV = 0;
+    frame = requestAnimationFrame(tick);
+  };
   const io = new IntersectionObserver(([entry]) => {
     visible = Boolean(entry?.isIntersecting);
-    if (visible && !frame) {
-      last = 0;
-      lastY = scrollY;
-      lastV = 0;
-      frame = requestAnimationFrame(tick);
-    }
+    wake();
   });
   io.observe(root);
+  addEventListener('scroll', wake, { passive: true });
+  document.addEventListener('visibilitychange', wake);
 
   // Bat a charm: horizontal pointer speed becomes a kick on the piece under it.
   const bat = (event: PointerEvent) => {
     const hit = (event.target as Element).closest<HTMLElement>('[data-swing]');
     const part = parts.find((p) => p.el === hit) ?? charms[0];
     if (part) part.kick += event.movementX * 22;
+    wake();
   };
   root.addEventListener('pointermove', bat, { passive: true });
 
   return () => {
     io.disconnect();
+    removeEventListener('scroll', wake);
+    document.removeEventListener('visibilitychange', wake);
     root.removeEventListener('pointermove', bat);
     cancelAnimationFrame(frame);
     for (const part of parts) part.el.style.rotate = `${part.rest}deg`;

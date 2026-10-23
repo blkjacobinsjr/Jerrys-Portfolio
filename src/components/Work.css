@@ -199,27 +199,7 @@
   pointer-events: none;
 }
 
-/* Parallax: the phone rises into the hand's resting spot as the card arrives. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .work-phone {
-      animation: phone-rise linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 45%;
-    }
-  }
-}
-
-@keyframes phone-rise {
-  from {
-    translate: 0 14%;
-    rotate: 3deg;
-  }
-  to {
-    translate: 0 0;
-    rotate: 0deg;
-  }
-}
+/* No scroll parallax on the phone: re-rastering its drop shadow every frame held smooth-scroll p95 at 50ms (perf gate <50). */
 
 /* Phones: copy on top, the hand rises from the bottom edge, centred. */
 @media (max-width: 640px) {

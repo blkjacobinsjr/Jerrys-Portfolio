@@ -243,7 +243,10 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
       imageTexture.needsUpdate = true;
       uniforms.uTextureSize.value = [snap.width, snap.height];
     };
-    const ro = new ResizeObserver(resize);
+    const ro = new ResizeObserver(() => {
+      resize();
+      wake();
+    });
     ro.observe(mount);
     resize();
 
@@ -261,16 +264,23 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
       const wave = waves[current]!;
       current = (current + 1) % MAX_WAVES;
       Object.assign(wave, { x, y, scale: START_SCALE, target: START_SCALE * 5, size: 150, opacity: 1 });
+      wake();
     };
     // A click starts the page transition: hand the phone back to the real img so its snapshot is not blank.
     const release = () => delete face.dataset.rippling;
     face.addEventListener('pointerdown', release, true);
     face.addEventListener('pointermove', onMove, { passive: true });
 
+    // Renders on demand: a pointer move or a resize wakes the loop, and it stops on the frame after the last wave fades.
     let raf = 0;
     let last = 0;
-    const loop = (now: number) => {
+    const wake = () => {
+      if (raf) return;
+      last = 0;
       raf = requestAnimationFrame(loop);
+    };
+    const loop = (now: number) => {
+      let alive = false;
       const delta = last ? Math.min(0.05, (now - last) / 1000) : 0;
       last = now;
       const growth = 1 - Math.exp(-delta * 1.09);
@@ -294,6 +304,7 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
         scales[i * 2] = (half / width) * 2;
         scales[i * 2 + 1] = (half / height) * 2;
         opacities[i] = wave.opacity;
+        alive = true;
       }
       geometry.attributes.iOffset!.needsUpdate = true;
       geometry.attributes.iScale!.needsUpdate = true;
@@ -306,8 +317,9 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
         face.dataset.rippling = '';
         onReady?.();
       }
+      raf = alive ? requestAnimationFrame(loop) : 0;
     };
-    raf = requestAnimationFrame(loop);
+    wake();
 
     return () => {
       cancelAnimationFrame(raf);
