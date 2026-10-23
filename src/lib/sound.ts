@@ -56,11 +56,17 @@ async function loadSamples() {
   samplesToLoad.add('wind');
   samplesToLoad.add('city');
 
+  // Leaving the page mid-load (a card click is the first gesture that starts this) cancels cleanly; WebKit otherwise
+  // reports each torn-down fetch as an access-control page error.
+  const leave = new AbortController();
+  addEventListener('pagehide', () => leave.abort(), { once: true });
+
   for (const name of samplesToLoad) {
+    if (leave.signal.aborted) return;
     const url = `/sfx/${name}.${ext}`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: leave.signal });
       if (!response.ok) continue;
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
