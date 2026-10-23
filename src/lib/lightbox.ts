@@ -27,7 +27,7 @@ function loadStyles(href: string): Promise<void> {
  * Lenis and the other page-level scroll handlers leave it alone). Open and close follow the Modal recipe
  * (transitions.dev 06): 250ms in, 150ms out, the smooth-out ease. Reduced motion opens it at once.
  */
-export async function openLightbox(shots: LightboxShot[], index: number): Promise<void> {
+export async function openLightbox(shots: LightboxShot[], index: number, container?: HTMLElement): Promise<void> {
   const [{ default: PhotoSwipe }] = await Promise.all([import('photoswipe'), loadStyles(pswpCss)]);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pswp = new PhotoSwipe({
@@ -39,7 +39,13 @@ export async function openLightbox(shots: LightboxShot[], index: number): Promis
     easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
     bgOpacity: 0.92,
     wheelToZoom: false,
+    // Inside an open modal <dialog> (a Path drawer) the lightbox must live in the dialog's top layer to show above it.
+    ...(container ? { appendToEl: container } : {}),
   });
+  // Escape closes the lightbox, not the drawer under it.
+  const dialog = container?.closest('dialog');
+  const keepDialog = (event: Event) => event.preventDefault();
+  dialog?.addEventListener('cancel', keepDialog);
   const unlock = lockScroll();
   pswp.on('afterInit', () => {
     pswp.element?.setAttribute(OVERLAY_ATTR, '');
@@ -48,6 +54,8 @@ export async function openLightbox(shots: LightboxShot[], index: number): Promis
   // Keys and drags are ignored while it opens; `data-opened` says when it is ready for them.
   pswp.on('openingAnimationEnd', () => pswp.element?.setAttribute('data-opened', ''));
   pswp.on('destroy', () => {
+    // Let the Escape that closed the lightbox finish before the drawer listens again.
+    setTimeout(() => dialog?.removeEventListener('cancel', keepDialog), 0);
     cue('tear');
     unlock();
   });

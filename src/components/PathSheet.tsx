@@ -237,18 +237,36 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
                 role="group"
                 aria-label={`${stop.place} photos`}
               >
-                {stop.photos.map((photo) => (
-                  <img
+                {stop.photos.map((photo, index) => (
+                  // A tap expands the photo into the lightbox (lib/lightbox.ts, fetched on that tap): it zooms out of this image.
+                  <button
                     key={photo.src}
-                    src={photo.src}
-                    srcSet={photo.srcset}
-                    sizes="(min-width: 768px) 420px, 82vw"
-                    width={photo.width}
-                    height={photo.height}
-                    alt={photo.alt}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                    type="button"
+                    className="detail-photo"
+                    aria-label={`View full size: ${photo.alt}`}
+                    onClick={(event) => {
+                      const gallery = event.currentTarget.parentElement!;
+                      const shots = [...gallery.querySelectorAll<HTMLButtonElement>('.detail-photo')].map((button, i) => ({
+                        src: stop.photos[i]!.src,
+                        width: stop.photos[i]!.width,
+                        height: stop.photos[i]!.height,
+                        alt: stop.photos[i]!.alt,
+                        element: button,
+                      }));
+                      void import('../lib/lightbox').then(({ openLightbox }) => openLightbox(shots, index, gallery.closest('dialog') ?? undefined));
+                    }}
+                  >
+                    <img
+                      src={photo.src}
+                      srcSet={photo.srcset}
+                      sizes="(min-width: 768px) 420px, 82vw"
+                      width={photo.width}
+                      height={photo.height}
+                      alt={photo.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </button>
                 ))}
               </div>
             )}
