@@ -67,7 +67,7 @@
   line-height: 1;
   font-variant-numeric: tabular-nums;
   opacity: 0.5;
-  transition: opacity 400ms ease;
+  transition: opacity var(--dur-panel) ease;
 }
 
 .flex-carousel__count[data-hidden] {
