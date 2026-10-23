@@ -4,6 +4,7 @@ import ConsultancyBadge from '../components/ConsultancyBadge';
 import front from '../assets/lanyard/leapfrog-front.webp';
 import back from '../assets/lanyard/leapfrog-back.webp';
 import strap from '../assets/lanyard/leapfrog-strap.webp';
+import poster from '../assets/lanyard/leapfrog-poster.webp';
 
 const LFG = 'https://lfg-ai.com';
 ---
@@ -13,12 +14,12 @@ const LFG = 'https://lfg-ai.com';
   title="Consultancy, Jerry Doughan, Founder of Leapfrog AI"
   description="I run Leapfrog AI, an AI consultancy that designs and ships AI products and workflows for mid-market companies."
 >
-  <link slot="head" rel="preload" as="image" href={front.src} fetchpriority="high" />
+  <link slot="head" rel="preload" as="image" href={poster.src} fetchpriority="high" />
   <h1 class="sr-only">Jerry Doughan, Founder of Leapfrog AI</h1>
   <section class="badge-stage" aria-label="My Leapfrog AI badge. Drag it, or tap to flip it.">
     <ConsultancyBadge
       client:afterload
-      image={front.src}
+      image={poster.src}
       alt="A green Leapfrog AI badge: Jerry Doughan, Founder of Leapfrog AI"
       options={{
         frontImage: front.src,
@@ -32,6 +33,8 @@ const LFG = 'https://lfg-ai.com';
         size: 0.62,
         strapLength: 0.42,
         breeze: 0.2,
+        intro: false,
+        swing: 2.2,
       }}
     />
   </section>
@@ -48,11 +51,55 @@ const LFG = 'https://lfg-ai.com';
     margin-inline: auto;
   }
 
-  /* The photo stands in for the hanging card until the physics wakes. */
-  .badge-stage :global([data-model-state='static'] .model-loader__fallback) {
-    inset: 8% 0 0;
-    height: 92%;
-    filter: drop-shadow(0 24px 40px rgb(var(--shadow-tint) / 0.22));
+  .badge-stage :global(.badge) {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* The poster is the lanyard's first frame, drawn in the box the canvas fills (the stage above the Flip row).
+     It sits over the live model until the first WebGL frame is on screen, then fades out: opacity only. */
+  .badge-stage :global(.badge-poster) {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    pointer-events: none;
+    transition: opacity var(--dur-ui) var(--ease-out);
+  }
+
+  .badge-stage :global(.badge-poster[data-covered='false']) {
+    opacity: 0;
+  }
+
+  .badge-stage :global(.badge-poster__stage) {
+    position: relative;
+  }
+
+  .badge-stage :global(.badge-poster img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* The live model's own flat fallback must never show: the poster covers it while loading, and once the canvas
+     is up it only stays in the accessibility tree, as the badge's picture description. */
+  .badge-stage :global(.badge[data-live] .lanyard-fallback) {
+    visibility: visible !important;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .badge-stage :global(.badge[data-live] .model-loader__fallback) {
+    visibility: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge-stage :global(.badge-poster) {
+      transition: none;
+    }
   }
 
   .lfg {
