@@ -251,6 +251,27 @@
   border-radius: 10px;
 }
 
+.work-liquid {
+  position: absolute;
+  left: clamp(1.5rem, 3.6vw, 2.75rem);
+  bottom: clamp(3.25rem, 6.5vw, 4.5rem);
+  z-index: 1;
+  width: clamp(9.5rem, 17vw, 13.5rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-ui) var(--ease-out);
+}
+
+.work-liquid[data-ready='true'] {
+  opacity: 1;
+}
+
+.work-liquid-stage {
+  width: 100%;
+  height: 100%;
+}
+
 .work-copy { padding-top: 3.75rem; }
 
 .work-face::before {

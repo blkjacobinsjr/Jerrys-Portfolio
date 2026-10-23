@@ -21,7 +21,7 @@ export interface Screenshot extends Shot {
 export interface WorkItem extends Omit<Project, 'shots' | 'shotAlts' | 'phone' | 'logo'> {
   logo: string;
   shots: [Screenshot, Screenshot, Screenshot];
-  phone: Shot;
+  phone: Shot & { avifSrcset: string };
 }
 
 /** Resolve a project's images once, for its home-page card and its own page. */
@@ -45,11 +45,12 @@ export async function resolveProject({ shots, shotAlts, phone, logo, ...project 
   );
   const mark = await getImage({ src: logo, width: 96, format: 'webp' });
   const hand = await getImage({ src: phone.src, widths: [360, 540, 720, 960], format: 'webp' });
+  const handAvif = await getImage({ src: phone.src, widths: [360, 540, 720, 960], format: 'avif', quality: 58 });
   return {
     ...project,
     logo: mark.src,
     shots: resolved as WorkItem['shots'],
-    phone: { src: hand.src, srcset: hand.srcSet.attribute, width: phone.src.width, height: phone.src.height, alt: phone.alt },
+    phone: { src: hand.src, srcset: hand.srcSet.attribute, avifSrcset: handAvif.srcSet.attribute, width: phone.src.width, height: phone.src.height, alt: phone.alt },
   };
 }
 

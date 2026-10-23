@@ -41,10 +41,12 @@ const site = item.presentation === 'website';
           <p class="work-hero-summary">{item.summary}</p>
         </div>
         <span class={`work-hero-shot${site ? ' work-hero-shot-site' : ''}`}>
+          <picture>
+          <source type="image/avif" srcset={item.phone.avifSrcset} sizes="(min-width: 768px) 420px, min(80vw, 20rem)" />
           <img
             src={item.phone.src}
             srcset={item.phone.srcset}
-            sizes="(min-width: 768px) 420px, 80vw"
+            sizes="(min-width: 768px) 420px, min(80vw, 20rem)"
             width={item.phone.width}
             height={item.phone.height}
             alt={item.phone.alt}
@@ -52,6 +54,7 @@ const site = item.presentation === 'website';
             decoding="async"
             style={`view-transition-name:phone-${item.id}`}
           />
+          </picture>
         </span>
       </header>
 
@@ -272,6 +275,10 @@ const site = item.presentation === 'website';
     width: min(100%, 28rem);
     margin-bottom: -30%;
     pointer-events: none;
+  }
+
+  .work-hero-shot picture {
+    display: contents;
   }
 
   .work-hero-shot img {
