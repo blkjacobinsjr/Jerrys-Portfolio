@@ -41,6 +41,7 @@ test('the circular gallery hands the caption to the stop in the middle, and a cl
 
 test('phones: dragging the strip glides only the art; the caption and glow stay put and crossfade to the new stop', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Touch strip');
+  test.skip(test.info().project.name === 'safari', 'Real touch drags go through CDP, which WebKit does not have.');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const errors = await open(page);
   await scrollToSelector(page, '#path');
