@@ -31,7 +31,7 @@ export default function FooterGhost() {
     <div ref={slot} className="footer-ghost" aria-hidden="true">
       {on && armed && (
         <Suspense fallback={null}>
-          <GhostCursor theme={dark ? 'dark' : 'light'} color={dark ? '#B497CF' : '#E0662E'} zIndex={0} intro={false} maxDevicePixelRatio={1} targetPixels={3e5} />
+          <GhostCursor theme={dark ? 'dark' : 'light'} color="#FFFFFF" brightness={0.8} turbulence={0.7} grainIntensity={0} bloomStrength={0.3} zIndex={0} intro={false} maxDevicePixelRatio={1} targetPixels={3e5} />
         </Suspense>
       )}
     </div>

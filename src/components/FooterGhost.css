@@ -2,4 +2,10 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* Jerry, 23 Oct: soft white wisps, cloud-like and see-through, not orange smoke. */
+  opacity: 0.75;
+}
+
+.footer-ghost * {
+  pointer-events: none;
 }
