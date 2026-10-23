@@ -79,11 +79,13 @@ function measure(title: HTMLElement): Layout {
  */
 export default function ContactGlass() {
   const reduced = useMedia('(prefers-reduced-motion: reduce)');
+  // Phones and touch: the lens trails the finger through its spring and lags the scroll, so it never mounts there.
+  const fine = useMedia('(hover: hover) and (pointer: fine)');
   const [armed, setArmed] = useState(false);
   const [layout, setLayout] = useState<Layout | null>(null);
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || !fine) return;
     const footer = document.getElementById('contact');
     if (!footer) return;
     // Shader setup costs a long task, so it waits for a pointer in the footer itself (never mid-scroll, never a wheel),
@@ -104,9 +106,9 @@ export default function ContactGlass() {
     addEventListener('pointermove', go, { passive: true });
     addEventListener('pointerdown', go, { passive: true });
     return stop;
-  }, [reduced]);
+  }, [reduced, fine]);
 
-  const on = armed && !reduced;
+  const on = armed && !reduced && fine;
 
   useEffect(() => {
     const title = document.getElementById('contact-title');
@@ -149,6 +151,11 @@ export default function ContactGlass() {
         size={Math.min(170, layout.fontSize * 4)}
         maxDevicePixelRatio={1.5}
         shadow={0.25}
+        // The lens shows only what is really behind it: the heading it redraws over a transparent ground, so the
+        // footer sky reads through. FluidGlass's procedural studio reflection painted a second, unrelated cloudy
+        // image into the glass; a faint rim of it is all that is left.
+        background="transparent"
+        reflection={0.12}
       />
     </Suspense>
   );
