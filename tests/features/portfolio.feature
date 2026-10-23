@@ -81,6 +81,6 @@ Feature: Getting to know Jerry
   Scenario: A recruiter reads the recommendations
     Given I prefer reduced motion
     And I open the portfolio
-    Then seven recommendations share the same composition
+    Then six recommendations share the same composition
     And Dan Goldin has an honorary mention
     And the canonical URL is "https://jerrydoughan.com/"

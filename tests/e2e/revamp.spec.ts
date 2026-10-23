@@ -68,15 +68,15 @@ test('uses real project logos, adds Leapfrog AI and points metadata at the new d
 });
 
 
-test('presents seven consistent local recommendations and the honorary mention', async ({ page }) => {
+test('presents six consistent local recommendations and the honorary mention', async ({ page }) => {
   await open(page);
   // At most the viewport: the reserved scrollbar gutter (global.css) can leave scrollWidth a few px under clientWidth.
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 'recommendations do not widen the mobile viewport').toBeLessThanOrEqual(0);
   const track = page.locator('[data-recs-track]');
   await expect(track.locator('.rec-byline > a')).toHaveText([
-    'Enrique Coscarelli', 'Iñigo Martín-Calero', 'Woundioun Sissoko', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
+    'Enrique Coscarelli', 'Iñigo Martín-Calero', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
   ]);
-  await expect(track.locator('.rec-person img')).toHaveCount(7);
+  await expect(track.locator('.rec-person img')).toHaveCount(6);
   for (const image of await track.locator('img').all()) await expect(image).toHaveAttribute('src', /^\/_astro\//);
   for (const name of await track.locator('.rec-byline > a').all()) await expect(name).toHaveAttribute('href', /^https:\/\/www\.linkedin\.com\/in\//);
   const notes = page.locator('.honorary-mention');
@@ -138,7 +138,7 @@ test('Scenaryo CTA is tappable at 390px after scrolling the project page', async
 test('all recommendation cards keep the same quote, avatar, byline and wins composition', async ({ page }) => {
   await open(page);
   const cards = page.locator('.rec-card');
-  await expect(cards).toHaveCount(7);
+  await expect(cards).toHaveCount(6);
   for (const card of await cards.all()) {
     await expect(card.locator(':scope > blockquote')).toHaveCount(1);
     await expect(card.locator(':scope > figcaption')).toHaveCount(1);
@@ -196,9 +196,9 @@ test('the hero teaser shows a recommendation above the fold and leads to the ful
   // Picking a person swaps the quote in place.
   await teaser.getByRole('button', { name: 'Christoph Suessmeier, Exxeta' }).click();
   await expect(teaser.locator('.mt-quote.is-active')).toHaveText('"Extraordinary eye for user experience"');
-  await teaser.getByRole('link', { name: 'All seven recommendations' }).click();
+  await teaser.getByRole('link', { name: 'All six recommendations' }).click();
   await expect(page.locator('#recommendations')).toBeInViewport();
-  await expect(page.locator('#recommendations .rec')).toHaveCount(7);
+  await expect(page.locator('#recommendations .rec')).toHaveCount(6);
 });
 
 test('path cards carry the mark and one when-and-where line, with nothing over the model', async ({ page }) => {
