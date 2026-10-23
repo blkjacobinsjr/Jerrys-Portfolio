@@ -9,12 +9,17 @@ import Dock from '../components/Dock';
 import sprite from '../assets/mascot/sprite.webp';
 import still from '../assets/mascot/still.webp';
 import { person } from '../data/site';
+import { getImage } from 'astro:assets';
+import desk from '../assets/icons/desk.webp';
+// The hero desk is the mobile LCP: preload the same AVIF set the <Picture> in Hero picks from.
+const deskLcp = await getImage({ src: desk, widths: [320, 400, 480, 560, 640, 760, 1040], format: 'avif', quality: 58 });
 ---
 
 <Base
   title={`${person.name}, product designer and frontend developer`}
   description="Jerry Doughan designs and builds consumer apps that feel good in the first five seconds. Co-founder of Scenaryo. Berlin."
 >
+  <link slot="head" rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset={deskLcp.srcSet.attribute} imagesizes="(min-width: 900px) 520px, 72vw" />
   <main id="main" class="page" data-scrollsheet-background>
     <Hero sprite={sprite.src} still={still.src} />
     <WorkSection />
