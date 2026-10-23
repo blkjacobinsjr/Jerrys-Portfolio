@@ -12,7 +12,8 @@ export function start() {
   mm.add('(prefers-reduced-motion: no-preference)', () => {
     // GSAP reverts its own tweens when the query stops matching; our loops and listeners clean up here.
     const cleanups = [hero(), keyring()];
-    deck();
+    // The receding deck is desktop only: on touch it scrubbed transforms against momentum scroll and felt hijacked.
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) deck();
     return () => {
       for (const cleanup of cleanups) cleanup?.();
     };

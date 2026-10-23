@@ -6,8 +6,6 @@
 /* Sticky stack: each card pins a little lower than the last, so the deck
    piles up as you scroll. GSAP recedes the covered card (src/motion). */
 .work-item {
-  position: sticky;
-  top: calc(clamp(1rem, 6vh, 3.5rem) + var(--i) * 14px);
   transform-origin: 50% 0;
   --surface: var(--tint);
   --muted: color-mix(in oklch, var(--fg) 64%, var(--surface));
@@ -17,6 +15,14 @@
   /* Same hue as the light tint, pushed dark, so cards stay on brand. */
   .work-item {
     --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
+  }
+}
+
+/* Phones and touch read the cards with plain native scroll: no sticky deck, nothing scroll-linked. */
+@media (hover: hover) and (pointer: fine) {
+  .work-item {
+    position: sticky;
+    top: calc(clamp(1rem, 6vh, 3.5rem) + var(--i) * 14px);
   }
 }
 

@@ -74,6 +74,13 @@ const items = await resolveProjects();
     padding-block: var(--section-gap) 0;
   }
 
+  /* Phones: straight after the hero's Startup programs row, the full section gap read as an empty screen. */
+  @media (max-width: 899px) {
+    :global(.hero) + .work {
+      padding-top: clamp(2rem, 8vw, 3rem);
+    }
+  }
+
   /* Full bleed: the loop runs edge to edge under the section. */
   .tools {
     display: grid;
