@@ -16,7 +16,11 @@ const { items } = Astro.props;
         {/* Flighty-style feature card: bold lead, muted body, the app in hand. The link is stretched over the whole card
             and opens the project's own page (pages/work/[slug].astro); the face and the phone carry the names the
             page's hero repeats, so the browser morphs one into the other (styles/work-transition.css). */}
-        <div class="work-face" style={`view-transition-name:work-${item.id}`}>
+        <div
+          class="work-face"
+          style={`view-transition-name:work-${item.id}`}
+          data-spec={JSON.stringify({ index, created: item.years, name: item.name, type: item.platform, scope: item.role })}
+        >
           <img class="work-logo" src={item.logo} width={40} height={40} alt={`${item.name} logo`} loading="lazy" decoding="async" />
           <div class="work-copy">
             <h3 class="work-lead">

@@ -1,8 +1,19 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMedia } from '../lib/useMedia';
+import type { Spec } from './WorkSpec';
 
 const WorkLiquid = lazy(() => import('./WorkLiquid'));
+const WorkRipple = lazy(() => import('./WorkRipple'));
+const WorkSpec = lazy(() => import('./WorkSpec'));
+
+const specOf = (face: HTMLElement): Spec | null => {
+  try {
+    return JSON.parse(face.dataset.spec ?? '') as Spec;
+  } catch {
+    return null;
+  }
+};
 
 const visible = (el: Element) => {
   const r = el.getBoundingClientRect();
@@ -22,6 +33,7 @@ export default function WorkLiquidHost() {
     const hovered = document.querySelector<HTMLElement>('.work-list .work-face:hover');
     return hovered && visible(hovered) ? hovered : null;
   });
+  const [hovered, setHovered] = useState<HTMLElement | null>(face);
   const inView = useRef(new Set<Element>());
 
   useEffect(() => {
@@ -33,6 +45,7 @@ export default function WorkLiquidHost() {
           else {
             inView.current.delete(entry.target);
             setFace((current) => (current === entry.target ? null : current));
+            setHovered((current) => (current === entry.target ? null : current));
           }
         }
       },
@@ -42,22 +55,35 @@ export default function WorkLiquidHost() {
       const target = event.currentTarget as HTMLElement;
       if (event.pointerType !== 'mouse' || !(inView.current.has(target) || visible(target))) return;
       setFace((current) => (current === target ? current : target));
+      setHovered((current) => (current === target ? current : target));
+    };
+    const onLeave = (event: PointerEvent) => {
+      const target = event.currentTarget as HTMLElement;
+      setHovered((current) => (current === target ? null : current));
     };
     for (const el of faces) {
       io.observe(el);
       el.addEventListener('pointermove', onMove, { passive: true });
+      el.addEventListener('pointerleave', onLeave);
     }
     return () => {
       io.disconnect();
-      for (const el of faces) el.removeEventListener('pointermove', onMove);
+      for (const el of faces) {
+        el.removeEventListener('pointermove', onMove);
+        el.removeEventListener('pointerleave', onLeave);
+      }
     };
   }, []);
 
   const src = face?.querySelector<HTMLImageElement>('.work-logo')?.getAttribute('src');
   if (!fine || reducedMotion || !face || !src) return null;
+  const spec = hovered === face ? specOf(face) : null;
+  // One ripple renderer, in the card under the pointer; the spec sheet only while the pointer is on it.
   return createPortal(
     <Suspense fallback={null}>
+      <WorkRipple key={`ripple-${src}`} face={face} />
       <WorkLiquid key={src} src={src} />
+      {spec && <WorkSpec key={`spec-${src}`} spec={spec} />}
     </Suspense>,
     face,
   );
