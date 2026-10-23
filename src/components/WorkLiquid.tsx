@@ -7,6 +7,8 @@ import LiquidObject from './LiquidObject';
  * through `Sheet.Trigger` while cursor movement ripples the 3D extruded project mark.
  * Pauses when the document is hidden (`visibilitychange`) and unmounts when the card leaves view.
  */
+const SYNTHETIC_POINTER = 9001;
+
 export default function WorkLiquid({ src }: { src: string }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
@@ -34,19 +36,19 @@ export default function WorkLiquid({ src }: { src: string }) {
         new PointerEvent(event.type, {
           clientX: canvasRect.left + u * canvasRect.width,
           clientY: canvasRect.top + v * canvasRect.height,
-          pointerId: event.pointerId,
+          // A synthetic id, never the real one: a forwarded pointerdown with the live id let the canvas capture the
+          // pointer, so the pointerup and click landed on the canvas instead of the card link (work-click-through.spec).
+          pointerId: SYNTHETIC_POINTER,
           pointerType: event.pointerType,
         }),
       );
     };
 
     face.addEventListener('pointermove', forward, { passive: true });
-    face.addEventListener('pointerdown', forward, { passive: true });
     face.addEventListener('pointerleave', forward, { passive: true });
     face.addEventListener('pointercancel', forward, { passive: true });
     return () => {
       face.removeEventListener('pointermove', forward);
-      face.removeEventListener('pointerdown', forward);
       face.removeEventListener('pointerleave', forward);
       face.removeEventListener('pointercancel', forward);
     };
