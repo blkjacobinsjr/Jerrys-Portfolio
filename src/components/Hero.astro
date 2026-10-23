@@ -16,10 +16,11 @@ interface Props {
 const { sprite, still } = Astro.props;
 // Three verbatim lines from the recommendations (data/recommendations.ts), portraits at 2x their 40px.
 const quotes = await Promise.all(
-  teaser.map(async ({ name, fragment, org, portrait, logo }) => ({
+  teaser.map(async ({ name, fragment, org, linkedin, portrait, logo }) => ({
     quote: fragment.charAt(0).toUpperCase() + fragment.slice(1),
     name,
     role: org,
+    href: linkedin,
     image: (await getImage({ src: portrait, width: 80, height: 80, format: 'webp' })).src,
     logo: logo && (await getImage({ src: logo, width: 28, height: 28, format: 'webp' })).src,
   })),

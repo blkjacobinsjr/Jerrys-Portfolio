@@ -169,16 +169,18 @@ export const pendingApproval: Recommendation[] = [
 ];
 
 /** A fragment lifted verbatim from one recommendation, for the hero. Throws if it is not in the quote. */
-export function pull(name: string, fragment: string) {
+export function pull(name: string, fragment: string, show: 'company' | 'title' = 'company') {
   const rec = recommendations.find((item) => item.name === name);
   if (!rec?.quote.includes(fragment)) throw new Error(`"${fragment}" is not in ${name}'s recommendation`);
   const employer = rec.position.kind === 'employer' ? rec.position : null;
-  return { name, fragment, org: employer ? employer.company : rec.position.title, portrait: rec.portrait, logo: employer?.logo };
+  const org = employer && show === 'company' ? employer.company : rec.position.title;
+  return { name, fragment, org, linkedin: rec.linkedin, portrait: rec.portrait, logo: employer?.logo };
 }
 
 /** The three strongest lines, shown small above the fold and linked to the full section. */
 export const teaser = [
-  pull('Jerry Jiang', 'one of the scrappiest builders I know'),
+  // His card leads with the mayoral run, so the teaser does too.
+  pull('Jerry Jiang', 'one of the scrappiest builders I know', 'title'),
   pull('Iñigo Martín-Calero', 'turns ambitious ideas into products'),
   pull('Christoph Suessmeier', 'extraordinary eye for user experience'),
 ];

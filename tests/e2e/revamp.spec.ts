@@ -189,7 +189,7 @@ test('the hero teaser shows a recommendation above the fold and leads to the ful
   await open(page);
   const teaser = page.locator('.hero-recs');
   await expect(teaser.locator('.mt-quote.is-active')).toContainText('One of the scrappiest builders I know');
-  await expect(teaser.locator('.mt-author.is-active')).toContainText('Akatos');
+  await expect(teaser.locator('.mt-author.is-active')).toContainText('Candidate for Mayor of Waterloo');
   await expect(teaser.locator('.mt-avatar img')).toHaveCount(3);
   await expect(teaser.locator('.mt-author.is-active .mt-logo')).toHaveCount(1);
   if (!isMobile) await expect(teaser.locator('.mt-quote.is-active')).toBeInViewport({ ratio: 1 });

@@ -134,6 +134,26 @@
   pointer-events: auto;
 }
 
+.mt-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.mt-link:hover .mt-name {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.mt-link:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
 .mt-name,
 .mt-role {
   white-space: nowrap;

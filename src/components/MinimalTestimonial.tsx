@@ -14,6 +14,20 @@ export interface MinimalTestimonialItem {
   image: string;
   /** Adaptation: the company's mark, shown with the role. */
   logo?: string;
+  /** Adaptation: the recommender's LinkedIn; name and role link there. */
+  href?: string;
+}
+
+function AuthorText(t: MinimalTestimonialItem) {
+  return (
+    <>
+      <span className="mt-name">{t.name}</span>
+      <span className="mt-role">
+        {t.logo && <img className="mt-logo" src={t.logo} alt="" width={14} height={14} loading="lazy" decoding="async" fetchPriority="low" />}
+        {t.role}
+      </span>
+    </>
+  );
 }
 
 export function TestimonialsMinimal({ testimonials }: { testimonials: MinimalTestimonialItem[] }) {
@@ -55,11 +69,13 @@ export function TestimonialsMinimal({ testimonials }: { testimonials: MinimalTes
         <div className="mt-authors">
           {testimonials.map((t, i) => (
             <div key={i} className={`mt-author${active === i ? ' is-active' : ''}`} aria-hidden={active !== i}>
-              <span className="mt-name">{t.name}</span>
-              <span className="mt-role">
-                {t.logo && <img className="mt-logo" src={t.logo} alt="" width={14} height={14} loading="lazy" decoding="async" fetchPriority="low" />}
-                {t.role}
-              </span>
+              {t.href ? (
+                <a className="mt-link" href={t.href} target="_blank" rel="noopener" tabIndex={active === i ? undefined : -1}>
+                  <AuthorText {...t} />
+                </a>
+              ) : (
+                <AuthorText {...t} />
+              )}
             </div>
           ))}
         </div>

@@ -143,7 +143,7 @@ describe('portfolio revamp content', () => {
 describe('recommendations teaser', () => {
   it('lifts three short fragments verbatim from the recommendations, with who said them', () => {
     expect(teaser.map(({ name, org }) => `${name}, ${org}`)).toEqual([
-      'Jerry Jiang, Akatos',
+      'Jerry Jiang, Candidate for Mayor of Waterloo',
       'Iñigo Martín-Calero, Google',
       'Christoph Suessmeier, Exxeta',
     ]);
@@ -155,7 +155,9 @@ describe('recommendations teaser', () => {
       expect(line.portrait).toBe(rec.portrait);
       expect(line.logo).toBe(rec.position.kind === 'employer' ? rec.position.logo : undefined);
       expect(line.logo).toBeDefined();
+      expect(line.linkedin).toBe(rec.linkedin);
     }
+    expect(pull('Jerry Jiang', 'one of the scrappiest builders I know').org, 'company by default').toBe('Akatos');
   });
 
   it('names a headline role when there is no employer, and refuses a misquote', () => {
