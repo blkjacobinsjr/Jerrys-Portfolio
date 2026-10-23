@@ -132,8 +132,8 @@ void main() {
     color += uHighlight * clamp((raw - flatSpec) / max(1.0 - flatSpec, 0.0001), 0.0, 1.0) * uGlint;
   }
 
-  // Only the wake is drawn: where the field is flat the canvas is clear and the card's own img shows.
-  gl_FragColor = vec4(color, alpha * clamp(amount * 6.0, 0.0, 1.0));
+  // The canvas carries the whole phone (the card's img is hidden while it runs), so the wake never doubles it.
+  gl_FragColor = vec4(color, alpha);
 }
 `;
 
@@ -262,6 +262,9 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
       current = (current + 1) % MAX_WAVES;
       Object.assign(wave, { x, y, scale: START_SCALE, target: START_SCALE * 5, size: 150, opacity: 1 });
     };
+    // A click starts the page transition: hand the phone back to the real img so its snapshot is not blank.
+    const release = () => delete face.dataset.rippling;
+    face.addEventListener('pointerdown', release, true);
     face.addEventListener('pointermove', onMove, { passive: true });
 
     let raf = 0;
@@ -300,6 +303,7 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
       if (!painted) {
         painted = true;
         mount.dataset.ready = 'true';
+        face.dataset.rippling = '';
         onReady?.();
       }
     };
@@ -309,7 +313,9 @@ export default function WorkRipple({ face, onReady }: { face: HTMLElement; onRea
       cancelAnimationFrame(raf);
       ro.disconnect();
       face.removeEventListener('pointermove', onMove);
+      face.removeEventListener('pointerdown', release, true);
       delete mount.dataset.ready;
+      delete face.dataset.rippling;
       if (canvas.parentNode === mount) mount.removeChild(canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };

@@ -288,6 +288,10 @@
 
 /* C: React Bits Ripple Distortion over the whole card (WorkRipple). It draws the phone only inside the wake, over the
    card's own img; the copy stays above it; nothing here takes a pointer. */
+.work-face[data-rippling] .work-phone {
+  opacity: 0;
+}
+
 .work-ripple {
   position: absolute;
   inset: 0;
