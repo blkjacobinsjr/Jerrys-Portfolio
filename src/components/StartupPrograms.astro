@@ -5,6 +5,7 @@
 ---
 <section class="programs" aria-labelledby="startup-programs">
   <h2 id="startup-programs">Startup programs</h2>
+  <div class="programs-row" data-proto-tooltip>
   <ul data-programs>
       <li tabindex="0" data-tooltip-id="tt-microsoft" aria-describedby="tt-microsoft">
         <svg role="img" aria-label="Microsoft for Startups" viewBox="1 1 21 21" fill="currentColor"><title>Microsoft for Startups</title><path d="M1 1h10v10H1z"/><path d="M12 1h10v10H12z"/><path d="M1 12h10v10H1z"/><path d="M12 12h10v10H12z"/></svg>
@@ -35,6 +36,8 @@
         <div id="tt-launch" role="tooltip" class="tooltip">LAUNCH (Jason Calacanis)</div>
       </li>
   </ul>
+  <div class="p17-tooltip" aria-hidden="true" data-show="false"><span class="p17-tooltip-text"></span></div>
+  </div>
 </section>
 
 <style>
@@ -91,40 +94,18 @@
     letter-spacing: 0.08em;
     line-height: 1.25rem;
   }
+  /* Each mark keeps its own role="tooltip" description for assistive tech; it is visually hidden. */
   .tooltip {
     position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) scale(0.97);
-    transform-origin: bottom center;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
     white-space: nowrap;
-    background: var(--bg);
-    color: var(--fg);
-    border: 1px solid var(--fg-2);
-    border-radius: var(--r-base);
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 150ms ease-out, transform 150ms ease-out;
-    margin-bottom: 0.5rem;
-    z-index: 1000;
-  }
-  .tooltip[data-instant] {
-    transition: none;
-  }
-  .programs li[data-open] .tooltip {
-    opacity: 1;
-    transform: translateX(-50%) scale(1);
   }
   @media (hover: hover) {
     .programs li:hover {
       color: var(--fg);
-    }
-    .programs li:hover .tooltip {
-      opacity: 1;
-      transform: translateX(-50%) scale(1);
     }
   }
   .programs li:focus-visible {
@@ -132,66 +113,137 @@
     outline-offset: 2px;
     border-radius: var(--r-base);
   }
-  .programs li:focus-visible .tooltip {
+  /* Verbatim transitions.dev "Tooltip open/close" (detail.html?t=tooltip-open-close, prototype 17): one tooltip per
+     group that travels between triggers. Appear: 150ms ease-out after an 80ms delay, scale 0.98 to 1 from the bottom
+     centre. Exit: 50ms ease-out with no delay. Travel and width: 160ms cubic-bezier(0.22, 1, 0.36, 1), no delay. */
+  .programs-row {
+    position: relative;
+    --p17-in-dur: 150ms;
+    --p17-out-dur: 50ms;
+    --p17-scale-from: 0.98;
+    --p17-delay: 80ms;
+    --p17-in-ease: ease-out;
+    --p17-out-ease: ease-out;
+    --p17-move-dur: 160ms;
+    --p17-move-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --p17-bg: #ffffff;
+    --p17-fg: #2f2f2f;
+  }
+  .p17-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0;
+    overflow: hidden;
+    translate: var(--p17-x, 0px) 0;
+    scale: var(--p17-scale-from);
+    transform-origin: 50% 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--p17-bg);
+    color: var(--p17-fg);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 18px;
+    white-space: nowrap;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 2px 6px 0 rgba(0, 0, 0, 0.05),
+      0 4px 42px 0 rgba(0, 0, 0, 0.06);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--p17-out-dur) var(--p17-out-ease),
+      scale var(--p17-out-dur) var(--p17-out-ease),
+      translate var(--p17-move-dur) var(--p17-move-ease),
+      width var(--p17-move-dur) var(--p17-move-ease);
+  }
+  .p17-tooltip-text {
+    white-space: nowrap;
+  }
+  @media (prefers-color-scheme: dark) {
+    .programs-row {
+      --p17-bg: #222222;
+      --p17-fg: #f0f0f0;
+    }
+    .p17-tooltip {
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 1px 1px 0 rgba(0, 0, 0, 0.08),
+        0 2px 6px 0 rgba(0, 0, 0, 0.15);
+    }
+  }
+  /* The appear delay belongs only to the show rule, so hiding snaps it back to 0; a retarget while showing moves at once. */
+  .p17-tooltip[data-show='true'] {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
+    scale: 1;
+    transition:
+      opacity var(--p17-in-dur) var(--p17-in-ease) var(--p17-delay),
+      scale var(--p17-in-dur) var(--p17-in-ease) var(--p17-delay),
+      translate var(--p17-move-dur) var(--p17-move-ease),
+      width var(--p17-move-dur) var(--p17-move-ease);
   }
   @media (prefers-reduced-motion: reduce) {
     .programs li:active {
       transform: none;
     }
-    .tooltip {
-      transition: opacity 150ms ease-out;
-    }
   }
 </style>
 
 <script>
-  const ul = document.querySelector('[data-programs]');
-  if (ul) {
-    let instantTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    ul.addEventListener('click', (e) => {
-      const li = (e.target as Element).closest('li');
-      if (!li) return;
-      const isOpen = li.hasAttribute('data-open');
-      ul.querySelectorAll('li[data-open]').forEach(item => {
-        item.removeAttribute('data-open');
-        const tooltip = item.querySelector('.tooltip');
-        if (tooltip) tooltip.removeAttribute('data-instant');
+  // transitions.dev initP17, verbatim logic: measure the label, centre the tip over the trigger, snap the geometry
+  // while hidden so only the appear plays, glide it while shown. Tap toggles it on touch; Escape and outside taps hide it.
+  const group = document.querySelector<HTMLElement>('[data-proto-tooltip]');
+  const tip = group?.querySelector<HTMLElement>('.p17-tooltip');
+  const text = group?.querySelector<HTMLElement>('.p17-tooltip-text');
+  if (group && tip && text) {
+    const triggers = [...group.querySelectorAll<HTMLElement>('[data-programs] > li')];
+    let current: HTMLElement | null = null;
+    const hide = () => {
+      current = null;
+      tip.setAttribute('data-show', 'false');
+    };
+    const place = (trigger: HTMLElement) => {
+      const showing = tip.getAttribute('data-show') === 'true';
+      current = trigger;
+      text.textContent = trigger.querySelector('[role="tooltip"]')?.textContent ?? '';
+      const cs = getComputedStyle(tip);
+      const width = Math.ceil(text.scrollWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight));
+      const g = group.getBoundingClientRect();
+      const r = trigger.getBoundingClientRect();
+      const x = r.left - g.left + r.width / 2 - width / 2;
+      if (!showing) {
+        tip.style.transition = 'none';
+        tip.style.width = `${width}px`;
+        tip.style.setProperty('--p17-x', `${x}px`);
+        void tip.offsetWidth;
+        tip.style.transition = '';
+      } else {
+        tip.style.width = `${width}px`;
+        tip.style.setProperty('--p17-x', `${x}px`);
+      }
+      tip.setAttribute('data-show', 'true');
+    };
+    for (const t of triggers) {
+      t.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'mouse') place(t);
       });
-      if (!isOpen) {
-        li.setAttribute('data-open', '');
-        const tooltip = li.querySelector('.tooltip');
-        if (tooltip) tooltip.setAttribute('data-instant', '');
-        if (instantTimeout) clearTimeout(instantTimeout);
-        instantTimeout = setTimeout(() => {
-          ul.querySelectorAll('li').forEach(item => {
-            const t = item.querySelector('.tooltip');
-            if (t) t.removeAttribute('data-instant');
-          });
-        }, 400);
-      }
+      t.addEventListener('focus', () => place(t));
+      t.addEventListener('blur', hide);
+      t.addEventListener('click', () => (current === t && tip.getAttribute('data-show') === 'true' ? hide() : place(t)));
+    }
+    group.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse') hide();
     });
-
     document.addEventListener('click', (e) => {
-      if (!ul.contains(e.target as Node)) {
-        ul.querySelectorAll('li[data-open]').forEach(li => {
-          li.removeAttribute('data-open');
-          const tooltip = li.querySelector('.tooltip');
-          if (tooltip) tooltip.removeAttribute('data-instant');
-        });
-      }
+      if (!group.contains(e.target as Node)) hide();
     });
-
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        ul.querySelectorAll('li[data-open]').forEach(li => {
-          li.removeAttribute('data-open');
-          const tooltip = li.querySelector('.tooltip');
-          if (tooltip) tooltip.removeAttribute('data-instant');
-        });
-      }
+      if (e.key === 'Escape') hide();
     });
   }
 </script>
