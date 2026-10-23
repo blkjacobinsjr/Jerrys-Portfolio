@@ -284,6 +284,8 @@ const layers = [
     aspect-ratio: 16 / 9;
     translate: -50% 0;
     object-fit: cover;
+    /* The film's top edge met the sky as a hard line; it now dissolves into it. */
+    mask-image: linear-gradient(to bottom, transparent, #000 22%);
     opacity: 0;
     transition: opacity 600ms var(--ease-out);
   }
