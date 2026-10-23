@@ -145,3 +145,18 @@ spacer above the target, realign untouched deep links after pin creation and ref
   PaperCrumple (crumple the draft to start over; three.js, loaded on first intent behind the GL gate).
   There is no form backend, so it sends through `mailto:` (`lib/letter.ts`), like the copy-email CTA.
 - Model loader and stage styles live in `ModelLoader.css` (shared by the drawers and /consultancy).
+
+### Circular gallery on the path (Oct 2026)
+
+- `Path.astro`'s strip is the real thing (scroller or GSAP-pinned track, `.stop` buttons, labels, focus order, the
+  drawer triggers) and stays the fallback. `PathGallery.tsx` (`client:visible`, 200px margin) only adds a canvas over it,
+  and only when `canUseGL()` allows; `lib/path-gallery.ts` (the React Bits Circular Gallery renderer, adapted; it uses raw
+  WebGL2 now, not ogl) loads on that condition. It adds no layout, so `/#path` and everything below it cannot shift.
+- Position comes from `stage.left - track.left`, which reads both the native scroll and the GSAP pin. Never feed it a drag or
+  wheel state of its own; vertical wheel must keep scrolling the page. Each `.stop` is bent with a transform, so never read
+  `getBoundingClientRect` of a stop for layout (the pin's focus-centering uses `offsetLeft`; a bounding box skewed it by 29px).
+- No wrap-around: the first and last stop rest in the middle (`padding-inline: calc(50% - var(--stop-w) / 2)`, always, so the
+  strip's length does not depend on the gallery). Measure the art from its top and width: a stop skipped by
+  `content-visibility` reports 280px tall.
+- Hover and press are transitions.dev recipe 11 (avatar group hover) on `.stop-btn`; the canvas mirrors its computed transform.
+
