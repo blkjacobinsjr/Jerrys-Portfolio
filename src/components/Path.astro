@@ -76,6 +76,17 @@ const galleryStops = await Promise.all(
         }
       </ol>
     </div>
+    {/* Phones with the gallery running: the strip's own captions would ride the finger 1:1 while the drawn art
+        eases behind it, so the stop in focus is captioned here instead, outside the drag layer, and crossfades on snap. */}
+    <div class="path-caption" aria-hidden="true">
+      {path.map((stop) => (
+        <div class="path-caption-item" data-for={stop.id}>
+          <span class="stop-when">{stop.flag === 'now' ? 'Now' : stop.when}<span class="stop-where">{` · ${stop.where}`}</span></span>
+          <span class="stop-place">{stop.place}</span>
+          <span class="stop-title">{stop.title}</span>
+        </div>
+      ))}
+    </div>
     <PathGallery client:visible={{ rootMargin: '200px' }} stops={galleryStops} />
     </div>
 
@@ -336,6 +347,41 @@ const galleryStops = await Promise.all(
 
   /* While the circular gallery runs, the stop in the middle owns the caption and the others dim: the text
      crossfades from slide to slide as the art glides (lib/path-gallery.ts sets data-focus). */
+  .path-caption {
+    display: none;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    /* The strip keeps its buttons (hit targets, focus, names); only its text and glow step aside. */
+    .path[data-gl] .stop :is(.stop-when, .stop-place, .stop-title, .stop-glow) {
+      visibility: hidden;
+    }
+    .path[data-gl] .path-caption {
+      display: grid;
+      position: relative;
+      height: 4.5rem;
+      margin-top: -5.5rem;
+      pointer-events: none;
+    }
+    .path-caption-item {
+      grid-area: 1 / 1;
+      display: grid;
+      justify-items: center;
+      align-content: start;
+      gap: 0.25rem;
+      padding-inline: 1rem;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .path-caption-item[data-on] {
+      opacity: 1;
+    }
+    .path-caption-item .stop-place {
+      max-width: 100%;
+    }
+  }
+
   .path[data-gl] :is(.stop-when, .stop-place, .stop-title) {
     transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }

@@ -335,6 +335,8 @@ export function startPathGallery(canvas: HTMLCanvasElement, stops: PathStop[]): 
       if (focusedItem) delete focusedItem.li.dataset.focus;
       focused.li.dataset.focus = '';
       focusedItem = focused;
+      // Phones: the caption outside the drag layer (Path.astro .path-caption) follows the focused stop.
+      for (const cap of section?.querySelectorAll<HTMLElement>('.path-caption-item') ?? []) cap.toggleAttribute('data-on', cap.dataset.for === focused.stop.id);
     }
 
     // Play a snap cue when a new stop comes into focus and movement settles.
