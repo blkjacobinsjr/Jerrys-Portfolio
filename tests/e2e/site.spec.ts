@@ -31,14 +31,15 @@ test.describe('page', () => {
     expect(errors).toEqual([]);
   });
 
-  test('shows a quiet Backed by row under the desk', async ({ page }) => {
+  const PROGRAMS = ['Microsoft for Startups', 'Google for Startups', 'NVIDIA Inception', 'ElevenLabs Startup Program', 'Deepgram Startup Program', 'Draper University', 'LAUNCH (Jason Calacanis)'];
+  test('shows the startup programs as labelled logos under the desk', async ({ page }) => {
     await open(page);
-    const row = page.locator('.hero-backed');
-    await expect(row.getByRole('heading', { name: 'Backed by' })).toBeVisible();
-    await expect(row.getByRole('listitem')).toHaveCount(7);
-    await expect(row.getByText('LAUNCH (Jason Calacanis)')).toBeVisible();
-    const [art, backed] = await Promise.all([page.locator('.hero-art').boundingBox(), row.boundingBox()]);
-    expect(backed!.y).toBeGreaterThanOrEqual(art!.y + art!.height);
+    const row = page.locator('.programs');
+    await expect(row.getByRole('heading', { name: 'Startup programs' })).toBeVisible();
+    await expect(row.getByRole('listitem')).toHaveCount(PROGRAMS.length);
+    for (const name of PROGRAMS) await expect(row.getByRole('img', { name })).toBeVisible();
+    const [art, programs] = await Promise.all([page.locator('.hero-art').boundingBox(), row.boundingBox()]);
+    expect(programs!.y).toBeGreaterThanOrEqual(art!.y + art!.height);
   });
 
   test('never scrolls sideways', async ({ page }) => {
