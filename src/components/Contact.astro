@@ -26,7 +26,7 @@ const layers = [
         <Image src={img} alt="" class={`roof roof-${depth}`} widths={[768, 1280, 1536]} sizes="100vw" loading="lazy" />
       ))
     }
-    <video class="sky-video" data-sky-video muted loop playsinline preload="none" poster="/video/footer-omni-v1-poster.webp" aria-hidden="true" tabindex="-1">
+    <video class="sky-video" data-sky-video muted loop playsinline preload="none" data-poster="/video/footer-omni-v1-poster.webp" aria-hidden="true" tabindex="-1">
       <source data-src="/video/footer-omni-v1.webm" type="video/webm" />
       <source data-src="/video/footer-omni-v1.mp4" type="video/mp4" />
     </video>
@@ -315,6 +315,7 @@ const layers = [
     const arm = () => {
       if (video.dataset.armed !== undefined) return;
       video.dataset.armed = '';
+      video.poster = video.dataset.poster!; // the poster too: it competed with the hero image for LCP
       for (const source of video.querySelectorAll('source')) source.src = source.dataset.src!;
       video.load();
     };
