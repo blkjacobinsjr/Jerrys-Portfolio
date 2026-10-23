@@ -52,6 +52,9 @@ for (const { name, viewport, touch } of VIEWPORTS) {
       for (let i = 0; i < count; i++) {
         const entry = entries.nth(i);
         const label = (await entry.getAttribute('data-stop')) ?? (await entry.getAttribute('aria-label')) ?? `entry ${i}`;
+        // The pinned strip moves sideways with vertical scroll, so scrollIntoView alone cannot reach a stop; focus
+        // brings it to the middle (motion/index.ts), as a keyboard user would. The click below is still a real mouse click.
+        await entry.focus();
         await entry.scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
         await entry.click();
@@ -96,6 +99,7 @@ for (const { name, viewport, touch } of VIEWPORTS) {
       for (let i = 0; i < count; i++) {
         const entry = stops.nth(i);
         const label = (await entry.getAttribute('data-stop')) ?? `stop ${i}`;
+        await entry.focus();
         await entry.scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
         await entry.click();

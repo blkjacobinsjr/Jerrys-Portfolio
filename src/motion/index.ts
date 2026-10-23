@@ -74,6 +74,9 @@ function path() {
   const restAt = (stop: HTMLElement) => gsap.utils.clamp(0, 1, (stop.offsetLeft - track.offsetLeft + stop.offsetWidth / 2 - pin.clientWidth / 2) / distance());
 
   let held = false;
+  let lastInput = -Infinity;
+  const input = () => { lastInput = performance.now(); };
+  for (const type of ['wheel', 'touchmove', 'keydown'] as const) addEventListener(type, input, { passive: true });
   const travel = gsap.to(track, {
     x: () => -distance(),
     ease: 'none',
@@ -91,7 +94,8 @@ function path() {
         // or scrolls the page behind a scroll-locked drawer.
         snapTo: (progress, self) => {
           // `progress` is velocity-projected, so a hold returns where the wheel actually is, not where it was headed.
-          if (held || document.documentElement.hasAttribute('data-scroll-locked')) return self?.progress ?? progress;
+          // Only the visitor's own wheel, touch or keys snap: a programmatic scroll (deep link, scrollIntoView, focus) rests where it lands.
+          if (held || performance.now() - lastInput > 1200 || document.documentElement.hasAttribute('data-scroll-locked')) return self?.progress ?? progress;
           const rests = [...track.querySelectorAll<HTMLElement>('.stop')].map(restAt);
           return rests.reduce((best, at) => (Math.abs(at - progress) < Math.abs(best - progress) ? at : best), rests[0] ?? progress);
         },
@@ -151,9 +155,9 @@ function path() {
   const onFocus = (event: FocusEvent) => {
     const stop = (event.target as HTMLElement).closest<HTMLElement>('.stop');
     const st = travel.scrollTrigger;
-    // Only keyboard focus: a mouse press also focuses the button, and jumping then moves the stop out from under the
-    // pointer, so pointerup lands on a neighbour and the click never opens the drawer.
-    if (!stop || !st || !(event.target as HTMLElement).matches(':focus-visible')) return;
+    // Not for a press: pointerdown also focuses the button, and jumping then moves the stop out from under the
+    // pointer, so pointerup lands on a neighbour and the click never opens the drawer. Keys and focus() still jump.
+    if (!stop || !st || held) return;
     jumpTo(st.start + restAt(stop) * (st.end - st.start));
   };
   track.addEventListener('focusin', onFocus);
@@ -162,6 +166,7 @@ function path() {
     track.removeEventListener('focusin', onFocus);
     track.removeEventListener('pointerdown', hold);
     offLock();
+    for (const type of ['wheel', 'touchmove', 'keydown'] as const) removeEventListener(type, input);
     removeEventListener('pointerup', release);
     removeEventListener('pointercancel', release);
     ScrollTrigger.removeEventListener('refresh', alignInitialHash);
