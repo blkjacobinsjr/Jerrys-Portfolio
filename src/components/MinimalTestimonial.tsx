@@ -43,7 +43,7 @@ export function TestimonialsMinimal({ testimonials }: { testimonials: MinimalTes
               aria-label={`${t.name}, ${t.role}`}
               className={`mt-avatar${active === i ? ' is-active' : ''}`}
             >
-              <img src={t.image} alt="" width={40} height={40} />
+              <img src={t.image} alt="" width={40} height={40} loading="lazy" decoding="async" fetchPriority="low" />
             </button>
           ))}
         </div>
@@ -57,7 +57,7 @@ export function TestimonialsMinimal({ testimonials }: { testimonials: MinimalTes
             <div key={i} className={`mt-author${active === i ? ' is-active' : ''}`} aria-hidden={active !== i}>
               <span className="mt-name">{t.name}</span>
               <span className="mt-role">
-                {t.logo && <img className="mt-logo" src={t.logo} alt="" width={14} height={14} />}
+                {t.logo && <img className="mt-logo" src={t.logo} alt="" width={14} height={14} loading="lazy" decoding="async" fetchPriority="low" />}
                 {t.role}
               </span>
             </div>

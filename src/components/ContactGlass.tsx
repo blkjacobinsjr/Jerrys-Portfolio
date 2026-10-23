@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type CSSProperties } from 'react';
 import { canUseGL } from '../lib/gl';
-import { onFirstIntent } from '../lib/intent';
 import { useMedia } from '../lib/useMedia';
 
 const FluidGlass = lazy(() => import('./FluidGlass'));
@@ -72,8 +71,9 @@ function measure(title: HTMLElement): Layout {
 }
 
 /**
- * React Bits FluidGlass over the footer heading. The island renders nothing until the GL gate
- * passes and the visitor shows intent (client:idle: an island that renders null has no box for client:visible to observe); reduced motion (live) unmounts it and the plain heading is back. The canvas
+ * React Bits FluidGlass over the footer heading. The island (client:idle: an island that renders null has no box for
+ * client:visible to observe) renders nothing until the visitor points at the footer (a pointer move or tap while it is a
+ * quarter in view, which is the first intent that counts here); only then does the GL gate run. Reduced motion (live) unmounts it. The canvas
  * redraws the heading at its own size and line breaks; the DOM heading only turns transparent once the glass has had
  * a frame to paint, so there is never a moment without text, and it stays the accessible name.
  */
@@ -83,8 +83,27 @@ export default function ContactGlass() {
   const [layout, setLayout] = useState<Layout | null>(null);
 
   useEffect(() => {
-    if (reduced || !canUseGL()) return;
-    return onFirstIntent(() => setArmed(true));
+    if (reduced) return;
+    const footer = document.getElementById('contact');
+    if (!footer) return;
+    // Shader setup costs a long task, so it waits for a pointer in the footer itself (never mid-scroll, never a wheel),
+    // and the GL probe waits for that intent too: no WebGL context exists before it.
+    let near = false;
+    const go = () => {
+      if (!near) return;
+      stop();
+      if (canUseGL()) setArmed(true);
+    };
+    const stop = () => {
+      io.disconnect();
+      removeEventListener('pointermove', go);
+      removeEventListener('pointerdown', go);
+    };
+    const io = new IntersectionObserver(([entry]) => (near = entry.isIntersecting), { threshold: 0.25 });
+    io.observe(footer);
+    addEventListener('pointermove', go, { passive: true });
+    addEventListener('pointerdown', go, { passive: true });
+    return stop;
   }, [reduced]);
 
   const on = armed && !reduced;

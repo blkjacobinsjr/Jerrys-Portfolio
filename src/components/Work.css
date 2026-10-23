@@ -25,7 +25,7 @@
 .work-face {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 27rem) 1fr;
+  grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   aspect-ratio: 16 / 10;
   padding: clamp(1.5rem, 3.6vw, 2.75rem);
@@ -279,7 +279,7 @@
   position: absolute;
   inset: -10%;
   z-index: -1;
-  background: radial-gradient(ellipse at 75% 70%, color-mix(in oklch, var(--surface) 50%, var(--glow, #b89170)) 0%, transparent 55%),
+  background: radial-gradient(ellipse at 75% 70%, color-mix(in oklch, var(--surface) 50%, var(--glow, var(--glow-default))) 0%, transparent 55%),
     radial-gradient(ellipse at 30% 20%, color-mix(in oklch, var(--surface) 65%, white), transparent 65%);
   pointer-events: none;
 }
