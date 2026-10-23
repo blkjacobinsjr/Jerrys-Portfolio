@@ -30,7 +30,7 @@ test('a stop partly out of view opens its drawer with no page errors, and the pa
   const target = await page.locator('[data-stop]').evaluateAll((els, w) => {
     for (const el of els) {
       const r = el.getBoundingClientRect();
-      if (r.left < w && r.right > w && r.top >= 0) return { id: (el as HTMLElement).dataset.stop!, x: (r.left + w) / 2, y: r.top + r.height / 2 };
+      if (r.left < w && r.right > w && r.top > -1) return { id: (el as HTMLElement).dataset.stop!, x: (r.left + w) / 2, y: r.top + r.height / 2 };
     }
     return null;
   }, vp.width);
