@@ -95,7 +95,7 @@ test('draws the inline signature once, keeps its reserved box stable, and stays 
   expect(drawSeconds).toBeGreaterThan(1.5);
   expect(drawSeconds).toBeLessThanOrEqual(1.85);
   if (testInfo.project.name === 'mobile') expect((await signature.boundingBox())!.width).toBeLessThanOrEqual(102.9);
-  if (testInfo.project.name === 'desktop') expect((await signature.boundingBox())!.width).toBeLessThanOrEqual(154);
+  if (testInfo.project.name === 'desktop') expect((await signature.boundingBox())!.width).toBeLessThanOrEqual(102.9);
   await expect.poll(() => page.locator('html').getAttribute('data-signature-progressed')).toBe('true');
   await expect.poll(() => page.locator('html').getAttribute('data-signature-ends'), { timeout: 4_000 }).toBe('3');
   await expect(page.locator('html')).toHaveAttribute('data-signature-starts', '3');
