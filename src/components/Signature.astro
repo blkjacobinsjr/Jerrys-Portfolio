@@ -66,7 +66,7 @@ const speed = DRAW_SECONDS / (last.start + last.duration);
   /* Press state: the site's press scale (transitions.dev press token, --dur-press). */
   .hero-signature-replay {
     display: block;
-    width: min(100%, 16rem);
+    width: min(100%, 9.6rem);
     padding: 0;
     border: 0;
     background: none;
@@ -98,10 +98,10 @@ const speed = DRAW_SECONDS / (last.start + last.duration);
     color: var(--fg);
   }
 
-  /* On phones a 16rem signature pushes the teaser far down; ~8rem keeps it a flourish. */
+  /* Jerry, 23 Oct: about 60% of the old 16rem on desktop and 80% of the old 8rem on phones. */
   @media (max-width: 767px) {
     .hero-signature-replay {
-      width: min(100%, 8rem);
+      width: min(100%, 6.4rem);
     }
   }
 
