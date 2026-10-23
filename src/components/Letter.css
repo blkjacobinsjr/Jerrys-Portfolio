@@ -262,24 +262,95 @@
   pointer-events: none;
 }
 
-/* The on-load intro: a sheet the size of the letter unfolds from a tilted, shrunken ball. Transform and opacity only. */
-.letter-fold {
-  inset: 0;
-  border-radius: 4px;
-  background: var(--paper);
-  box-shadow: 0 30px 60px -30px rgb(var(--shadow-tint) / 0.35), 0 2px 6px rgb(var(--shadow-tint) / 0.08);
-  animation: letter-unfold 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+/* The on-load intro, from the first paint and without script: the server-rendered letter starts as a
+   tiny sheet hidden under a crumpled ball (a PaperCrumple frame, ball.webp), the ball wobbles, then the
+   letter unfolds to full size as the ball swells and fades. Transform and opacity only, so it neither
+   shifts the layout nor holds up LCP: the letter paints at once, scaled down. Reduced motion skips all of it.
+   The ball sits at --ball-y (a fixed distance from the desk top, so it is on screen on a tall phone letter). */
+.letter-desk {
+  --ball-y: 15rem;
+  --intro-dur: 1500ms;
+}
+
+.letter-ball {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .letter-ball {
+    position: absolute;
+    z-index: 2;
+    top: var(--ball-y);
+    left: 50%;
+    display: block;
+    width: 7.5rem;
+    height: auto;
+    margin: -3.75rem 0 0 -3.75rem;
+    pointer-events: none;
+    animation: ball-away var(--intro-dur) var(--ease-out) both;
+  }
+
+  .letter {
+    transform-origin: 50% var(--ball-y);
+    animation: letter-unfold var(--intro-dur) var(--ease-out) both;
+  }
+
+  .letter-ticket {
+    animation: ticket-in 400ms var(--ease-out) calc(var(--intro-dur) * 0.7) both;
+  }
 }
 
 @keyframes letter-unfold {
+  0%,
+  30% {
+    opacity: 0.6;
+    transform: scale(0.08) rotate(-12deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ball-away {
+  0% {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+
+  14% {
+    transform: rotate(-9deg) scale(1.04);
+  }
+
+  28% {
+    opacity: 1;
+    transform: rotate(7deg) scale(1);
+  }
+
+  34% {
+    opacity: 1;
+    transform: rotate(7deg) scale(1);
+  }
+
+  70% {
+    opacity: 0;
+    transform: rotate(40deg) scale(2.4);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(40deg) scale(2.4);
+  }
+}
+
+@keyframes ticket-in {
   from {
     opacity: 0;
-    transform: scale(0.3) rotate(-8deg);
   }
 
   to {
     opacity: 1;
-    transform: none;
   }
 }
 

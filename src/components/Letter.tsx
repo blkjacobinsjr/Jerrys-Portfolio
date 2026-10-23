@@ -14,7 +14,7 @@ const OPEN_MS = 900;
 const GIVE_UP_MS = 4000;
 const MARGIN = 24;
 
-type Act = 'intro' | 'reset';
+type Act = 'reset';
 interface Sheet {
   width: number;
   height: number;
@@ -23,11 +23,12 @@ interface Sheet {
 
 /**
  * A letter to me, after Carter Ogunsola's contact page. Write it, then tear the stub off the
- * postage ticket (React Bits TearTicket) to send it. On load the letter unfolds with a
- * CSS transform; Start over crumples it as a sheet of React Bits PaperCrumple (WebGL, fetched on
- * first intent). Reduced motion keeps it still.
+ * postage ticket (React Bits TearTicket) to send it. The server-rendered letter starts as a
+ * crumpled ball (a pre-rendered PaperCrumple frame) and unfolds in CSS, from the first paint,
+ * with transform and opacity only (Letter.css). Start over crumples it as a sheet of React Bits
+ * PaperCrumple (WebGL, fetched on first intent). Reduced motion opens it at once.
  */
-export default function Letter({ email }: { email: string }) {
+export default function Letter({ email, ball }: { email: string; ball: { src: string; width: number; height: number } }) {
   const [topic, setTopic] = useState<Topic>(TOPICS[0]);
   const [from, setFrom] = useState('');
   const [body, setBody] = useState('');
@@ -53,13 +54,6 @@ export default function Letter({ email }: { email: string }) {
     const box = el.getBoundingClientRect();
     return { width: box.width, height: box.height, fill: getComputedStyle(el).backgroundColor };
   };
-  const intro = () => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    clear();
-    setHidden(true);
-    setAct('intro');
-    later(done, OPEN_MS);
-  };
   const play = (next: Act) => {
     const size = measure();
     if (!size) return false;
@@ -80,7 +74,6 @@ export default function Letter({ email }: { email: string }) {
 
   useEffect(() => setDate(new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date()).toUpperCase()), []);
   useLayoutEffect(() => {
-    intro();
     const stop = onFirstIntent(() => void import('./PaperCrumple'));
     return () => {
       stop();
@@ -103,7 +96,7 @@ export default function Letter({ email }: { email: string }) {
     cue('crumple');
     if (act || !play('reset')) blank();
   };
-  // The paper is on screen: for the intro it opens by itself, for a reset it crumples first, the letter is wiped while it is balled up, then it opens blank.
+  // The paper is on screen: it crumples first, the letter is wiped while it is balled up, then it opens blank.
   const onReady = () => {
     clear();
     setHidden(true);
@@ -120,6 +113,7 @@ export default function Letter({ email }: { email: string }) {
 
   return (
     <div className="letter-desk" data-act={act ?? undefined}>
+      <img className="letter-ball" src={ball.src} width={ball.width} height={ball.height} alt="" decoding="async" />
       <form ref={letter} className="letter" data-hidden={hidden ? '' : undefined} aria-labelledby="letter-title" onSubmit={(event) => { event.preventDefault(); if (ready) send(); }}>
         <header className="letter-head">
           <span className="letter-mark" aria-hidden="true">JD</span>
@@ -169,7 +163,6 @@ export default function Letter({ email }: { email: string }) {
         </div>
       </form>
 
-      {act === 'intro' ? <div className="letter-paper letter-fold" aria-hidden="true" /> : null}
       {act === 'reset' && sheet ? (
         <div className="letter-paper" style={{ top: -MARGIN, left: -MARGIN, width: sheet.width + 2 * MARGIN, height: sheet.height + 2 * MARGIN }} aria-hidden="true">
           <Suspense fallback={null}>
