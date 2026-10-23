@@ -54,6 +54,38 @@ describe('overlay contract', () => {
     off();
   });
 
+  it('a listener that throws never strands the lock: the others still hear it, and unlock still restores', async () => {
+    const { root, attrs } = fakeRoot();
+    const win = fakeWindow(0, 900);
+    const heard: boolean[] = [];
+    const thrown: unknown[] = [];
+    const spy = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation((fn) => {
+      try {
+        fn();
+      } catch (error) {
+        thrown.push(error);
+      }
+    });
+    const offBad = onScrollLock(() => {
+      throw new Error('listener broke');
+    });
+    const off = onScrollLock((locked) => heard.push(locked));
+    const unlock = lockScroll(root, win);
+    expect(attrs.has(LOCK_ATTR)).toBe(true);
+    expect(heard).toEqual([true]);
+    win.scrollY = 10;
+    unlock();
+    expect(attrs.has(LOCK_ATTR)).toBe(false);
+    expect(heard).toEqual([true, false]);
+    expect(win.scrollTo).toHaveBeenCalledWith({ left: 0, top: 900, behavior: 'instant' });
+    // The error is still reported, just outside the lock.
+    expect(thrown).toHaveLength(2);
+    expect((thrown[0] as Error).message).toBe('listener broke');
+    spy.mockRestore();
+    offBad();
+    off();
+  });
+
   it('restores the horizontal offset too', () => {
     const { root } = fakeRoot();
     const win = fakeWindow(30, 500);

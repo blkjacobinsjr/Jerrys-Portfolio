@@ -13,7 +13,7 @@ test('a stop partly out of view opens its drawer with no page errors, and the pa
 
   // Reach Path the way a visitor does: wheel on desktop, a touch scroll on phones.
   const path = page.locator('#path');
-  const cdp = isMobile ? await page.context().newCDPSession(page) : null;
+  const cdp = isMobile;
   // Phones: synthetic vertical touch scrolls do not move this page in headless Chromium, so reach the strip
   // directly; the strip itself is the native touch scroller, and its edge stops are the partly visible ones.
   if (cdp) await scrollToSelector(page, '#path .path-track');
