@@ -69,37 +69,35 @@ test.describe('mascot', () => {
 });
 
 test.describe('work', () => {
-  test('opens a project sheet and closes it with Escape', async ({ page }) => {
+  test('opens a project on its own page, with a way back to the work', async ({ page }) => {
     await open(page);
     await scrollToSelector(page, '#work');
-    const card = page.locator('.work-card').first();
-    await card.click();
-    const sheet = page.locator('dialog[open]');
-    await expect(sheet).toBeVisible();
-    await expect(sheet.getByRole('heading', { name: 'Scenaryo' })).toBeVisible();
-    await expect(sheet.getByRole('link', { name: /Visit scenaryo\.app/ })).toHaveAttribute('href', 'https://scenaryo.app/research');
-    await page.keyboard.press('Escape');
-    await expect(page.locator('dialog[open]')).toHaveCount(0);
+    await page.locator('.work-card').first().click();
+    await page.waitForURL('**/work/scenaryo');
+    await expect(page.getByRole('heading', { level: 1, name: 'Scenaryo' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Visit scenaryo\.app/ })).toHaveAttribute('href', 'https://scenaryo.app/research');
+    await expect(page.locator('dialog')).toHaveCount(0);
+    await page.getByRole('link', { name: 'Selected work' }).click();
+    await page.waitForURL('**/#work');
+    await expect(page.locator('#work')).toBeAttached();
   });
 
-  test('returns focus to the card after a keyboard open', async ({ page }) => {
-    await open(page);
-    await scrollToSelector(page, '#work');
-    const card = page.locator('.work-card').first();
-    await card.focus();
-    await page.keyboard.press('Enter');
-    await expect(page.locator('dialog[open]')).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(page.locator('dialog[open]')).toHaveCount(0);
-    await expect(card).toBeFocused();
-  });
-
-  test('opens a sheet from the keyboard', async ({ page }) => {
+  test('opens a project from the keyboard', async ({ page }) => {
     await open(page);
     await scrollToSelector(page, '#work');
     await page.locator('.work-card').nth(1).focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('dialog[open]').getByRole('heading', { name: 'Tiding' })).toBeVisible();
+    await page.waitForURL('**/work/tiding');
+    await expect(page.getByRole('heading', { level: 1, name: 'Tiding' })).toBeVisible();
+  });
+
+  test('old drawer links go to the project page', async ({ page }) => {
+    await page.goto('/#work/leapfrog');
+    await page.waitForURL('**/work/leapfrog');
+    await page.goto('/?project=tiding');
+    await page.waitForURL('**/work/tiding');
+    await page.goto('/#work/not-a-project');
+    expect(new URL(page.url()).pathname).toBe('/');
   });
 
   test('discloses earlier work on demand', async ({ page }) => {

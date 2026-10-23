@@ -5,10 +5,10 @@ Feature: Getting to know Jerry
   Scenario: A founder skims the selected work
     Given I open the portfolio
     When I open the project "Scenaryo"
-    Then I see a sheet titled "Scenaryo"
-    And the sheet links to "scenaryo.app"
-    When I close the sheet
-    Then no sheet is open
+    Then I see a project page titled "Scenaryo"
+    And the page links to "scenaryo.app"
+    When I go back to the selected work
+    Then I am on the home page at its work section
 
   Scenario: A recruiter checks the career path
     Given I open the portfolio
@@ -66,7 +66,7 @@ Feature: Getting to know Jerry
     And I prefer reduced motion
     And I open the portfolio
     When I open the project "Scenaryo"
-    And I scroll the sheet to its end
+    And I scroll the page to its end
     Then its research CTA is fully visible
     When I follow its research CTA
     Then the research URL opens
@@ -75,8 +75,8 @@ Feature: Getting to know Jerry
     Given I prefer reduced motion
     And I open the portfolio
     When I open the project "Leapfrog AI"
-    Then I see a sheet titled "Leapfrog AI"
-    And the sheet links to "lfg-ai.com"
+    Then I see a project page titled "Leapfrog AI"
+    And the page links to "lfg-ai.com"
 
   Scenario: A recruiter reads the recommendations
     Given I prefer reduced motion

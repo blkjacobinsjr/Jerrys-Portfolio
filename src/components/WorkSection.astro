@@ -1,9 +1,10 @@
 ---
-import { Image, getImage } from 'astro:assets';
-import Work, { type Screenshot, type WorkItem } from './Work';
+import { Image } from 'astro:assets';
+import WorkCards from './WorkCards.astro';
 import DecryptedText from './DecryptedText';
 import LogoLoop from './LogoLoop';
-import { earlier, projects } from '../data/site';
+import { earlier } from '../data/site';
+import { resolveProjects } from '../lib/work';
 import tools from '../data/stack.json';
 
 // Logo files written by tools/fetch-logos.mjs (logo.dev with a token, Simple Icons without).
@@ -16,32 +17,12 @@ const logos = tools.stack.map(({ name, file }) => ({
   height: 24,
 }));
 
-const items: WorkItem[] = await Promise.all(
-  projects.map(async ({ shots, shotAlts, phone, logo, ...project }) => {
-    const resolved = await Promise.all(
-      shots.map(async (src, i) => {
-        const phone = i === 2;
-        const img = await getImage({ src, widths: phone ? [240, 360, 480, 640] : [480, 800, 1200, 1600], format: 'webp' });
-        // The drawer carousel's WebGL texture: the widest candidate up to 1200px, never the original.
-        const texture = img.srcSet.values.filter((v) => (v.transform.width ?? 0) <= 1200).at(-1)?.url ?? img.src;
-        return { src: img.src, srcset: img.srcSet.attribute, texture, width: src.width, height: src.height, alt: shotAlts[i] ?? '' } satisfies Screenshot;
-      }),
-    );
-    const mark = await getImage({ src: logo, width: 96, format: 'webp' });
-    const hand = await getImage({ src: phone.src, widths: [360, 540, 720, 960], format: 'webp' });
-    return {
-      ...project,
-      logo: mark.src,
-      shots: resolved as [Screenshot, Screenshot, Screenshot],
-      phone: { src: hand.src, srcset: hand.srcSet.attribute, width: phone.src.width, height: phone.src.height, alt: phone.alt },
-    };
-  }),
-);
+const items = await resolveProjects();
 ---
 
 <section class="work wide" id="work" aria-labelledby="work-title">
   <h2 id="work-title" class="label"><DecryptedText client:afterload="(hover: hover) and (pointer: fine)" text="Selected work" sequential speed={40} encryptedClassName="decrypting" /></h2>
-  <Work client:afterload items={items} />
+  <WorkCards items={items} />
 
   <details class="earlier">
     <summary>

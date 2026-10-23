@@ -1,0 +1,344 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorkGallery from '../../components/WorkGallery';
+import { projects, type Project } from '../../data/site';
+import { resolveProject } from '../../lib/work';
+import '../../styles/sheet.css';
+import '../../styles/work-transition.css';
+
+export function getStaticPaths() {
+  return projects.map((project, index) => ({
+    params: { slug: project.id },
+    props: { project, next: projects[(index + 1) % projects.length]! },
+  }));
+}
+
+const { project, next } = Astro.props as { project: Project; next: Project };
+const item = await resolveProject(project);
+const site = item.presentation === 'website';
+---
+
+<Base title={`${item.name}, a project by Jerry Doughan`} description={`${item.name}: ${item.summary} ${item.role}.`}>
+  <main id="main" class="work-page" style={`--tint:${item.tint}`}>
+    <div class="col">
+      <a class="work-back t-learn" href="/#work">
+        <span class="t-learn-chevron work-back-chevron" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="16" height="16">
+            <path class="t-learn-arm t-learn-arm-top" d="M10 4L6 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+            <path class="t-learn-arm t-learn-arm-bot" d="M6 8L10 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+          </svg>
+        </span>
+        Selected work
+      </a>
+    </div>
+
+    <article>
+      <header class="work-hero wide" style={`view-transition-name:work-${item.id}`}>
+        <img class="work-hero-logo" src={item.logo} width={40} height={40} alt="" />
+        <div class="work-hero-copy">
+          <h1 class="detail-title">{item.name}</h1>
+          <p class="work-hero-tagline">{item.tagline}</p>
+          <p class="work-hero-summary">{item.summary}</p>
+        </div>
+        <span class={`work-hero-shot${site ? ' work-hero-shot-site' : ''}`}>
+          <img
+            src={item.phone.src}
+            srcset={item.phone.srcset}
+            sizes="(min-width: 768px) 420px, 80vw"
+            width={item.phone.width}
+            height={item.phone.height}
+            alt={item.phone.alt}
+            fetchpriority="high"
+            decoding="async"
+            style={`view-transition-name:phone-${item.id}`}
+          />
+        </span>
+      </header>
+
+      <div class="col work-body">
+        <dl class="detail-facts">
+          <div>
+            <dt>Role</dt>
+            <dd>{item.role}</dd>
+          </div>
+          <div>
+            <dt>Platform</dt>
+            <dd>{item.platform}</dd>
+          </div>
+          <div>
+            <dt>When</dt>
+            <dd>{item.years}</dd>
+          </div>
+        </dl>
+
+        <p class="detail-story">{item.story}</p>
+
+        <h2 class="label detail-label">What I shaped</h2>
+        <ul class="detail-list">
+          {item.shaped.map((line) => <li>{line}</li>)}
+        </ul>
+        {item.proof && <p class="detail-proof muted">{item.proof}</p>}
+
+        <WorkGallery client:visible={{ rootMargin: '200px' }} name={item.name} shots={item.shots} />
+
+        <a class="pill-link detail-visit" href={item.url} target="_blank" rel="noopener">
+          Visit {item.urlLabel}
+          <span aria-hidden="true"> ↗</span>
+        </a>
+
+        <a class="work-next t-learn" href={`/work/${next.id}`}>
+          <span class="muted">Next project</span>
+          <span class="work-next-name">
+            {next.name}
+            <span class="t-learn-chevron" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="16" height="16">
+                <path class="t-learn-arm t-learn-arm-top" d="M6 4L10 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+                <path class="t-learn-arm t-learn-arm-bot" d="M10 8L6 12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" fill="none" />
+              </svg>
+            </span>
+          </span>
+        </a>
+      </div>
+    </article>
+  </main>
+</Base>
+
+<style is:global>
+  .work-page {
+    --learn-shift: 2px;
+    --learn-spread: 8deg;
+    --learn-in: 350ms;
+    --learn-out: 350ms;
+    --learn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --surface: var(--tint);
+    min-height: 100svh;
+    padding-block: clamp(1.25rem, 4vh, 2.5rem) clamp(4rem, 12vh, 7rem);
+    /* The gallery runs edge to edge (100vw); a classic scrollbar must not turn that into a sideways scroll. */
+    overflow-x: clip;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .work-page {
+      --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
+    }
+  }
+
+  .work-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    gap: 0.25rem;
+    color: var(--fg-2);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .work-back:hover,
+  .work-back:focus-visible {
+    color: var(--fg);
+  }
+
+  /* Learn more hover (transitions.dev 24), the back chevron pointing left: it slides left as its arms spread. */
+  .work-back-chevron {
+    transform: translateX(0);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .t-learn:hover .t-learn-chevron,
+    .t-learn:hover .t-learn-arm {
+      transition-duration: var(--learn-in);
+    }
+
+    .t-learn:hover .t-learn-chevron {
+      transform: translateX(var(--learn-shift));
+    }
+
+    .work-back:hover .t-learn-chevron {
+      transform: translateX(calc(var(--learn-shift) * -1));
+    }
+
+    .t-learn:hover .t-learn-arm-top {
+      transform: rotate(var(--learn-spread));
+    }
+
+    .t-learn:hover .t-learn-arm-bot {
+      transform: rotate(calc(var(--learn-spread) * -1));
+    }
+
+    .work-back:hover .t-learn-arm-top {
+      transform: rotate(calc(var(--learn-spread) * -1));
+    }
+
+    .work-back:hover .t-learn-arm-bot {
+      transform: rotate(var(--learn-spread));
+    }
+  }
+
+  .t-learn-chevron {
+    display: inline-flex;
+    transition: transform var(--learn-out) var(--learn-ease);
+  }
+
+  .t-learn-arm {
+    transform-box: view-box;
+    transform-origin: 10px 8px;
+    vector-effect: non-scaling-stroke;
+    transition: transform var(--learn-out) var(--learn-ease);
+  }
+
+  .work-back .t-learn-arm {
+    transform-origin: 6px 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .t-learn-chevron,
+    .t-learn-arm {
+      transition: none !important;
+    }
+  }
+
+  /* The card, grown into a page: the same surface, the same hand. */
+  .work-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+    align-items: end;
+    gap: 1rem;
+    min-height: clamp(22rem, 52vh, 30rem);
+    margin-top: 0.5rem;
+    padding: clamp(1.5rem, 3.6vw, 2.75rem) clamp(1.5rem, 3.6vw, 2.75rem) 0;
+    border-radius: var(--r-card);
+    background: var(--surface);
+    box-shadow: 0 24px 60px -32px rgb(var(--shadow-tint) / 0.35);
+    overflow: hidden;
+    isolation: isolate;
+    --muted: color-mix(in oklch, var(--fg) 64%, var(--surface));
+  }
+
+  .work-hero::before {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse at 75% 70%, color-mix(in oklch, var(--surface) 50%, var(--glow, #b89170)) 0%, transparent 55%),
+      radial-gradient(ellipse at 30% 20%, color-mix(in oklch, var(--surface) 65%, white), transparent 65%);
+    pointer-events: none;
+  }
+
+  .work-hero-logo {
+    position: absolute;
+    top: clamp(1.5rem, 3.6vw, 2.75rem);
+    left: clamp(1.5rem, 3.6vw, 2.75rem);
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+
+  .work-hero-copy {
+    align-self: start;
+    padding-top: 3.75rem;
+    color: var(--muted);
+    font-size: clamp(1.125rem, 0.8rem + 0.95vw, 1.625rem);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+
+  .work-hero-copy .detail-title {
+    margin: 0;
+    font-size: clamp(2rem, 1.2rem + 3vw, 3.25rem);
+    color: var(--fg);
+  }
+
+  .work-hero-tagline {
+    margin: 0.5rem 0 0;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .work-hero-summary {
+    margin: 0.5rem 0 0;
+  }
+
+  /* The hand leaves through the bottom edge, as on the card. */
+  .work-hero-shot {
+    justify-self: center;
+    align-self: end;
+    width: min(100%, 28rem);
+    margin-bottom: -30%;
+    pointer-events: none;
+  }
+
+  .work-hero-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(-8px 12px 9px rgb(24 20 16 / 0.12)) drop-shadow(-26px 30px 30px rgb(24 20 16 / 0.14));
+  }
+
+  .work-hero-shot-site {
+    align-self: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    transform: rotate(-3deg);
+  }
+
+  .work-hero-shot-site img {
+    border-radius: var(--r-tile);
+    box-shadow: -16px 20px 40px -16px rgb(var(--shadow-tint) / 0.3);
+    filter: none;
+  }
+
+  @media (max-width: 640px) {
+    .work-hero {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .work-hero-shot {
+      width: min(80%, 20rem);
+      margin-bottom: -22%;
+    }
+
+    .work-hero-shot-site {
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  .work-body {
+    padding-top: 2rem;
+  }
+
+  /* The story sits on the page, not in a drawer: no staggered entrance (sheet.css gives the drawer one). */
+  .work-page :is(.detail-facts, .detail-story, .detail-label, .detail-list, .detail-proof, .detail-visit) {
+    animation: none;
+  }
+
+  .work-page .detail-label {
+    margin-top: 0.5rem;
+  }
+
+  .work-next {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    color: var(--fg);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .work-next-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+</style>
