@@ -15,13 +15,14 @@ export default function ConsultancyBadge({ image, alt, options }: { image: strin
   const [gone, setGone] = useState(false);
   useEffect(() => {
     if (!canUseGL()) return undefined;
-    const go = () => setLive(true);
-    if (!('requestIdleCallback' in window)) {
-      const timer = window.setTimeout(go, 200);
-      return () => clearTimeout(timer);
-    }
-    const idle = requestIdleCallback(go, { timeout: 1000 });
-    return () => cancelIdleCallback(idle);
+    let off = false;
+    const go = () => !off && setLive(true);
+    // Safari has no requestIdleCallback.
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 1000 });
+    else setTimeout(go, 200);
+    return () => {
+      off = true;
+    };
   }, []);
 
   // Two frames after the first WebGL frame, so the canvas is on screen before the poster leaves.
