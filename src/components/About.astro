@@ -339,9 +339,11 @@ const unit = (i: number) => `--i: ${i}; --c: ${path[i % path.length]!.glow}`;
     transform: scale(0.94);
   }
 
+  /* Hallmark 39a: disabled reads on three channels (fill, ink, cursor), not opacity alone. */
   .recs-arrow:disabled {
-    opacity: 0.2;
-    cursor: default;
+    background: var(--line);
+    color: var(--fg-3);
+    cursor: not-allowed;
   }
 
   @media (hover: none) {

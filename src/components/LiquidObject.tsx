@@ -2127,6 +2127,7 @@ export function LiquidObject({
     <div className={className} style={{ position: "relative", ...style }}>
       <canvas
         ref={canvasRef}
+        aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,

@@ -72,6 +72,7 @@
    that appears only on lock narrowed the page by 15px and reflowed every card behind the drawer. */
 html {
   scrollbar-gutter: stable;
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   background: var(--bg);
@@ -85,6 +86,7 @@ html[data-scroll-locked] {
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans-stack);
