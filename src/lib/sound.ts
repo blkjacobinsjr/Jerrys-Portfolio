@@ -1,6 +1,6 @@
 import type { PlayOptions, SoundName } from 'cuelume';
 
-type Cue = 'tick' | 'press' | 'release' | 'bloom' | 'sparkle' | 'tear' | 'crumple' | 'success';
+type Cue = 'tick' | 'press' | 'release' | 'bloom' | 'sparkle' | 'tear' | 'crumple' | 'success' | 'draw' | 'snap';
 type Lib = typeof import('cuelume');
 
 // Our cue names, mapped to cuelume's fourteen. press and release are the two halves of one tap.
@@ -11,6 +11,8 @@ const PLAY: Record<Exclude<Cue, 'press' | 'release'>, [SoundName, PlayOptions]> 
   tear: ['close', { emphasis: 'strong' }],
   crumple: ['close', { emphasis: 'subtle' }],
   success: ['success', { emphasis: 'strong' }],
+  draw: ['close', { emphasis: 'subtle' }],
+  snap: ['select', { emphasis: 'subtle' }],
 };
 
 const KEY = 'sound';
@@ -22,9 +24,9 @@ let muted = false;
 
 const closest = (target: EventTarget | null, selector: string) => (target as Element | null)?.closest?.(selector) ?? null;
 
-/** Play a cue. Silent until cuelume has loaded (after a first gesture), when muted, and under reduced motion. */
+/** Play a cue. Silent until cuelume has loaded (after a first gesture) and when muted. */
 export function cue(name: Cue) {
-  if (!lib || muted || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!lib || muted) return;
   if (name === 'press') lib.press('tap');
   else if (name === 'release') lib.release('tap');
   else lib.play(...PLAY[name]);
@@ -77,7 +79,11 @@ export function initSound() {
     if (!muted) void lib?.unlock();
   });
 
-  // The signature's last stroke finishing.
+  // The signature's first stroke starting and last stroke finishing.
+  addEventListener('animationstart', (event) => {
+    const masks = document.querySelectorAll('[data-signature-mask]');
+    if (event.target === masks[0]) cue('draw');
+  }, true);
   addEventListener('animationend', (event) => {
     const masks = document.querySelectorAll('[data-signature-mask]');
     if (event.target === masks[masks.length - 1]) cue('sparkle');

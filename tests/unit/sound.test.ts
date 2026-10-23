@@ -76,11 +76,11 @@ describe('sound', () => {
     expect(lib.play).toHaveBeenCalledTimes(2);
   });
 
-  it('stays silent under reduced motion', async () => {
+  it('plays cues even under reduced motion', async () => {
     const env = await loaded({ reduced: true });
     await unlockAudio(env);
     env.sound.cue('bloom');
-    expect(lib.play).not.toHaveBeenCalled();
+    expect(lib.play).toHaveBeenCalledWith('open', {});
   });
 
   it('starts muted from storage and toggles from the footer button', async () => {
@@ -131,6 +131,13 @@ describe('sound', () => {
     env.fire('pointerover', { pointerType: 'touch', target: hit([HOVER]), relatedTarget: null });
     env.fire('pointerover', { pointerType: 'mouse', target: hit([]), relatedTarget: null });
     expect(lib.play).toHaveBeenCalledTimes(1);
+  });
+
+  it('draws when the first signature stroke starts', async () => {
+    const env = await loaded();
+    await unlockAudio(env);
+    env.fire('animationstart', { target: env.masks[0] });
+    expect(lib.play).toHaveBeenCalledWith('close', { emphasis: 'subtle' });
   });
 
   it('sparkles when the last signature stroke ends', async () => {

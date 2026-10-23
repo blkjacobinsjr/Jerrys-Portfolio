@@ -1,7 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Sheet, type DetentSpec } from 'scrollsheet/auto';
 import { OVERLAY_ATTR, lockScroll } from '../lib/overlay';
-import { cue } from '../lib/sound';
 import { useMedia } from '../lib/useMedia';
 import '../styles/sheet.css';
 
@@ -36,7 +35,6 @@ export default function Drawer({
 }) {
   const wide = useMedia('(min-width: 768px)');
   useEffect(() => (open ? lockScroll() : undefined), [open]);
-  useEffect(() => { if (open) cue('bloom'); }, [open]);
   const detents = wide ? [desktop] : phone;
   // Controlled, so a drawer that closed fully expanded opens at its first detent again, not at the last one.
   const [detent, setDetent] = useState<DetentSpec>();

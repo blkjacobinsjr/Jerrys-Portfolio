@@ -50,8 +50,10 @@ const speed = DRAW_SECONDS / (last.start + last.duration);
   })}
 </svg>
 <script>
+  import { cue } from '../lib/sound';
   // Replay the draw-in. Under reduced motion no animation runs, so the signature is already whole and stays so.
   document.querySelector<HTMLElement>('[data-signature-replay]')?.addEventListener('click', (event) => {
+    cue('draw');
     for (const animation of event.currentTarget instanceof Element ? event.currentTarget.getAnimations({ subtree: true }) : []) {
       animation.currentTime = 0;
       animation.play();

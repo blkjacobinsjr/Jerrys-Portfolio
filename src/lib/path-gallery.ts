@@ -11,6 +11,8 @@
  * Hover and press are transitions.dev "Avatar group hover" (recipe 11) on the buttons; the canvas mirrors
  * the button's computed transform, so the recipe stays the single source of truth for that motion.
  */
+import { cue } from './sound';
+
 export interface PathStop {
   id: string;
   src: string;
@@ -217,6 +219,7 @@ export function startPathGallery(canvas: HTMLCanvasElement, stops: PathStop[]): 
   let height = 1;
   let ratio = 1;
   let pitch = 1;
+  let lastSnappedId: string | undefined;
   /** Buttons whose recipe transition is running: the canvas mirrors their computed transform until it ends. */
   const moving = new Map<HTMLElement, boolean>();
   const lift = new Map<Item, { dy: number; scale: number }>();
@@ -320,6 +323,19 @@ export function startPathGallery(canvas: HTMLCanvasElement, stops: PathStop[]): 
     }
     cards.sort((a, b) => Math.abs(b.x) - Math.abs(a.x));
     draw(cards);
+
+    // Play a snap cue when a new stop comes into focus and movement settles.
+    if (Math.abs(step) < 0.01 && velocity === 0) {
+      const focused = items.reduce<Item | undefined>((closest, item) => {
+        const itemX = item.cx - pos - width / 2;
+        const closestX = closest ? closest.cx - pos - width / 2 : Infinity;
+        return Math.abs(itemX) < Math.abs(closestX) ? item : closest;
+      }, undefined);
+      if (focused && focused.stop.id !== lastSnappedId) {
+        lastSnappedId = focused.stop.id;
+        cue('snap');
+      }
+    }
 
     if (Math.abs(step) > 0.01 || velocity !== 0 || moving.size || items.some((i) => !textures.get(i.stop.src)?.loaded && Math.abs(i.cx - pos - width / 2) < width)) {
       raf = requestAnimationFrame(frame);

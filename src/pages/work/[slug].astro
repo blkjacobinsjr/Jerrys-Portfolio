@@ -19,6 +19,10 @@ const site = item.presentation === 'website';
 ---
 
 <Base title={`${item.name}, a project by Jerry Doughan`} description={`${item.name}: ${item.summary} ${item.role}.`}>
+  <script>
+    import { cue } from '../../lib/sound';
+    cue('bloom');
+  </script>
   <main id="main" class="work-page" style={`--tint:${item.tint}`}>
     <div class="col">
       <a class="work-back t-learn" href="/#work">

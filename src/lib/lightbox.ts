@@ -1,5 +1,6 @@
 import pswpCss from 'photoswipe/photoswipe.css?url';
 import { lockScroll, OVERLAY_ATTR } from './overlay';
+import { cue } from './sound';
 
 export interface LightboxShot {
   src: string;
@@ -40,9 +41,15 @@ export async function openLightbox(shots: LightboxShot[], index: number): Promis
     wheelToZoom: false,
   });
   const unlock = lockScroll();
-  pswp.on('afterInit', () => pswp.element?.setAttribute(OVERLAY_ATTR, ''));
+  pswp.on('afterInit', () => {
+    pswp.element?.setAttribute(OVERLAY_ATTR, '');
+    cue('bloom');
+  });
   // Keys and drags are ignored while it opens; `data-opened` says when it is ready for them.
   pswp.on('openingAnimationEnd', () => pswp.element?.setAttribute('data-opened', ''));
-  pswp.on('destroy', unlock);
+  pswp.on('destroy', () => {
+    cue('tear');
+    unlock();
+  });
   pswp.init();
 }

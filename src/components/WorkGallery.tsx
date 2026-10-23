@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { canUseGL } from '../lib/gl';
 import { openLightbox } from '../lib/lightbox';
+import { cue } from '../lib/sound';
 import type { Screenshot } from '../lib/work';
 import { useMedia } from '../lib/useMedia';
 import './WorkGallery.css';
@@ -55,6 +56,22 @@ export default function WorkGallery({ name, shots }: { name: string; shots: Scre
   // shot at the end of the loop wins and it opens on the last screenshot. Home, before that frame, starts it on the first.
   useEffect(() => {
     if (Carousel) press('Home');
+  }, [Carousel]);
+
+  // Play a subtle snap cue when carousel slides to a new item.
+  useEffect(() => {
+    if (!Carousel) return;
+    const live = box.current?.querySelector('.flex-carousel__live');
+    if (!live) return;
+    let last = live.textContent;
+    const observer = new MutationObserver(() => {
+      if (live.textContent && live.textContent !== last) {
+        cue('snap');
+        last = live.textContent;
+      }
+    });
+    observer.observe(live, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
   }, [Carousel]);
 
   const lightbox = (index: number, element?: HTMLElement) =>
