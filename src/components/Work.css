@@ -22,11 +22,111 @@
     --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
   }
 
-/* Phones and touch read the cards with plain native scroll: no sticky deck, nothing scroll-linked. */
+/* Desktop: the sticky deck, GSAP recedes the covered card (src/motion). */
 @media (hover: hover) and (pointer: fine) {
   .work-item {
     position: sticky;
     top: calc(clamp(1rem, 6vh, 3.5rem) + var(--i) * 14px);
+  }
+}
+
+/* t144: the deck is back on phones and touch as pure CSS, nothing runs during a swipe. Each card pins a little
+   lower than the last (sticky). Where scroll timelines exist, the covered card recedes on the compositor, driven
+   by the next card's own view timeline (timeline-scope lifts the names to the list). Transform and opacity only;
+   the browser promotes the face only while its animation is active, so no standing will-change. Without scroll
+   timelines it is a plain sticky stack; reduced motion keeps the stack and drops the recede. */
+@media not ((hover: hover) and (pointer: fine)) {
+  .work-item {
+    position: sticky;
+    top: calc(clamp(0.75rem, 4svh, 2rem) + var(--i) * 10px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) and (timeline-scope: --t) {
+      .work-list {
+        timeline-scope: --work-1, --work-2, --work-3, --work-4, --work-5, --work-6, --work-7, --work-8;
+      }
+      .work-item:nth-child(1) {
+        view-timeline-name: --work-1;
+      }
+      .work-item:nth-child(2) {
+        view-timeline-name: --work-2;
+      }
+      .work-item:nth-child(3) {
+        view-timeline-name: --work-3;
+      }
+      .work-item:nth-child(4) {
+        view-timeline-name: --work-4;
+      }
+      .work-item:nth-child(5) {
+        view-timeline-name: --work-5;
+      }
+      .work-item:nth-child(6) {
+        view-timeline-name: --work-6;
+      }
+      .work-item:nth-child(7) {
+        view-timeline-name: --work-7;
+      }
+      .work-item:nth-child(8) {
+        view-timeline-name: --work-8;
+      }
+      .work-item:nth-child(1):has(+ .work-item) .work-face,
+      .work-item:nth-child(1):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-2;
+      }
+      .work-item:nth-child(2):has(+ .work-item) .work-face,
+      .work-item:nth-child(2):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-3;
+      }
+      .work-item:nth-child(3):has(+ .work-item) .work-face,
+      .work-item:nth-child(3):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-4;
+      }
+      .work-item:nth-child(4):has(+ .work-item) .work-face,
+      .work-item:nth-child(4):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-5;
+      }
+      .work-item:nth-child(5):has(+ .work-item) .work-face,
+      .work-item:nth-child(5):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-6;
+      }
+      .work-item:nth-child(6):has(+ .work-item) .work-face,
+      .work-item:nth-child(6):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-7;
+      }
+      .work-item:nth-child(7):has(+ .work-item) .work-face,
+      .work-item:nth-child(7):has(+ .work-item) .work-face::after {
+        animation-timeline: --work-8;
+      }
+      .work-item:has(+ .work-item) .work-face {
+        animation-name: work-recede;
+      }
+      .work-item:has(+ .work-item) .work-face::after {
+        animation-name: work-shade;
+      }
+      .work-item:has(+ .work-item) .work-face,
+      .work-item:has(+ .work-item) .work-face::after {
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-range: entry 0% entry 100%;
+      }
+    }
+  }
+}
+
+@keyframes work-recede {
+  to {
+    transform: scale(0.93);
+  }
+}
+
+@keyframes work-shade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -177,10 +277,12 @@
 
   .t-learn:hover .t-learn-arm-top {
     transform: rotate(var(--learn-spread));
+    transition: transform var(--learn-in) var(--learn-ease);
   }
 
   .t-learn:hover .t-learn-arm-bot {
     transform: rotate(calc(var(--learn-spread) * -1));
+    transition: transform var(--learn-in) var(--learn-ease);
   }
 }
 

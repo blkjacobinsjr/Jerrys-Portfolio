@@ -210,9 +210,9 @@ describe('sound', () => {
 
     await unlockAudio(env); // This triggers loadSamples
 
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm', expect.anything());
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(9); // 'open', 'close', 'whoosh'
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledWith(expect.any(ArrayBuffer));
   });
@@ -224,9 +224,9 @@ describe('sound', () => {
 
     await unlockAudio(env);
 
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.m4a');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.m4a');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.m4a');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.m4a', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.m4a', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.m4a', expect.anything());
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(9);
   });
 
@@ -241,9 +241,9 @@ describe('sound', () => {
 
     await unlockAudio(env);
 
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm', expect.anything());
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8); // Only 2 successful decodes
   });
 
@@ -258,9 +258,9 @@ describe('sound', () => {
 
     await unlockAudio(env);
 
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm', expect.anything());
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm', expect.anything());
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8); // Only 2 successful decodes
   });
 

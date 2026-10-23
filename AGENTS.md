@@ -227,3 +227,32 @@ Start over only.
   `data-glass` (transparent text) two frames after the glass mounts; it stays the accessible name. The layer is
   `pointer-events: none`; the library listens on `window`.
 
+
+## CSS and motion rules (from good-css.com, adopted Oct 2026)
+
+Every CSS or motion change follows https://good-css.com. Read the entry for your task before writing CSS. The rules this site depends on:
+
+- **CSS over script.** Prefer one declaration that adapts on its own over breakpoints, and a CSS feature over JavaScript. JS only where it makes the result nicer, and the CSS must work without it. Nothing may write styles during a scroll or a swipe. The touch deck (`Work.css`, t144) is sticky plus scroll timelines, with zero style mutations.
+- **Opt-in motion.** Movement and scale live inside `@media (prefers-reduced-motion: no-preference)`. Build the state first and add motion inside the query. Never strip motion afterwards with a global `0.01ms` rule. Opacity and color fades may stay outside. Script-driven motion checks the same query with `matchMedia`.
+- **Scroll-driven animation.**
+  - Use `animation-timeline: scroll()/view()` inside `@supports (animation-timeline: view())`, with a plain fallback (for example a plain sticky stack).
+  - Write `animation-timeline` after the `animation` shorthand, or use longhands, because the shorthand resets the timeline.
+  - Animate `transform` and `opacity` only, never layout or paint properties.
+- **Motion tokens.**
+  - Use `--ease-out` for anything entering or leaving and `--ease-in-out` for on-screen moves. Never use `ease-in` on UI.
+  - Durations: ≤300ms for UI, 100–160ms for press feedback, 200–500ms for drawers and modals.
+  - Always name the properties in a transition. Never write `transition: all`.
+- **Hover only where hover exists.** Use `@media (hover: hover) and (pointer: fine)`, and give touch users `:active` press feedback at a scale of 0.95–0.98.
+- **will-change.** Only while an effect is active. Compositor animations promote themselves, so never leave a standing `will-change`.
+- **Clipping.** `overflow: clip` over `hidden`, because `hidden` makes a scroll container and breaks `position: sticky` inside it.
+- **Shadows.** Cross-fade two pre-painted shadows with opacity; never transition `box-shadow` on many cards. Never animate an element that carries a `filter`/drop-shadow on scroll: re-rastering it cost the perf gate (see the 00e2709 phone parallax).
+- **Layout.**
+  - `svh` for heroes and documents, `dvh` only for app shells.
+  - `scroll-padding-block-start` for anchors under the sticky dock.
+  - `overscroll-behavior: contain` on inner scrollers (drawers).
+- **Focus.** Use `:focus-visible` rings; never `outline: none`. Use `outline-color: transparent` when a shadow draws the ring.
+- **Enter and exit from `display: none`.** Use `@starting-style` plus `transition-behavior: allow-discrete`; never start from `scale(0)`, use 0.95.
+- **Every motion change:**
+  - run `npx transitions-agent` and fix its findings on the touched files
+  - keep the motion score from dropping
+  - pass the CDP Pixel 7 drag script (`/workspace/jpA3/smooth.mjs`) at p95 < 17ms

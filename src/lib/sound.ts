@@ -56,12 +56,15 @@ async function loadSamples() {
   samplesToLoad.add('wind');
   samplesToLoad.add('city');
 
-  // In parallel: the enter screen's whoosh must not wait behind the city loop.
+  // In parallel: the enter screen's whoosh must not wait behind the city loop. Leaving the page mid-load (a card click can
+  // be the first gesture) cancels cleanly; WebKit otherwise reports each torn-down fetch as an access-control page error.
   const audio = ctx;
+  const leave = new AbortController();
+  addEventListener('pagehide', () => leave.abort(), { once: true });
   await Promise.all(
     [...samplesToLoad].map(async (name) => {
       try {
-        const response = await fetch(`/sfx/${name}.${ext}`);
+        const response = await fetch(`/sfx/${name}.${ext}`, { signal: leave.signal });
         if (!response.ok) return;
         buffers.set(name, await audio.decodeAudioData(await response.arrayBuffer()));
       } catch {
