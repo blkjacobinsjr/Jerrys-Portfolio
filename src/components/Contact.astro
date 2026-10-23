@@ -9,6 +9,7 @@ import far from '../assets/roof/far.webp';
 import mid from '../assets/roof/mid.webp';
 import near from '../assets/roof/near.webp';
 import { person } from '../data/site';
+import signature from './signature-data.json';
 
 const layers = [
   { img: far, depth: 'far' },
@@ -47,9 +48,24 @@ const layers = [
     <p class="contact-fine muted">© {new Date().getFullYear()} {person.name}. Berlin. · <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="true">Sound on</button></p>
   </div>
   </div>
+  {/* Jerry's mark, small and static, back in the bottom-right corner of the footer. */}
+  <svg class="footer-signature" viewBox={signature.viewBox} aria-hidden="true" focusable="false">
+    {signature.strokes.map((stroke) => <path d={stroke.fill} fill="currentColor" />)}
+  </svg>
 </footer>
 
 <style>
+  .footer-signature {
+    position: absolute;
+    right: clamp(1rem, 3vw, 2rem);
+    bottom: clamp(1rem, 3vw, 1.75rem);
+    z-index: 2;
+    width: clamp(3.5rem, 6vw, 4.75rem);
+    aspect-ratio: 554 / 354;
+    color: var(--fg);
+    opacity: 0.7;
+    pointer-events: none;
+  }
   /* Curtain: the footer sits in normal flow under <main>; its contents are
      scrubbed upward slower than the page, so it reads as uncovered from beneath. */
   .contact {
