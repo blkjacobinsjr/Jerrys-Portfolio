@@ -2,6 +2,7 @@
 import { Font } from 'astro:assets';
 import 'lenis/dist/lenis.css';
 import '../styles/global.css';
+import { HERO_ZOOM, HERO_ZOOM_PREVIEW } from '../data/site';
 
 interface Props {
   title: string;
@@ -40,6 +41,16 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-sans" preload />
     <slot name="head" />
+    {HERO_ZOOM_PREVIEW && (
+      <script is:inline define:vars={{ mode: HERO_ZOOM }}>
+        // Before first paint: the hero-zoom variant (preview override via ?zoom=), off under reduced motion.
+        (function () {
+          var q = new URLSearchParams(location.search).get('zoom');
+          var m = q === 'start-inside' || q === 'dive-in' ? q : q === 'off' ? '' : mode;
+          if (m && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.dataset.heroZoom = m;
+        })();
+      </script>
+    )}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

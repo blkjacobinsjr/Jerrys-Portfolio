@@ -48,8 +48,11 @@ import markHkw from '../assets/stops/logos/hkw.png';
 import markWbs from '../assets/stops/logos/wbs.png';
 import markDraper from '../assets/stops/logos/draper.png';
 
-/** t139 preview: the hero opens zoomed into the laptop screen and scroll pulls back to the desk. false reverts it. */
-export const HERO_ZOOM = true;
+/** t141 preview: 'start-inside' opens full-bleed on the laptop screen and scroll lands it in the desk;
+ *  'dive-in' opens on the desk and scroll dives into the screen. false reverts. ?zoom=start-inside|dive-in|off overrides on previews. */
+export const HERO_ZOOM: 'start-inside' | 'dive-in' | false = false;
+/** Preview builds only (VERCEL_ENV !== 'production'): ship the zoom markup so ?zoom= can switch it on. */
+export const HERO_ZOOM_PREVIEW = !!HERO_ZOOM || (typeof process !== 'undefined' && !!process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production');
 
 export const person = {
   name: 'Jerry Doughan',

@@ -3,7 +3,8 @@ import { getImage, Picture } from 'astro:assets';
 import Mascot from './Mascot';
 import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
-import { HERO_ZOOM, person } from '../data/site';
+import screen from '../assets/icons/screen-berlin.webp';
+import { HERO_ZOOM, HERO_ZOOM_PREVIEW, person } from '../data/site';
 import { teaser } from '../data/recommendations';
 import MinimalTestimonial from './MinimalTestimonial';
 import Signature from './Signature.astro';
@@ -27,6 +28,7 @@ const quotes = await Promise.all(
 );
 ---
 
+<div class="hero-pin" data-hero-pin data-mode={HERO_ZOOM || undefined}>
 <header class="hero wide" id="top">
   <div class="hero-copy">
     <div class="hero-id">
@@ -53,7 +55,7 @@ const quotes = await Promise.all(
   </div>
 
   <div class="hero-art-col">
-  <figure class="hero-art" data-hero-art data-zoom={HERO_ZOOM ? '' : undefined}>
+  <figure class="hero-art" data-hero-art>
     <Picture
       src={desk}
       formats={['avif', 'webp']}
@@ -70,6 +72,28 @@ const quotes = await Promise.all(
   <StartupPrograms />
   </div>
 </header>
+{HERO_ZOOM_PREVIEW && (
+  <div class="hero-screen" data-hero-screen aria-hidden="true">
+    <Picture
+      src={screen}
+      formats={['avif', 'webp']}
+      fallbackFormat="webp"
+      alt=""
+      widths={[480, 828, 1280, 1920, 2560]}
+      quality={50}
+      sizes="(max-width: 899px) 340px, max(100vw, 160svh)"
+      loading="eager"
+      decoding="async"
+      fetchpriority={HERO_ZOOM === 'start-inside' ? 'high' : 'low'}
+    />
+  </div>
+)}
+</div>
+
+<script>
+  import { heroZoom } from '../scripts/hero-zoom';
+  heroZoom();
+</script>
 
 <style>
   .hero {
@@ -195,36 +219,59 @@ const quotes = await Promise.all(
     }
   }
 
-  /* t139: the page opens on the laptop screen (Berlin, TV tower) and the first 60vh of scroll pulls back to the
-     whole desk. Same img (still the LCP), transform only, scroll-driven on the compositor; browsers without
-     scroll timelines and reduced motion keep the static desk. */
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      .hero-art[data-zoom] {
-        overflow: clip;
-      }
-      .hero-art[data-zoom] :global(picture) {
-        transform-origin: 40.5% 22%;
-        animation: hero-pull linear both;
-        animation-timeline: scroll(root);
-        animation-range: 0 60vh;
-      }
-      /* Phones: the desk sits below the copy, so the pull-back follows the desk's own trip into view. */
-      @media (max-width: 899px) {
-        .hero-art[data-zoom] :global(picture) {
-          animation-timeline: view();
-          animation-range: entry 60% cover 55%;
-        }
-      }
-    }
+  /* t141: one fixed copy of the screen (16:10, sized to cover the viewport) that hero-zoom.ts maps between
+     full-bleed and the laptop's perspective quad with a matrix3d per frame. Transform and opacity only. */
+  .hero-screen {
+    display: none;
   }
-
-  @keyframes hero-pull {
-    from {
-      transform: scale(3.2);
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html[data-hero-zoom]) .hero-screen {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 5;
+      width: max(100vw, 160svh);
+      aspect-ratio: 16 / 10;
+      transform-origin: 0 0;
+      pointer-events: none;
+      contain: strict;
+      will-change: transform, opacity;
     }
-    to {
-      transform: none;
+    :global(html[data-hero-zoom='dive-in']) .hero-screen {
+      z-index: 0;
+      opacity: 0;
+    }
+    .hero-screen :global(img) {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+    }
+    /* Desktop pins the hero while the screen travels, so the end state is the hero exactly as it is today. */
+    @media (min-width: 900px) {
+      :global(html[data-hero-zoom='start-inside']) .hero-pin {
+        height: calc(100svh + 70vh);
+      }
+      :global(html[data-hero-zoom='dive-in']) .hero-pin {
+        height: calc(100svh + 90vh);
+      }
+      :global(html[data-hero-zoom]) .hero {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        min-height: 0;
+      }
+    }
+    :global(html[data-hero-zoom='start-inside']) .hero-copy > * {
+      animation: none;
+    }
+    :global(html[data-hero-zoom='start-inside']) .hero-copy {
+      opacity: 0;
+    }
+    :global(html[data-hero-zoom='dive-in'] #work) {
+      position: relative;
+      z-index: 1;
     }
   }
 </style>
