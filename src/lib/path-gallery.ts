@@ -220,6 +220,7 @@ export function startPathGallery(canvas: HTMLCanvasElement, stops: PathStop[]): 
   let ratio = 1;
   let pitch = 1;
   let lastSnappedId: string | undefined;
+  let focusedItem: Item | undefined;
   /** Buttons whose recipe transition is running: the canvas mirrors their computed transform until it ends. */
   const moving = new Map<HTMLElement, boolean>();
   const lift = new Map<Item, { dy: number; scale: number }>();
@@ -324,13 +325,20 @@ export function startPathGallery(canvas: HTMLCanvasElement, stops: PathStop[]): 
     cards.sort((a, b) => Math.abs(b.x) - Math.abs(a.x));
     draw(cards);
 
+    // The stop nearest the middle owns the caption: its text crossfades in while the others dim (Path.astro CSS).
+    const focused = items.reduce<Item | undefined>((closest, item) => {
+      const itemX = item.cx - pos - width / 2;
+      const closestX = closest ? closest.cx - pos - width / 2 : Infinity;
+      return Math.abs(itemX) < Math.abs(closestX) ? item : closest;
+    }, undefined);
+    if (focused && focused !== focusedItem) {
+      if (focusedItem) delete focusedItem.li.dataset.focus;
+      focused.li.dataset.focus = '';
+      focusedItem = focused;
+    }
+
     // Play a snap cue when a new stop comes into focus and movement settles.
     if (Math.abs(step) < 0.01 && velocity === 0) {
-      const focused = items.reduce<Item | undefined>((closest, item) => {
-        const itemX = item.cx - pos - width / 2;
-        const closestX = closest ? closest.cx - pos - width / 2 : Infinity;
-        return Math.abs(itemX) < Math.abs(closestX) ? item : closest;
-      }, undefined);
       if (focused && focused.stop.id !== lastSnappedId) {
         lastSnappedId = focused.stop.id;
         cue('snap');
@@ -429,6 +437,7 @@ export function startPathGallery(canvas: HTMLCanvasElement, stops: PathStop[]): 
     items.forEach(({ btn }, i) => btn.removeEventListener('pointerenter', hoverIn[i]!));
     for (const { li, btn } of items) {
       delete li.dataset.gl;
+      delete li.dataset.focus;
       li.style.removeProperty('transform');
       li.style.removeProperty('transform-origin');
       li.style.removeProperty('opacity');
