@@ -1,5 +1,6 @@
 import { gsap, hasUserIntent, jumpTo, ScrollTrigger, startScroll } from '../lib/scroll';
 import { step, still, type Swing } from '../lib/swing';
+import { onScrollLock } from '../lib/overlay';
 
 /**
  * Every scroll-driven effect on the page. Loaded once, after `load` and an
@@ -72,6 +73,7 @@ function path() {
   // each stop with a transform, which would skew a bounding box.
   const restAt = (stop: HTMLElement) => gsap.utils.clamp(0, 1, (stop.offsetLeft - track.offsetLeft + stop.offsetWidth / 2 - pin.clientWidth / 2) / distance());
 
+  let held = false;
   const travel = gsap.to(track, {
     x: () => -distance(),
     ease: 'none',
@@ -85,7 +87,11 @@ function path() {
       scrub: true,
       // React Bits CircularGallery snap-on-end: once input stops for 140ms, glide to the nearest stop.
       snap: {
-        snapTo: (progress) => {
+        // A press, or an open drawer, holds the wheel where it is: the glide never moves a stop out from under the pointer
+        // or scrolls the page behind a scroll-locked drawer.
+        snapTo: (progress, self) => {
+          // `progress` is velocity-projected, so a hold returns where the wheel actually is, not where it was headed.
+          if (held || document.documentElement.hasAttribute('data-scroll-locked')) return self?.progress ?? progress;
           const rests = [...track.querySelectorAll<HTMLElement>('.stop')].map(restAt);
           return rests.reduce((best, at) => (Math.abs(at - progress) < Math.abs(best - progress) ? at : best), rests[0] ?? progress);
         },
@@ -97,6 +103,16 @@ function path() {
       onUpdate: (self) => ruler.style.setProperty('--progress', String(self.progress)),
     },
   });
+
+  const hold = () => {
+    held = true;
+    travel.scrollTrigger?.getTween(true)?.kill();
+  };
+  const release = () => requestAnimationFrame(() => { held = false; });
+  track.addEventListener('pointerdown', hold);
+  const offLock = onScrollLock((locked) => locked && travel.scrollTrigger?.getTween(true)?.kill());
+  addEventListener('pointerup', release);
+  addEventListener('pointercancel', release);
 
   // Native anchors resolve before this late pin adds its spacer. Keep untouched
   // deep links aligned through pin refreshes, then leave scrolling to the visitor.
@@ -135,13 +151,19 @@ function path() {
   const onFocus = (event: FocusEvent) => {
     const stop = (event.target as HTMLElement).closest<HTMLElement>('.stop');
     const st = travel.scrollTrigger;
-    if (!stop || !st) return;
+    // Only keyboard focus: a mouse press also focuses the button, and jumping then moves the stop out from under the
+    // pointer, so pointerup lands on a neighbour and the click never opens the drawer.
+    if (!stop || !st || !(event.target as HTMLElement).matches(':focus-visible')) return;
     jumpTo(st.start + restAt(stop) * (st.end - st.start));
   };
   track.addEventListener('focusin', onFocus);
 
   return () => {
     track.removeEventListener('focusin', onFocus);
+    track.removeEventListener('pointerdown', hold);
+    offLock();
+    removeEventListener('pointerup', release);
+    removeEventListener('pointercancel', release);
     ScrollTrigger.removeEventListener('refresh', alignInitialHash);
     document.documentElement.classList.remove('is-pinned');
   };
