@@ -13,16 +13,18 @@ function localAsset(image: ImageMetadata | string) {
 }
 
 describe('portfolio revamp content', () => {
-  it('presents the six approved recommenders in the requested order', () => {
+  it('presents the seven approved recommenders in the requested order', () => {
     expect(recommendations.map(({ name }) => name)).toEqual([
-      'Iñigo Martín-Calero', 'Woundioun Sissoko', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
+      'Enrique Coscarelli', 'Iñigo Martín-Calero', 'Woundioun Sissoko', 'Jerry Jiang', 'Gavin Laugenie', 'Ian Green', 'Christoph Suessmeier',
     ]);
   });
 
-  it('gives every recommendation an actual quote, LinkedIn, current role, wins and local portrait', () => {
+  it('gives every recommendation an actual quote, current role, wins and local portrait; LinkedIn when supplied', () => {
     for (const rec of recommendations) {
       expect(rec.quote.length, rec.name).toBeGreaterThan(80);
-      expect(rec.linkedin, rec.name).toMatch(/^https:\/\/www\.linkedin\.com\/in\/[^/]+\/?$/);
+      if (rec.linkedin) {
+        expect(rec.linkedin, rec.name).toMatch(/^https:\/\/www\.linkedin\.com\/in\/[^/]+\/?$/);
+      }
       expect(rec.position.title.length, rec.name).toBeGreaterThan(5);
       expect(rec.position.detail.length, rec.name).toBeGreaterThan(3);
       expect(rec.proof.length, rec.name).toBeGreaterThan(10);

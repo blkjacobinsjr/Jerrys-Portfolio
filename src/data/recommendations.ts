@@ -8,6 +8,7 @@ import googleLogo from '../assets/recommendations/logo-google.webp';
 import nasaLogo from '../assets/recommendations/logo-nasa.webp';
 import christophPortrait from '../assets/recommendations/christoph.webp';
 import danPortrait from '../assets/recommendations/dan-goldin.webp';
+import enriquePortrait from '../assets/recommendations/enrique.webp';
 import gavinPortrait from '../assets/recommendations/gavin.webp';
 import ianPortrait from '../assets/recommendations/ian.webp';
 import inigoPortrait from '../assets/recommendations/inigo.webp';
@@ -32,7 +33,7 @@ type PublicHeadline = {
 
 export interface Recommendation {
   name: string;
-  linkedin: string;
+  linkedin?: string;
   portrait: ImageMetadata;
   quote: string;
   context: string;
@@ -46,11 +47,24 @@ const existingTestimonial = (name: string): Testimonial => {
   return testimonial;
 };
 
+const enrique = existingTestimonial('Enrique Coscarelli');
 const gavin = existingTestimonial('Gavin Laugenie');
 const ian = existingTestimonial('Ian Green');
 const christoph = existingTestimonial('Christoph Suessmeier');
 
 export const recommendations: Recommendation[] = [
+  {
+    name: enrique.name,
+    portrait: enriquePortrait,
+    quote: enrique.quote,
+    context: enrique.context,
+    proof: 'WBS Coding School instructor',
+    position: {
+      kind: 'headline',
+      title: 'Senior Software Engineer',
+      detail: 'Bayer · formerly Lead Instructor, WBS Coding School',
+    },
+  },
   {
     name: 'Iñigo Martín-Calero',
     linkedin: 'https://www.linkedin.com/in/icalero',
