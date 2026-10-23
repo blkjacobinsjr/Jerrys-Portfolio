@@ -232,7 +232,9 @@
       t.addEventListener('pointerenter', (e) => {
         if (e.pointerType === 'mouse') place(t);
       });
-      t.addEventListener('focus', () => place(t));
+      t.addEventListener('focus', () => {
+        if (t.matches(':focus-visible')) place(t);
+      });
       t.addEventListener('blur', hide);
       t.addEventListener('click', () => (current === t && tip.getAttribute('data-show') === 'true' ? hide() : place(t)));
     }
