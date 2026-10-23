@@ -206,7 +206,7 @@ const site = item.presentation === 'website';
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
     align-items: end;
     gap: 1rem;
-    min-height: clamp(22rem, 52vh, 30rem);
+    min-height: clamp(22rem, 52svh, 30rem);
     margin-top: 0.5rem;
     padding: clamp(1.5rem, 3.6vw, 2.75rem) clamp(1.5rem, 3.6vw, 2.75rem) 0;
     border-radius: var(--r-card);
@@ -278,7 +278,7 @@ const site = item.presentation === 'website';
     display: block;
     width: 100%;
     height: auto;
-    filter: drop-shadow(-8px 12px 9px rgb(24 20 16 / 0.12)) drop-shadow(-26px 30px 30px rgb(24 20 16 / 0.14));
+    filter: drop-shadow(-8px 12px 9px rgb(var(--shadow-tint) / 0.12)) drop-shadow(-26px 30px 30px rgb(var(--shadow-tint) / 0.14));
   }
 
   .work-hero-shot-site {
