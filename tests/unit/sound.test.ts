@@ -12,6 +12,7 @@ const mockGainNode = {
 };
 const mockBufferSource = {
   buffer: null as AudioBuffer | null,
+  loop: false,
   connect: vi.fn(),
   start: vi.fn(),
 };
