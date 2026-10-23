@@ -42,6 +42,18 @@ test.describe('page', () => {
     expect(programs!.y).toBeGreaterThanOrEqual(art!.y + art!.height);
   });
 
+  test('startup programs have accessible descriptions and tooltips', async ({ page }) => {
+    await open(page);
+    const row = page.locator('.programs');
+    const firstLi = row.getByRole('listitem').first();
+    const describedBy = await firstLi.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    // aria-describedby points to the tooltip element
+    const tooltip = page.locator(`#${describedBy}`);
+    await expect(tooltip).toHaveRole('tooltip');
+    await expect(tooltip).toHaveText(PROGRAMS[0]);
+  });
+
   test('never scrolls sideways', async ({ page }) => {
     await open(page);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
