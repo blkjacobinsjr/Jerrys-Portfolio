@@ -124,6 +124,33 @@ describe('overlay contract', () => {
     off();
   });
 
+  it('a throwing listener never strands the lock: the others still hear it and the error is rethrown later', async () => {
+    const { root, attrs } = fakeRoot();
+    const heard: boolean[] = [];
+    const boom = new Error('listener broke');
+    const thrown: unknown[] = [];
+    const queue = vi.spyOn(globalThis, 'queueMicrotask').mockImplementation((task) => {
+      try {
+        task();
+      } catch (error) {
+        thrown.push(error);
+      }
+    });
+    const offBad = onScrollLock(() => {
+      throw boom;
+    });
+    const offGood = onScrollLock((locked) => heard.push(locked));
+    const unlock = lockScroll(root, fakeWindow());
+    expect(attrs.has(LOCK_ATTR)).toBe(true);
+    unlock();
+    expect(attrs.has(LOCK_ATTR)).toBe(false);
+    expect(heard).toEqual([true, false]);
+    expect(thrown).toEqual([boom, boom]);
+    queue.mockRestore();
+    offBad();
+    offGood();
+  });
+
   it('stops telling a listener once it unsubscribes', () => {
     const { root } = fakeRoot();
     const heard: boolean[] = [];
