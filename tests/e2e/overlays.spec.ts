@@ -28,8 +28,16 @@ async function readingPoint(page: Page, panel: Locator) {
 async function scrollBy(page: Page, panel: Locator, touch: boolean) {
   const { x, y } = await readingPoint(page, panel);
   if (touch) {
+    // Raw touch points: Chromium 156 no longer scrolls for Input.synthesizeScrollGesture, even on a plain page.
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.synthesizeScrollGesture', { x, y, yDistance: -320, gestureSourceType: 'touch', speed: 1600 });
+    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', dy = 0) =>
+      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y: y - dy }] });
+    await touch('touchStart');
+    for (let step = 1; step <= 16; step++) {
+      await touch('touchMove', step * 20);
+      await page.waitForTimeout(16);
+    }
+    await touch('touchEnd');
     await cdp.detach();
   } else {
     await page.mouse.move(x, y);
