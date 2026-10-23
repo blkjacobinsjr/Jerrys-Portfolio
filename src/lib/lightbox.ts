@@ -39,7 +39,7 @@ export async function openLightbox(shots: LightboxShot[], index: number, contain
     easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
     bgOpacity: 0.92,
     wheelToZoom: false,
-    // Inside an open modal <dialog> (a Path drawer) the lightbox must live in the dialog's top layer to show above it.
+    // Inside an open Path drawer (a modal dialog element) the lightbox must live in the dialog's top layer to show above it.
     ...(container ? { appendToEl: container } : {}),
   });
   // Escape closes the lightbox, not the drawer under it.
