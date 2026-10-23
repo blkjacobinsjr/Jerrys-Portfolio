@@ -3,7 +3,7 @@ import { getImage, Picture } from 'astro:assets';
 import Mascot from './Mascot';
 import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
-import { person } from '../data/site';
+import { HERO_ZOOM, person } from '../data/site';
 import { teaser } from '../data/recommendations';
 import MinimalTestimonial from './MinimalTestimonial';
 import Signature from './Signature.astro';
@@ -53,7 +53,7 @@ const quotes = await Promise.all(
   </div>
 
   <div class="hero-art-col">
-  <figure class="hero-art" data-hero-art>
+  <figure class="hero-art" data-hero-art data-zoom={HERO_ZOOM ? '' : undefined}>
     <Picture
       src={desk}
       formats={['avif', 'webp']}
@@ -192,6 +192,39 @@ const quotes = await Promise.all(
   @keyframes hero-art-in {
     from {
       transform: translateY(28px) scale(0.96);
+    }
+  }
+
+  /* t139: the page opens on the laptop screen (Berlin, TV tower) and the first 60vh of scroll pulls back to the
+     whole desk. Same img (still the LCP), transform only, scroll-driven on the compositor; browsers without
+     scroll timelines and reduced motion keep the static desk. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      .hero-art[data-zoom] {
+        overflow: clip;
+      }
+      .hero-art[data-zoom] :global(picture) {
+        transform-origin: 40.5% 22%;
+        animation: hero-pull linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 60vh;
+      }
+      /* Phones: the desk sits below the copy, so the pull-back follows the desk's own trip into view. */
+      @media (max-width: 899px) {
+        .hero-art[data-zoom] :global(picture) {
+          animation-timeline: view();
+          animation-range: entry 60% cover 55%;
+        }
+      }
+    }
+  }
+
+  @keyframes hero-pull {
+    from {
+      transform: scale(3.2);
+    }
+    to {
+      transform: none;
     }
   }
 </style>

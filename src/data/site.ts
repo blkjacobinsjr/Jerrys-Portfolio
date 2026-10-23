@@ -48,6 +48,9 @@ import markHkw from '../assets/stops/logos/hkw.png';
 import markWbs from '../assets/stops/logos/wbs.png';
 import markDraper from '../assets/stops/logos/draper.png';
 
+/** t139 preview: the hero opens zoomed into the laptop screen and scroll pulls back to the desk. false reverts it. */
+export const HERO_ZOOM = true;
+
 export const person = {
   name: 'Jerry Doughan',
   role: 'Product designer and frontend developer',
