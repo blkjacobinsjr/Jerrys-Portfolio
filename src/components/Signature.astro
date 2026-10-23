@@ -7,12 +7,12 @@ const last = signature.strokes[signature.strokes.length - 1]!.timing;
 const speed = DRAW_SECONDS / (last.start + last.duration);
 ---
 
+<button type="button" class="hero-signature-replay" data-signature-replay aria-label="Replay signature">
 <svg
   class="hero-signature"
   data-signature
   viewBox={signature.viewBox}
-  role="img"
-  aria-label="Jerry’s signature"
+  aria-hidden="true"
 >
   {signature.strokes.map((stroke, index) => {
     const maskId = `hero-signature-mask-${index}`;
@@ -49,18 +49,56 @@ const speed = DRAW_SECONDS / (last.start + last.duration);
     );
   })}
 </svg>
+<script>
+  // Replay the draw-in. Under reduced motion no animation runs, so the signature is already whole and stays so.
+  document.querySelector<HTMLElement>('[data-signature-replay]')?.addEventListener('click', (event) => {
+    for (const animation of event.currentTarget instanceof Element ? event.currentTarget.getAnimations({ subtree: true }) : []) {
+      animation.currentTime = 0;
+      animation.play();
+    }
+  });
+</script>
+</button>
 
 <style>
-  .hero-signature {
+  /* Press state: the site's press scale (transitions.dev press token, --dur-press). */
+  .hero-signature-replay {
     display: block;
     width: min(100%, 16rem);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: scale var(--dur-press) var(--ease-out);
+  }
+
+  .hero-signature-replay:active {
+    scale: 0.97;
+  }
+
+  .hero-signature-replay:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-signature-replay {
+      transition: none;
+    }
+  }
+
+  .hero-signature {
+    display: block;
+    width: 100%;
     aspect-ratio: 554 / 354;
     color: var(--fg);
   }
 
   /* On phones a 16rem signature pushes the teaser far down; ~8rem keeps it a flourish. */
   @media (max-width: 767px) {
-    .hero-signature {
+    .hero-signature-replay {
       width: min(100%, 8rem);
     }
   }
