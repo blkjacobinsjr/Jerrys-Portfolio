@@ -3,6 +3,30 @@
 Read this before changing the site. The QA gate is `npm run qa` (see `.cursor/skills/verify-portfolio`).
 Never lower a threshold, skip a journey or delete an assertion to get green.
 
+## Routing table
+
+Find the owner of a change here first, then read its insight below before editing.
+
+| Area (what you see) | Source | Lazy/gate | Tests |
+| --- | --- | --- | --- |
+| Hero: desk (mobile LCP), signature replay, recommendations teaser | `components/Hero.astro`, `Desk.tsx`, `Signature.astro`, `MinimalTestimonial.tsx`, `data/recommendations.ts` | desk AVIF preloaded in `pages/index.astro` | `e2e/signature.spec.ts`, `e2e/teaser-b.spec.ts` |
+| Startup programs logos and tooltips (in the hero) | `StartupPrograms.astro` (used by `Hero.astro`) | none (static) | `e2e/site.spec.ts`, `e2e/a11y.spec.ts` |
+| Selected work cards, logo loop, Liquid hover | `WorkSection.astro`, `LogoLoop.tsx`, `WorkCards.astro`, `WorkLiquidHost.tsx`, `WorkLiquid.tsx`, `lib/work-liquid.ts` | first intent, fine pointer, `canUseGL()` | `e2e/work-cards.spec.ts`, `e2e/work-liquid.spec.ts` |
+| Project pages, gallery, lightbox, card transition | `pages/work/[slug].astro`, `WorkGallery.tsx`, `FlexCarousel.tsx`, `lib/lightbox.ts`, `styles/work-transition.css` | gallery 25% visible + GL gate; PhotoSwipe on first tap | `e2e/work-pages.spec.ts`, `e2e/work-carousel.spec.ts`, `e2e/deep-links.spec.ts` |
+| Path strip, drawers, circular gallery | `Path.astro`, `PathSheet.tsx`, `Drawer.tsx`, `PathGallery.tsx`, `lib/path-gallery.ts`, `lib/overlay.ts` | `client:visible` + GL gate | `e2e/overlays.spec.ts`, `unit/path-gallery.test.ts`, `unit/overlay.test.ts` |
+| 3D models (desk, buildspace badge, consultancy) | `ModelLoader.tsx`, `Lanyard.tsx` | first intent + GL gate | `e2e/model-lifecycle.spec.ts` |
+| Footer: skyline, ghost cursor, keyring, FluidGlass heading, copy-email | `Contact.astro`, `FooterGhost.tsx`, `GhostCursor.tsx`, `Keyring.astro`, `ContactGlass.tsx` + `FluidGlass.tsx`, `ContactCTA.tsx` | ghost: `client:visible`, fine pointer; glass: idle island, GL gate + first intent, live reduced motion | `e2e/footer-ghost.spec.ts`, `e2e/contact-glass.spec.ts` |
+| Dock and liquid-glass nav | `Dock.tsx`, `Dock.css` | lens map on first intent, fine pointer | `e2e/site.spec.ts` |
+| /contact letter (tear ticket, crumple) | `pages/contact.astro`, `Letter.tsx`, `TearTicket.tsx`, `PaperCrumple.tsx`, `lib/letter.ts` | crumple: first intent + GL gate | `e2e/pages.spec.ts` |
+| /writing, /consultancy, RSS, sitemap | `layouts/Page.astro`, `pages/writing/*`, `pages/consultancy.astro`, `content/writing`, `pages/rss.xml.ts`, `pages/sitemap.xml.ts` | n/a | `e2e/pages.spec.ts`, `unit/pages.test.ts` |
+| Cue sounds | `lib/sound.ts` (Cuelume) | after first gesture | `unit/sound.test.ts` |
+| Smooth scroll, pins | `lib/scroll.ts` (Lenis), `lib/intent.ts` | idle | `e2e/overlays.spec.ts` |
+| Content and data | `data/site.ts`, `data/recommendations.ts` | n/a | `unit/content.test.ts`, `unit/revamp-content.test.ts` |
+| Link previews | `public/og.jpg`, `public/og.mp4`, `tools/og-video.mjs` | n/a | `unit/og-video.test.ts` |
+| Performance budgets | `lighthouserc.json` (mobile), `lighthouserc.desktop.cjs` | n/a | `npm run test:lighthouse`, `tests/perf` |
+
+Deploys: `main` on GitHub deploys to jerrydoughan.com (Vercel). Long jobs follow `/workspace/systems/loop-prevention.md`.
+
 ## Hard-won insights
 
 ### Overlays own their scrolling (Oct 2026)
@@ -181,4 +205,15 @@ Start over only.
   strip's length does not depend on the gallery). Measure the art from its top and width: a stop skipped by
   `content-visibility` reports 280px tall.
 - Hover and press are transitions.dev recipe 11 (avatar group hover) on `.stop-btn`; the canvas mirrors its computed transform.
+
+### FluidGlass on the footer heading (Oct 2026)
+
+- `FluidGlass.tsx`/`.css` are the React Bits TS-CSS registry source, verbatim (raw WebGL2, no three.js). Integration lives in
+  `ContactGlass.tsx`: an idle island that renders nothing until `canUseGL()` passes and the visitor shows first intent; live
+  reduced motion unmounts it. It is `client:idle`, not `client:visible`: an island that renders `null` has no box, so
+  `client:visible` never fires.
+- The canvas redraws the heading at its computed font, colour and line breaks (measured per character, because
+  DecryptedText splits glyphs into cells and keeps a clipped screen-reader copy and hidden ghosts). The DOM `h2` only gets
+  `data-glass` (transparent text) two frames after the glass mounts; it stays the accessible name. The layer is
+  `pointer-events: none`; the library listens on `window`.
 
