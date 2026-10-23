@@ -48,11 +48,12 @@ test('desktop: Copy email still clicks through with the lens mounted over the he
   test.skip(info.project.name !== 'desktop', 'Desktop only.');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await open(page);
+  const errors = await open(page);
   await scrollToSelector(page, '#contact-title');
   await page.mouse.move(200, 300);
   await page.mouse.move(400, 320, { steps: 3 });
   await expect(page.locator('.contact-glass canvas')).toBeVisible({ timeout: 10_000 });
   await page.getByRole('button', { name: /copy email/i }).click();
   await expect(page.getByText('Email copied')).toBeVisible();
+  expect(errors).toEqual([]);
 });
