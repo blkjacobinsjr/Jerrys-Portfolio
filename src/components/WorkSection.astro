@@ -97,6 +97,9 @@ const items: WorkItem[] = await Promise.all(
   .tools {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    /* Reserve the hydrated loop height (78px) so a late client:visible island
+       cannot shift deep-link anchors below it. */
+    grid-template-rows: auto minmax(78px, auto);
     gap: 1.25rem;
     width: 100vw;
     margin: clamp(3rem, 8vh, 5rem) calc(50% - 50vw) 0;
