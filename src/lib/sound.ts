@@ -1,10 +1,10 @@
 import type { PlayOptions, SoundName } from 'cuelume';
 
-type Cue = 'tick' | 'press' | 'release' | 'bloom' | 'sparkle' | 'tear' | 'crumple' | 'success' | 'draw' | 'snap';
+type Cue = 'tick' | 'press' | 'release' | 'bloom' | 'sparkle' | 'tear' | 'crumple' | 'success' | 'draw' | 'snap' | 'drift';
 type Lib = typeof import('cuelume');
 
 // Our cue names, mapped to cuelume's fourteen. press and release are the two halves of one tap.
-const PLAY: Record<Exclude<Cue, 'press' | 'release'>, [SoundName, PlayOptions]> = {
+const PLAY: Record<Exclude<Cue, 'press' | 'release' | 'drift'>, [SoundName, PlayOptions]> = {
   tick: ['select', { emphasis: 'subtle' }],
   bloom: ['open', {}],
   sparkle: ['success', { emphasis: 'subtle' }],
@@ -22,14 +22,58 @@ const BUTTON = 'button, [role="button"]';
 let lib: Lib | undefined;
 let muted = false;
 
+let ctx: AudioContext | undefined;
+const buffers = new Map<string, AudioBuffer>();
+
+const SAMPLES: Partial<Record<Cue, string>> = { bloom: 'open', tear: 'close', drift: 'whoosh' };
+
 const closest = (target: EventTarget | null, selector: string) => (target as Element | null)?.closest?.(selector) ?? null;
+
+// Loads custom audio samples into Web Audio buffers.
+async function loadSamples() {
+  ctx = new AudioContext();
+  const ext = new Audio().canPlayType('audio/webm; codecs=opus') ? 'webm' : 'mp3';
+  for (const name of new Set(Object.values(SAMPLES))) {
+    const url = `/sfx/${name}.${ext}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+      buffers.set(name, audioBuffer);
+    } catch {
+      // A missing or undecodable sample falls back to cuelume.
+    }
+  }
+}
 
 /** Play a cue. Silent until cuelume has loaded (after a first gesture) and when muted. */
 export function cue(name: Cue) {
   if (!lib || muted) return;
-  if (name === 'press') lib.press('tap');
-  else if (name === 'release') lib.release('tap');
-  else lib.play(...PLAY[name]);
+
+  const sampleName = SAMPLES[name];
+  if (sampleName && buffers.has(sampleName) && ctx) {
+    const source = ctx.createBufferSource();
+    source.buffer = buffers.get(sampleName)!;
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 0.5;
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    if (ctx.state === 'suspended') void ctx.resume();
+    source.start(0);
+    return;
+  }
+
+  if (name === 'press') {
+    lib.press('tap');
+  } else if (name === 'release') {
+    lib.release('tap');
+  } else if (name === 'drift') {
+    return;
+  } else {
+    lib.play(...PLAY[name]);
+  }
 }
 
 export const isMuted = () => muted;
@@ -38,6 +82,13 @@ export function setMuted(value: boolean) {
   muted = value;
   localStorage.setItem(KEY, value ? 'off' : 'on');
   lib?.setEnabled(!value);
+  if (ctx) {
+    if (value) {
+      void ctx.suspend();
+    } else {
+      void ctx.resume();
+    }
+  }
 }
 
 function bindUi(bound: Lib) {
@@ -96,6 +147,7 @@ export function initSound() {
       lib = loaded;
       loaded.setEnabled(!muted);
       bindUi(loaded);
+      void loadSamples();
     });
   };
   addEventListener('pointerdown', load, { once: true, passive: true });

@@ -5,6 +5,34 @@ vi.mock('cuelume', () => lib);
 
 type Handler = (event: unknown) => void;
 
+// Mock AudioContext and its components
+const mockGainNode = {
+  gain: { value: 0 },
+  connect: vi.fn(),
+};
+const mockBufferSource = {
+  buffer: null as AudioBuffer | null,
+  connect: vi.fn(),
+  start: vi.fn(),
+};
+const mockAudioBuffer = {}; // Simple object for AudioBuffer
+
+const mockAudioContext = {
+  createBufferSource: vi.fn(() => mockBufferSource),
+  createGain: vi.fn(() => mockGainNode),
+  decodeAudioData: vi.fn(() => Promise.resolve(mockAudioBuffer)),
+  resume: vi.fn(() => Promise.resolve()),
+  suspend: vi.fn(() => Promise.resolve()),
+  state: 'running' as AudioContextState, // Will be 'running' or 'suspended'
+  destination: {}, // Required for gainNode.connect(ctx.destination)
+};
+
+const mockAudio = {
+  canPlayType: vi.fn(),
+};
+
+const mockFetch = vi.fn();
+
 function setup({ stored = null, reduced = false, toggle = true }: { stored?: string | null; reduced?: boolean; toggle?: boolean } = {}) {
   const handlers = new Map<string, Handler[]>();
   const store = new Map<string, string>(stored ? [['sound', stored]] : []);
@@ -24,7 +52,29 @@ const BUTTON = 'button, [role="button"]';
 const HOVER = '.dock-list a, .work-card, .stop-btn';
 
 describe('sound', () => {
-  beforeEach(() => vi.resetModules());
+  beforeEach(() => {
+    vi.resetModules(); // Ensures a fresh import of sound.ts
+
+    // Reset specific mock states for AudioContext components
+    mockGainNode.connect.mockClear();
+    mockGainNode.gain.value = 0; // Reset to default, will be set by cue
+    mockBufferSource.connect.mockClear();
+    mockBufferSource.start.mockClear();
+    mockBufferSource.buffer = null;
+    mockAudioContext.createBufferSource.mockClear();
+    mockAudioContext.createGain.mockClear();
+    mockAudioContext.decodeAudioData.mockClear();
+    mockAudioContext.resume.mockClear();
+    mockAudioContext.suspend.mockClear();
+    mockAudioContext.state = 'running'; // Reset state
+    mockAudio.canPlayType.mockClear();
+    mockFetch.mockClear();
+
+    // Stub globals
+    vi.stubGlobal('AudioContext', vi.fn(function () { return mockAudioContext; }));
+    vi.stubGlobal('Audio', vi.fn(function () { return mockAudio; }));
+    vi.stubGlobal('fetch', mockFetch);
+  });
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
@@ -147,5 +197,200 @@ describe('sound', () => {
     expect(lib.play).not.toHaveBeenCalled();
     env.fire('animationend', { target: env.masks[1] });
     expect(lib.play).toHaveBeenCalledWith('success', { emphasis: 'subtle' });
+  });
+
+  // --- New tests for 100% coverage ---
+
+  it('loads samples via webm path when supported, on first gesture', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env); // This triggers loadSamples
+
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(3); // 'open', 'close', 'whoosh'
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledWith(expect.any(ArrayBuffer));
+  });
+
+  it('loads samples via mp3 path when webm is not supported', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue(''); // WebM not supported
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env);
+
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.mp3');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.mp3');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.mp3');
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(3);
+  });
+
+  it('handles !ok fetch response during sample loading', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    // Mock one sample to fail, others to succeed
+    mockFetch
+      .mockResolvedValueOnce({ ok: false }) // For 'open'
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) }) // For 'close'
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) }); // For 'whoosh'
+
+    await unlockAudio(env);
+
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(2); // Only 2 successful decodes
+  });
+
+  it('handles rejecting fetch during sample loading', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    // Mock one sample to reject, others to succeed
+    mockFetch
+      .mockRejectedValueOnce(new Error('Network error')) // For 'open'
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) }) // For 'close'
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) }); // For 'whoosh'
+
+    await unlockAudio(env);
+
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(2); // Only 2 successful decodes
+  });
+
+  it('only initializes AudioContext and loads samples once', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env); // First time, ctx is created and samples loaded
+    expect(vi.mocked(global.AudioContext)).toHaveBeenCalledTimes(1);
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(3);
+
+    // Calling initSound again won't re-trigger the load path due to 'once' listeners
+    // and loadSamples itself has `if (ctx) return;`
+    // The assertion that AudioContext is called only once covers this.
+  });
+
+  it('plays custom sample for bloom, resuming context if suspended', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env); // Load samples
+
+    // Ensure ctx is suspended for this test
+    mockAudioContext.state = 'suspended';
+    mockAudioContext.resume.mockClear(); // Clear previous calls from unlockAudio if any
+
+    env.sound.cue('bloom');
+
+    expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+    expect(mockBufferSource.buffer).toBe(mockAudioBuffer); // Should be the decoded buffer
+    expect(mockBufferSource.connect).toHaveBeenCalledWith(mockGainNode);
+    expect(mockGainNode.gain.value).toBe(0.5);
+    expect(mockGainNode.connect).toHaveBeenCalledWith(mockAudioContext.destination);
+    expect(mockAudioContext.resume).toHaveBeenCalledTimes(1); // Should resume
+    expect(mockBufferSource.start).toHaveBeenCalledWith(0);
+    expect(lib.play).not.toHaveBeenCalled(); // Cuelume play should not be called for custom sample
+  });
+
+  it('plays custom sample for bloom when context is running', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env); // Load samples
+
+    // Ensure ctx is running for this test
+    mockAudioContext.state = 'running';
+    mockAudioContext.resume.mockClear();
+
+    env.sound.cue('bloom');
+
+    expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+    expect(mockBufferSource.buffer).toBe(mockAudioBuffer);
+    expect(mockBufferSource.start).toHaveBeenCalledWith(0);
+    expect(mockAudioContext.resume).not.toHaveBeenCalled(); // Should not resume if already running
+    expect(lib.play).not.toHaveBeenCalled();
+  });
+
+  it('cue("drift") plays the whoosh sample once it is loaded, not cuelume', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env); // Load samples, including 'whoosh' for 'drift'
+
+    mockAudioContext.createBufferSource.mockClear(); // Clear calls from other tests
+    lib.play.mockClear();
+
+    env.sound.cue('drift');
+
+    expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+    expect(lib.play).not.toHaveBeenCalled(); // Cuelume play not called
+    expect(lib.press).not.toHaveBeenCalled();
+    expect(lib.release).not.toHaveBeenCalled();
+  });
+
+  it('cue("drift") does nothing if sample is not loaded', async () => {
+    const env = await loaded();
+    // Mock fetch to fail for 'whoosh'
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) }) // 'open'
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) }) // 'close'
+      .mockResolvedValueOnce({ ok: false }); // 'whoosh' fails to load
+
+    await unlockAudio(env); // Load samples, 'whoosh' fails
+
+    mockAudioContext.createBufferSource.mockClear();
+    lib.play.mockClear();
+
+    env.sound.cue('drift');
+
+    expect(mockAudioContext.createBufferSource).not.toHaveBeenCalled();
+    expect(lib.play).not.toHaveBeenCalled();
+  });
+
+  it('setMuted suspends AudioContext when muting and resumes when unmuting', async () => {
+    const env = await loaded();
+    mockAudio.canPlayType.mockReturnValue('probably');
+    mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
+
+    await unlockAudio(env); // Ensure ctx is created
+
+    mockAudioContext.suspend.mockClear();
+    mockAudioContext.resume.mockClear();
+
+    // Mute
+    env.sound.setMuted(true);
+    expect(mockAudioContext.suspend).toHaveBeenCalledTimes(1);
+    expect(mockAudioContext.resume).not.toHaveBeenCalled();
+    expect(lib.setEnabled).toHaveBeenLastCalledWith(false);
+
+    // Unmute
+    env.sound.setMuted(false);
+    expect(mockAudioContext.resume).toHaveBeenCalledTimes(1);
+    expect(mockAudioContext.suspend).toHaveBeenCalledTimes(1); // Still 1 from previous call
+    expect(lib.setEnabled).toHaveBeenLastCalledWith(true);
+  });
+
+  it('setMuted does not suspend/resume if AudioContext is not initialized', async () => {
+    const env = await loaded(); // AudioContext not yet initialized
+    mockAudioContext.suspend.mockClear();
+    mockAudioContext.resume.mockClear();
+
+    env.sound.setMuted(true);
+    expect(mockAudioContext.suspend).not.toHaveBeenCalled();
+    expect(mockAudioContext.resume).not.toHaveBeenCalled();
+
+    env.sound.setMuted(false);
+    expect(mockAudioContext.suspend).not.toHaveBeenCalled();
+    expect(mockAudioContext.resume).not.toHaveBeenCalled();
   });
 });
