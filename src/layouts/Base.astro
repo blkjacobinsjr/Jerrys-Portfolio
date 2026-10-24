@@ -43,12 +43,25 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <slot name="head" />
     {HERO_ZOOM && (
       <script is:inline define:vars={{ mode: HERO_ZOOM }}>
-        // Before first paint: the E3 hero runs only on a desktop with a fine pointer, motion allowed and CSS
-        // scroll timelines; everyone else gets the static hero. ?zoom=off turns it off for a visit.
+        // Before first paint: the E3 hero runs only on a wide screen with a mouse or trackpad, motion allowed and CSS
+        // scroll timelines; everyone else gets the static hero. ?zoom=off turns it off for a visit. any-hover/any-pointer
+        // (not the primary pointer) so a Mac with a second input device still counts; phones and tablets without a
+        // fine pointer still never match. The reason it is off lands in data-hero-zoom-off; Hero.astro re-runs the
+        // check on resize while the page is at the top.
         (function () {
-          var q = new URLSearchParams(location.search).get('zoom');
-          var ok = matchMedia('(min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches;
-          if (q !== 'off' && mode && ok && CSS.supports('animation-timeline: scroll()')) document.documentElement.dataset.heroZoom = mode;
+          var root = document.documentElement;
+          window.__heroZoom = function () {
+            var m = function (q) { return matchMedia(q).matches; };
+            var off = new URLSearchParams(location.search).get('zoom') === 'off' ? 'query'
+              : !m('(min-width: 900px)') ? 'width'
+              : !m('(any-hover: hover) and (any-pointer: fine)') ? 'pointer'
+              : m('(prefers-reduced-motion: reduce)') ? 'motion'
+              : !CSS.supports('animation-timeline: scroll()') ? 'timeline' : '';
+            if (off) root.dataset.heroZoomOff = off;
+            else { delete root.dataset.heroZoomOff; root.dataset.heroZoom = mode; }
+            return !off;
+          };
+          if (mode) window.__heroZoom();
         })();
       </script>
     )}
