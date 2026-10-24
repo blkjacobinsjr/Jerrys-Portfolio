@@ -8,13 +8,13 @@ test('enter screen: Berlin shot behind the gate, Geist only, hands off to the he
   const photos: string[] = [];
   page.on('request', (r) => {
     if (r.resourceType() === 'font') fonts.push(r.url());
-    if (/_astro\/screen-v3/.test(r.url())) photos.push(r.url());
+    if (/_astro\/screen-v2/.test(r.url())) photos.push(r.url());
   });
   const errors = await open(page, '/?enter=1');
   const gate = page.locator('[data-enter-screen]');
   await expect(gate).toBeVisible();
   const photo = page.locator('[data-enter-photo]');
-  await expect(photo).toHaveCSS('background-image', /screen-v3/);
+  await expect(photo).toHaveCSS('background-image', /screen-v2/);
   expect(Number(await photo.evaluate((e) => getComputedStyle(e).opacity))).toBeLessThan(0.3);
   await expect(page.locator('.enter-first')).toHaveCSS('font-family', /Geist/);
   const e3 = await page.evaluate(() => document.documentElement.dataset.heroZoom === 'laptop');

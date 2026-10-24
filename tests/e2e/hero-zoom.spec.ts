@@ -5,7 +5,7 @@ import { open } from './helpers';
 test('E3 hero: desktop opens full-bleed, lands on the desk, zero errors; phones get the static hero and no E3 bytes', async ({ page }, info) => {
   const e3Requests: string[] = [];
   page.on('request', (r) => {
-    if (/screen-v3|desk-nolaptop|desk-landed|hero-screen-v3|hero-laptop/.test(r.url())) e3Requests.push(r.url());
+    if (/screen-v[23]|desk-nolaptop|desk-landed|hero-screen-v[23]|hero-laptop/.test(r.url())) e3Requests.push(r.url());
   });
   const errors = await open(page);
   const mode = await page.evaluate(() => document.documentElement.dataset.heroZoom ?? null);
