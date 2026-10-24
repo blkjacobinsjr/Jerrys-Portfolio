@@ -3,7 +3,8 @@ import { getImage, Picture } from 'astro:assets';
 import Mascot from './Mascot';
 import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
-import screen from '../assets/icons/screen-berlin.webp';
+import screen from '../assets/icons/screen-v3.webp';
+import deskBare from '../assets/icons/desk-nolaptop.webp';
 import { HERO_ZOOM, HERO_ZOOM_PREVIEW, person } from '../data/site';
 import { teaser } from '../data/recommendations';
 import MinimalTestimonial from './MinimalTestimonial';
@@ -68,6 +69,11 @@ const quotes = await Promise.all(
       decoding="async"
       fetchpriority="high"
     />
+    {HERO_ZOOM_PREVIEW && (
+      <div class="hero-bare" aria-hidden="true">
+        <Picture src={deskBare} formats={['avif', 'webp']} fallbackFormat="webp" alt="" widths={[480, 560, 640, 760, 1040]} quality={46} sizes="520px" loading="lazy" decoding="async" />
+      </div>
+    )}
   </figure>
   <StartupPrograms />
   </div>
@@ -81,18 +87,21 @@ const quotes = await Promise.all(
       alt=""
       widths={[480, 828, 1280, 1920, 2560]}
       quality={50}
-      sizes="(max-width: 899px) 340px, max(100vw, 160svh)"
+      sizes="(max-width: 899px) 100vw, max(100vw, 160svh)"
       loading="eager"
       decoding="async"
       fetchpriority={HERO_ZOOM === 'start-inside' ? 'high' : 'low'}
     />
   </div>
 )}
+{HERO_ZOOM_PREVIEW && <canvas class="hero-laptop" data-hero-laptop aria-hidden="true"></canvas>}
 </div>
 
 <script>
   import { heroZoom } from '../scripts/hero-zoom';
   heroZoom();
+  if (document.documentElement.dataset.heroZoom === 'laptop' && matchMedia('(min-width: 900px)').matches)
+    import('../scripts/hero-laptop').then((m) => m.heroLaptop());
 </script>
 
 <style>
@@ -272,6 +281,114 @@ const quotes = await Promise.all(
     :global(html[data-hero-zoom='dive-in'] #work) {
       position: relative;
       z-index: 1;
+    }
+  }
+
+  /* E3 (?zoom=laptop). CSS scroll timelines own every fade; hero-laptop.ts only renders the canvas.
+     Without scroll-timeline support (or under reduced motion) this is the static desk. */
+  .hero-bare,
+  .hero-laptop {
+    display: none;
+  }
+  @supports not (animation-timeline: scroll()) {
+    :global(html[data-hero-zoom='laptop']) .hero-screen {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+      :global(html[data-hero-zoom='laptop']) .hero-screen {
+        transform: none;
+        width: 100vw;
+        height: 100svh;
+        aspect-ratio: auto;
+        animation: e3-out linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 50svh;
+      }
+      :global(html[data-hero-zoom='laptop']) .hero-screen :global(img) {
+        object-fit: cover;
+      }
+      @media (min-width: 900px) {
+        :global(html[data-hero-zoom='laptop']) .hero-pin {
+          height: calc(100svh + 90vh);
+        }
+        :global(html[data-hero-zoom='laptop']) .hero-art {
+          display: grid;
+          animation: none;
+        }
+        :global(html[data-hero-zoom='laptop']) .hero-copy > * {
+          animation: none;
+        }
+        :global(html[data-hero-zoom='laptop']) .hero-copy {
+          animation: e3-copy linear both;
+          animation-timeline: scroll(root);
+          animation-range: 40vh 80vh;
+        }
+        /* Until the 3D laptop is ready the overlay simply waits; once it is, it hands off within 6vh. */
+        :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-screen {
+          animation: e3-fade linear both;
+          animation-timeline: scroll(root);
+          animation-range: 0.5vh 4vh;
+        }
+        /* The bare desk is transparent where the drawn lid stood against the page, so hide the drawn desk under it. */
+        :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-art > picture {
+          animation: e3-in linear both;
+          animation-timeline: scroll(root);
+          animation-range: 80vh 89vh;
+        }
+        :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-bare,
+        :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
+          display: block;
+          animation: e3-fade linear both;
+          animation-timeline: scroll(root);
+          animation-range: 80vh 89vh;
+        }
+        :global(html[data-hero-zoom='laptop']) .hero-art > :global(*) {
+          grid-area: 1 / 1;
+        }
+        .hero-bare {
+          align-self: start;
+          pointer-events: none;
+        }
+        .hero-bare :global(img) {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+        .hero-laptop {
+          position: fixed;
+          inset: 0;
+          width: 100vw;
+          height: 100vh;
+          z-index: 4;
+          pointer-events: none;
+        }
+      }
+    }
+  }
+  @keyframes e3-out {
+    to {
+      opacity: 0;
+      transform: scale(0.92);
+      visibility: hidden;
+    }
+  }
+  @keyframes e3-fade {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+  @keyframes e3-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes e3-copy {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
     }
   }
 </style>

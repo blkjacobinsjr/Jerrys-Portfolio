@@ -42,7 +42,7 @@ export function heroZoom() {
   const desk = document.querySelector<HTMLImageElement>('[data-hero-art] img');
   const copy = document.querySelector<HTMLElement>('.hero-copy');
   const work = document.getElementById('work');
-  if (!mode || !el || !desk || !copy) return;
+  if ((mode !== 'start-inside' && mode !== 'dive-in') || !el || !desk || !copy) return;
 
   let raf = 0;
   const frame = () => {

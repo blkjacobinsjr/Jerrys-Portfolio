@@ -46,7 +46,7 @@ const ogVideo = new URL('/og.mp4', Astro.site);
         // Before first paint: the hero-zoom variant (preview override via ?zoom=), off under reduced motion.
         (function () {
           var q = new URLSearchParams(location.search).get('zoom');
-          var m = q === 'start-inside' || q === 'dive-in' ? q : q === 'off' ? '' : mode;
+          var m = q === 'start-inside' || q === 'dive-in' || q === 'laptop' ? q : q === 'off' ? '' : mode;
           if (m && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.dataset.heroZoom = m;
         })();
       </script>
