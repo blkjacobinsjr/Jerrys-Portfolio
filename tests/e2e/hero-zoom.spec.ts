@@ -20,6 +20,10 @@ test('E3 hero: desktop opens full-bleed, lands on the desk, zero errors; phones 
   } else {
     expect(mode).toBe('laptop');
     // Headless WebKit has no WebGL here; it keeps the CSS-only fallback (overlay fades, landed desk).
+    // E3 (three.js, textures, desk layers) loads on the first intent; a real visitor moves the mouse.
+    await page.mouse.move(400, 300);
+    await page.mouse.move(420, 320);
+    await expect.poll(() => page.evaluate(() => 'e3' in document.documentElement.dataset)).toBe(true);
     if (info.project.name === 'desktop') {
       await expect.poll(() => page.evaluate(() => document.documentElement.dataset.hero3d ?? null), { timeout: 15000 }).toBe('ready');
     }
