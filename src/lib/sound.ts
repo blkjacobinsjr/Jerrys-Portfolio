@@ -50,25 +50,25 @@ function cueAtMost(name: Cue, ms: number) {
 
 // Loads custom audio samples into Web Audio buffers.
 async function loadSamples() {
-  ctx = new AudioContext();
+  ctx ??= new AudioContext();
   const ext = new Audio().canPlayType('audio/webm; codecs=opus') ? 'webm' : 'm4a';
   const samplesToLoad = new Set(Object.values(SAMPLES));
   samplesToLoad.add('wind');
   samplesToLoad.add('city');
 
-  for (const name of samplesToLoad) {
-    const url = `/sfx/${name}.${ext}`;
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) continue;
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-      buffers.set(name, audioBuffer);
-    } catch {
-      // A missing or undecodable sample falls back to cuelume.
-    }
-  }
+  // In parallel: the enter screen's whoosh must not wait behind the city loop.
+  const audio = ctx;
+  await Promise.all(
+    [...samplesToLoad].map(async (name) => {
+      try {
+        const response = await fetch(`/sfx/${name}.${ext}`);
+        if (!response.ok) return;
+        buffers.set(name, await audio.decodeAudioData(await response.arrayBuffer()));
+      } catch {
+        // A missing or undecodable sample falls back to cuelume.
+      }
+    }),
+  );
 }
 
 /** Play a cue. Silent until cuelume has loaded (after a first gesture) and when muted. */
@@ -113,6 +113,7 @@ export function setMuted(value: boolean) {
     }
   }
   ambience(footerSeen);
+  globalThis.dispatchEvent?.(new Event('soundchange'));
 }
 
 // Controls the wind sound based on pointer speed.
@@ -268,13 +269,39 @@ export function initSound() {
   const load = () => {
     removeEventListener('pointerdown', load);
     removeEventListener('keydown', load);
-    void import('cuelume').then((loaded) => {
-      lib = loaded;
-      loaded.setEnabled(!muted);
-      bindUi(loaded);
-      void loadSamples().then(() => ambience(footerSeen));
-    });
+    void loadLib();
   };
   addEventListener('pointerdown', load, { once: true, passive: true });
   addEventListener('keydown', load, { once: true, passive: true });
+  addEventListener('soundchange', paint);
+}
+
+let loading: Promise<void> | undefined;
+
+/** Import and bind cuelume, then decode the samples. Safe to call more than once. */
+function loadLib() {
+  loading ??= import('cuelume').then((loaded) => {
+    lib = loaded;
+    loaded.setEnabled(!muted);
+    bindUi(loaded);
+    return loadSamples().then(() => ambience(footerSeen));
+  });
+  return loading;
+}
+
+/**
+ * The enter screen's choice (ENTER_SCREEN). With sound: `audio` is an AudioContext created inside the click, so
+ * Safari counts it as unlocked; the whoosh plays as the screen dissolves. Without: muted, as the footer toggle does.
+ */
+export async function enter(withSound: boolean, audio?: AudioContext) {
+  muted = localStorage.getItem(KEY) === 'off';
+  if (!withSound) {
+    setMuted(true);
+    return;
+  }
+  if (audio) ctx ??= audio;
+  setMuted(false);
+  await loadLib();
+  void lib?.unlock();
+  cue('drift');
 }

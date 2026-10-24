@@ -13,19 +13,20 @@ const GhostCursor = lazy(() => import('./GhostCursor'));
  * and browsers without WebGL2 (`canUseGL`). The layer is absolute and pointer-events none: no layout shift.
  * The empty slot is rendered on the server so `client:visible` has a box to observe.
  */
-export default function FooterGhost() {
+/** `host` is the element whose first mouse move arms the trail: the footer, or the enter screen (ENTER_SCREEN). */
+export default function FooterGhost({ host = 'footer' }: { host?: string }) {
   const [on, setOn] = useState(false);
   const [armed, setArmed] = useState(false);
   const slot = useRef<HTMLDivElement>(null);
   const scheme = useColorScheme();
   useEffect(() => setOn(!matchMedia('(pointer: coarse)').matches && canUseGL()), []);
   useEffect(() => {
-    const footer = slot.current?.closest('footer');
+    const footer = slot.current?.closest<HTMLElement>(host);
     if (!on || !footer) return;
     const arm = (e: PointerEvent) => e.pointerType === 'mouse' && setArmed(true);
     footer.addEventListener('pointermove', arm, { passive: true, once: true });
     return () => footer.removeEventListener('pointermove', arm);
-  }, [on]);
+  }, [on, host]);
   const dark = scheme === 'dark';
   return (
     <div ref={slot} className="footer-ghost" aria-hidden="true">

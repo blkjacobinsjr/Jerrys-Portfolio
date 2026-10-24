@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
+import EnterScreen from '../components/EnterScreen.astro';
 import WorkSection from '../components/WorkSection.astro';
 import Path from '../components/Path.astro';
 import About from '../components/About.astro';
@@ -28,6 +29,7 @@ const deskLcp = await getImage({ src: desk, widths: [320, 400, 480, 560, 640, 76
     }
   </script>
   <link slot="head" rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset={deskLcp.srcSet.attribute} imagesizes="(min-width: 900px) 520px, 72vw" />
+  <EnterScreen />
   <main id="main" class="page" data-scrollsheet-background>
     <Hero sprite={sprite.src} still={still.src} />
     <WorkSection />

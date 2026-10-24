@@ -12,3 +12,7 @@ playwright-report/
 .stryker-tmp/
 .lighthouseci/
 .features-gen/
+
+# Timeless fonts: licence forbids putting them in a public repository (Timeless Free Font License 1.2, section 6).
+# Copy the unmodified woff2 files here locally; the build falls back to metric-matched Times when absent.
+src/assets/fonts/timeless/

@@ -53,6 +53,16 @@ import markDraper from '../assets/stops/logos/draper.png';
  *  Set to false to revert in one line. ?zoom=off turns it off for a visit. */
 export const HERO_ZOOM: 'laptop' | false = 'laptop';
 
+/** Preview-only features. 'preview' compiles them into every build except Vercel production (VERCEL_ENV=production),
+ *  and they still wait for a query flag: ?enter=1 (enter screen, once per tab session) and ?details=1 (Overworld-style
+ *  project pages on desktop with a fine pointer; remembered for the tab session). true = on everywhere, false = gone. */
+export type PreviewFlag = boolean | 'preview';
+export const ENTER_SCREEN: PreviewFlag = 'preview';
+export const WORK_DETAILS: PreviewFlag = 'preview';
+/** Whether a flag is compiled into this build, and whether it still needs its query flag to show. */
+export const flagState = (flag: PreviewFlag): 'off' | 'query' | 'on' =>
+  flag === true ? 'on' : flag === 'preview' && process.env.VERCEL_ENV !== 'production' ? 'query' : 'off';
+
 export const person = {
   name: 'Jerry Doughan',
   role: 'Product designer and frontend developer',
@@ -95,6 +105,8 @@ export interface Project {
   logo: ImageMetadata;
   presentation?: 'website';
   story: string;
+  /** One or two sentences for the desktop project-page lede (WORK_DETAILS). Drafted from the card and story copy. */
+  lede: string;
   shaped: string[];
   proof?: string;
 }
@@ -119,6 +131,7 @@ export const projects: Project[] = [
       'Scenaryo iPhone app with the scene theme picker open',
     ],
     phone: { src: phoneScenaryo, alt: 'A hand holding an iPhone open on the Scenaryo home screen: characters to talk to and what-if scenarios' },
+    lede: 'You enter a story mid-conflict, earn a character’s trust, and steer where it goes. Characters remember you and stay true to their arc.',
     story:
       'The evolution of SceneXtras. You enter a story mid-conflict, earn a character’s trust, and steer where it goes. Characters remember you, keep their boundaries, and stay true to their arc.',
     shaped: [
@@ -147,6 +160,7 @@ export const projects: Project[] = [
       'Tiding on iPhone with the mascot Pip',
     ],
     phone: { src: phoneTiding, alt: 'A hand holding an iPhone open on Tiding’s Today screen, with the next Semaglutide dose and a Log dose button' },
+    lede: 'Doses, injection sites, vial levels and bloodwork in one place, with a small mascot named Pip who makes the check-in something you want to do.',
     story:
       'Doses, injection sites, vial levels, bloodwork, supplements, and notes in one place. The routine stays clear, and a small mascot named Pip makes the check-in something you want to do.',
     shaped: [
@@ -174,6 +188,7 @@ export const projects: Project[] = [
       'FoodNote Today screen with remaining calories and weight trend',
     ],
     phone: { src: phoneFoodnote, alt: 'A hand holding an iPhone open on the FoodNote dashboard: calories left today, macros, and current weight' },
+    lede: 'Describe a meal in plain words and the math is done for you, with a plan that adapts while it keeps you above a safe floor.',
     story:
       'Describe a meal in plain words and the math is done for you. A weight journal that remembers, and a plan that adapts while it keeps you above a safe floor.',
     shaped: [
@@ -201,6 +216,7 @@ export const projects: Project[] = [
       'Subzro subscription dashboard',
     ],
     phone: { src: phoneSubzro, alt: 'A hand holding an iPhone open on the Subzro dashboard: total monthly spend, highest spend, and the Spend-O-Meter' },
+    lede: 'Subscription intelligence that frames recurring spend as a living system: what costs the most, what gets used the least, and what you can win back today.',
     story:
       'Most subscription apps stop at listing charges. Subzro frames recurring spend as a living system: what costs the most, what gets used the least, and what you can win back today.',
     shaped: [
@@ -225,6 +241,7 @@ export const projects: Project[] = [
     shotAlts: ['Leapfrog AI website: AI consulting and implementation', 'Leapfrog AI consulting and implementation services', 'Leapfrog AI founders and delivery approach'],
     phone: { src: leapfrog1, alt: 'Leapfrog AI website with its consulting and implementation offer' },
     presentation: 'website',
+    lede: 'We help mid-market teams in Europe and the US turn an AI opportunity into a working system, from the first workflow review to a deployed pilot.',
     story: 'We help mid-market teams turn an AI opportunity into a working system. From the first workflow review to a deployed pilot, the people who scope the work stay close to product design and implementation.',
     shaped: [
       'The consulting offer, from workflow reviews and audits to pilots and ongoing delivery.',

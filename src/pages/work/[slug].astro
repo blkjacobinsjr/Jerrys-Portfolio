@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import WorkGallery from '../../components/WorkGallery';
-import { projects, type Project } from '../../data/site';
+import { projects, WORK_DETAILS, flagState, type Project } from '../../data/site';
 import { resolveProject } from '../../lib/work';
 import '../../styles/sheet.css';
 import '../../styles/work-transition.css';
@@ -16,6 +16,8 @@ export function getStaticPaths() {
 const { project, next } = Astro.props as { project: Project; next: Project };
 const item = await resolveProject(project);
 const site = item.presentation === 'website';
+const details = flagState(WORK_DETAILS) !== 'off';
+const media = item.shots[0];
 ---
 
 <Base title={`${item.name}, a project by Jerry Doughan`} description={`${item.name}: ${item.summary} ${item.role}.`}>
@@ -37,13 +39,39 @@ const site = item.presentation === 'website';
     </div>
 
     <article>
+      {details && media && (
+        <>
+          {/* WORK_DETAILS: the wide shot is parsed only when the head script switched the layout on, so phones and
+              the default page never fetch it. */}
+          <template id="wd-media">
+            <div class="wd-media" aria-hidden="true">
+              <img src={media.src} srcset={media.srcset} sizes="min(100vw, 1440px)" width={media.width} height={media.height} alt="" fetchpriority="high" decoding="async" />
+            </div>
+          </template>
+          <script is:inline>
+            (function () {
+              var t = document.getElementById('wd-media');
+              if (t && document.documentElement.dataset.workDetails) t.replaceWith(t.content);
+              else if (t) t.remove();
+            })();
+          </script>
+        </>
+      )}
       <header class="work-hero wide" style={`view-transition-name:work-${item.id}`}>
         <img class="work-hero-logo" src={item.logo} width={40} height={40} alt="" />
         <div class="work-hero-copy">
           <h1 class="detail-title">{item.name}</h1>
           <p class="work-hero-tagline">{item.tagline}</p>
           <p class="work-hero-summary">{item.summary}</p>
+          {details && <p class="work-hero-lede">{item.lede}</p>}
         </div>
+        {details && (
+          <dl class="wd-facts">
+            <div><dt>Role</dt><dd>{item.role}</dd></div>
+            <div><dt>Platform</dt><dd>{item.platform}</dd></div>
+            <div><dt>When</dt><dd>{item.years}</dd></div>
+          </dl>
+        )}
         <span class={`work-hero-shot${site ? ' work-hero-shot-site' : ''}`}>
           <picture>
           <source type="image/avif" srcset={item.phone.avifSrcset} sizes="(min-width: 768px) 420px, min(80vw, 20rem)" />
@@ -344,6 +372,175 @@ const site = item.presentation === 'website';
     color: var(--fg);
     font-size: var(--text-sm);
     text-decoration: none;
+  }
+
+  /* WORK_DETAILS (preview flag, desktop with a fine pointer): Overworld-style detail page. A wide shot dissolves
+     through a painterly edge into a dark grain ground; the title in Timeless on the left, the lede on the right,
+     the facts in small caps below. Everything is scoped to the attribute, so the default page is untouched. */
+  .work-hero-lede {
+    display: none;
+  }
+
+  :root[data-work-details]:has(.work-page) {
+    color-scheme: dark;
+    --bg: oklch(0.15 0.012 265);
+    --bg-elev: oklch(0.2 0.012 265);
+    --fg: oklch(0.95 0.004 250);
+    --fg-2: oklch(0.76 0.008 250);
+    --fg-3: oklch(0.6 0.008 250);
+    --line: oklch(0.32 0.01 265);
+    --shadow-tint: 0 0 0;
+    background-color: var(--bg);
+  }
+
+  :root[data-work-details] .work-page {
+    --serif: var(--font-display, Georgia, 'Times New Roman', serif);
+    position: relative;
+    isolation: isolate;
+    padding-top: 0;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      var(--bg);
+  }
+
+  :root[data-work-details] .work-page > .col:first-child {
+    width: min(100% - 2 * clamp(1.5rem, 5vw, 4rem), 1240px);
+    padding-top: clamp(1.25rem, 3vh, 2rem);
+  }
+
+  :root[data-work-details] .work-back {
+    position: relative;
+    z-index: 2;
+    background: oklch(0 0 none / 0.35);
+    padding-inline: 1rem 1.125rem;
+    border: 1px solid color-mix(in oklch, var(--fg) 40%, transparent);
+    border-radius: 999px;
+    color: var(--fg);
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+  }
+
+  .wd-media {
+    width: min(100% - 2rem, 1440px);
+    height: clamp(22rem, 58svh, 42rem);
+    margin: 0.75rem auto 0;
+    mask-image: url('../../assets/work-details/edge-mask.webp');
+    mask-mode: luminance;
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+  }
+
+  .wd-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  :root[data-work-details] .work-hero {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: auto 1fr auto;
+    align-items: start;
+    gap: 0 clamp(2rem, 6vw, 6rem);
+    width: min(100% - 2 * clamp(1.5rem, 5vw, 4rem), 1240px);
+    min-height: 0;
+    margin: clamp(1rem, 3vw, 2.5rem) auto 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  :root[data-work-details] :is(.work-hero-logo, .work-hero-shot, .work-hero-summary) {
+    display: none;
+  }
+
+  :root[data-work-details] .work-hero::before {
+    content: none;
+  }
+
+  :root[data-work-details] .work-hero-copy {
+    display: contents;
+  }
+
+  :root[data-work-details] .work-hero-copy .detail-title {
+    grid-column: 1;
+    grid-row: 1;
+    font-family: var(--serif);
+    font-size: clamp(2.75rem, 1rem + 3.6vw, 4.5rem);
+    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+  }
+
+  /* The tagline becomes the title's second line, in italic, as in the reference. */
+  :root[data-work-details] .work-hero-tagline {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0.1em 0 0;
+    font-family: var(--serif);
+    font-size: clamp(1.75rem, 0.9rem + 1.8vw, 2.625rem);
+    font-style: italic;
+    font-synthesis: none;
+    font-weight: 400;
+    line-height: 1.08;
+    color: var(--fg-2);
+    text-wrap: balance;
+  }
+
+  :root[data-work-details] .work-hero-lede {
+    display: block;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0.35rem 0 0;
+    font-family: var(--serif);
+    font-size: clamp(1.375rem, 0.85rem + 1.05vw, 1.875rem);
+    font-weight: 400;
+    line-height: 1.32;
+    color: var(--fg);
+    text-wrap: pretty;
+  }
+
+  .wd-facts {
+    display: none;
+  }
+
+  :root[data-work-details] .wd-facts {
+    grid-column: 2;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem 2rem;
+    margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  :root[data-work-details] .wd-facts dt {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+
+  :root[data-work-details] .wd-facts dd {
+    margin: 0.4rem 0 0;
+    font-size: var(--text-sm);
+    color: var(--fg);
+  }
+
+  /* The lede already says what the story said, and the facts moved up under it. */
+  :root[data-work-details] .work-body :is(.detail-facts, .detail-story) {
+    display: none;
+  }
+
+  :root[data-work-details] .work-body {
+    padding-top: clamp(3rem, 6vw, 5rem);
   }
 
   .work-next-name {

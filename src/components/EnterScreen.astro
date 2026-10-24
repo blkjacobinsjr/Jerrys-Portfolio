@@ -1,0 +1,319 @@
+---
+import FooterGhost from './FooterGhost';
+import { ENTER_SCREEN, flagState, person } from '../data/site';
+import { fontData } from 'astro:assets';
+
+// ENTER_SCREEN (Overworld Audio style): a calm full-viewport gate over the hero. It is CSS and a few lines of inline
+// script until someone clicks: the hero renders underneath (still the LCP), every word stays in the DOM, the smoke
+// is the footer's own FooterGhost (WebGL fetched on the first mouse move over the gate), and the audio code loads
+// on the click. Shown once per tab session; in preview builds only with ?enter=1.
+const state = flagState(ENTER_SCREEN);
+// Preload the italic only when the gate opens on a wide screen; on phones it swaps in over a metric-matched fallback so it never competes with the hero image (LCP).
+const italic = (fontData as Record<string, { src: { url: string }[]; style?: string }[] | undefined>)['--font-display']?.find((f) => f.style === 'italic')?.src[0]?.url;
+const [first, ...rest] = person.name.split(' ');
+---
+
+{
+  state !== 'off' && (
+    <>
+      <script is:inline define:vars={{ needsQuery: state === 'query', italic }}>
+        // Before the hero paints: open the gate, lock the page at the top, preload the title face.
+        (function () {
+          try {
+            var q = new URLSearchParams(location.search).get('enter');
+            if (sessionStorage.getItem('jp-enter') || (needsQuery && q !== '1')) return;
+            var root = document.documentElement;
+            root.dataset.enter = 'open';
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            // Wide screens: preload the title face and use it at once. Phones: keep the metric-matched fallback
+            // until the page has loaded, so the 48 KB face never competes with the hero image (LCP).
+            var face = function () { root.dataset.displayFont = 'on'; };
+            if (matchMedia('(min-width: 900px)').matches) {
+              if (italic) {
+                var l = document.createElement('link');
+                l.rel = 'preload'; l.as = 'font'; l.type = 'font/woff2'; l.crossOrigin = ''; l.href = italic;
+                document.head.appendChild(l);
+              }
+              face();
+            } else addEventListener('load', face, { once: true });
+          } catch (e) {}
+        })();
+      </script>
+      <section class="enter" id="enter" aria-labelledby="enter-title" aria-describedby="enter-note" data-overlay data-enter-screen>
+        <FooterGhost client:visible host="[data-enter-screen]" />
+        <div class="enter-mark">
+          <p class="enter-title" id="enter-title">
+            <span class="enter-first">{first}</span>
+            <span class="enter-last">{rest.join(' ')}</span>
+          </p>
+          <p class="enter-role">{person.role}</p>
+        </div>
+        <button type="button" class="enter-go" data-enter-choice="sound">Enter with sound</button>
+        <button type="button" class="enter-quiet" data-enter-choice="quiet">Enter without sound</button>
+        <p class="enter-note" id="enter-note">Best with headphones. You can turn sound off in the footer.</p>
+      </section>
+    </>
+  )
+}
+
+<script>
+  // Bundled, tiny, and idle unless the gate is open. The audio module loads on the click itself.
+  const root = document.documentElement;
+  const gate = document.querySelector<HTMLElement>('[data-enter-screen]');
+  if (gate && root.dataset.enter === 'open') {
+    const others = [...document.body.children].filter((el) => el !== gate && !el.contains(gate) && el.tagName !== 'SCRIPT') as HTMLElement[];
+    // The gate is first in the page: everything behind it is inert, but still in the DOM for bots and Lighthouse.
+    for (const el of others) el.inert = true;
+    const page = gate.parentElement !== document.body ? [...gate.parentElement!.children].filter((el) => el !== gate) as HTMLElement[] : [];
+    for (const el of page) el.inert = true;
+    scrollTo(0, 0);
+    gate.querySelector<HTMLButtonElement>('.enter-go')?.focus({ preventScroll: true });
+
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let chosen = false;
+    const choose = (withSound: boolean) => {
+      if (chosen) return;
+      chosen = true;
+      // Created inside the click so Safari counts the audio as unlocked.
+      let audio: AudioContext | undefined;
+      if (withSound) {
+        try {
+          audio = new AudioContext();
+          void audio.resume();
+        } catch {
+          audio = undefined;
+        }
+      }
+      try {
+        sessionStorage.setItem('jp-enter', withSound ? 'sound' : 'quiet');
+      } catch {
+        // Private mode: the gate simply shows again next visit.
+      }
+      void import('../lib/sound').then((sound) => sound.enter(withSound, audio));
+      root.dataset.enter = 'leaving';
+      let finished = false;
+      const done = () => {
+        if (finished) return;
+        finished = true;
+        root.dataset.enter = 'done';
+        for (const el of [...others, ...page]) el.inert = false;
+        // Keyboard users continue from the top of the page, not from <body>.
+        const main = document.getElementById('main');
+        if (main) {
+          main.tabIndex = -1;
+          main.style.outlineColor = 'transparent';
+          main.focus({ preventScroll: true });
+        }
+      };
+      if (reduced) setTimeout(done, 200);
+      else gate.addEventListener('transitionend', (e) => e.target === gate && done());
+      setTimeout(done, 1600);
+    };
+    gate.addEventListener('click', (event) => {
+      const choice = (event.target as Element).closest<HTMLElement>('[data-enter-choice]')?.dataset.enterChoice;
+      if (choice) choose(choice === 'sound');
+    });
+    gate.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') choose(false);
+    });
+  }
+</script>
+
+<style>
+  .enter {
+    display: none;
+  }
+
+  :global(html[data-enter='open']),
+  :global(html[data-enter='leaving']) {
+    overflow: hidden;
+  }
+
+  :global(html[data-enter='open']) .enter,
+  :global(html[data-enter='leaving']) .enter {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 60;
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    justify-items: center;
+    height: 100svh;
+    padding: clamp(1.5rem, 5vh, 3rem) var(--gutter);
+    overflow: hidden;
+    isolation: isolate;
+    color: oklch(0.93 0.01 265);
+    /* The footer's night sky, dimmed, with film grain. */
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 70% 55% at 50% 42%, oklch(0.25 0.045 270) 0%, transparent 70%),
+      linear-gradient(to bottom, oklch(0.15 0.03 265), oklch(0.19 0.04 280) 70%, oklch(0.22 0.05 300));
+    transition:
+      opacity 900ms var(--ease-out),
+      filter 900ms var(--ease-out),
+      scale 900ms var(--ease-out);
+  }
+
+  :global(html[data-enter='leaving']) .enter {
+    opacity: 0;
+    filter: blur(10px);
+    scale: 1.04;
+    pointer-events: none;
+  }
+
+  .enter :global(.footer-ghost) {
+    z-index: -1;
+  }
+
+  .enter-mark {
+    align-self: center;
+    display: grid;
+    justify-items: center;
+    gap: 0.9rem;
+    text-align: center;
+  }
+
+  /* The Three Worlds pairing: italic serif over tracked capitals. */
+  .enter-title {
+    display: grid;
+    justify-items: center;
+    margin: 0;
+    line-height: 1;
+  }
+
+  /* Times, sized to Timeless Serif's metrics (the same overrides Astro computes for its own fallback), so the swap
+     to the real face does not move the title. */
+  @font-face {
+    font-family: 'Timeless Fallback';
+    src: local('Times New Roman'), local('TimesNewRomanPSMT'), local('Liberation Serif');
+    font-style: italic;
+    size-adjust: 114.6679%;
+    ascent-override: 83.9583%;
+    descent-override: 21.6667%;
+    line-gap-override: 0%;
+  }
+
+  .enter-first {
+    font-family: 'Timeless Fallback', Georgia, serif;
+    font-style: italic;
+    font-synthesis: none;
+    font-weight: 400;
+    font-size: clamp(2.75rem, 1.6rem + 4vw, 4.75rem);
+    letter-spacing: -0.01em;
+  }
+
+  :global(:root[data-display-font]) .enter-first {
+    font-family: var(--font-display, Georgia), Georgia, serif;
+  }
+
+  .enter-last {
+    margin-top: 0.35em;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.42em;
+    margin-inline-end: -0.42em;
+    text-transform: uppercase;
+  }
+
+  .enter-role {
+    margin: 0;
+    color: oklch(0.72 0.02 265);
+    font-size: 0.6875rem;
+    letter-spacing: 0.24em;
+    margin-inline-end: -0.24em;
+    text-transform: uppercase;
+  }
+
+  .enter-go,
+  .enter-quiet {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    background: none;
+  }
+
+  .enter-go {
+    min-height: 48px;
+    padding: 0 1.6rem;
+    border: 1px solid oklch(0.93 0.01 265 / 0.38);
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    transition:
+      border-color var(--dur-ui) var(--ease-out),
+      background-color var(--dur-ui) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .enter-go:hover {
+      border-color: oklch(0.93 0.01 265 / 0.8);
+      background-color: oklch(0.93 0.01 265 / 0.06);
+    }
+
+    .enter-quiet:hover {
+      color: oklch(0.93 0.01 265);
+    }
+  }
+
+  .enter-go:active {
+    scale: 0.98;
+  }
+
+  .enter-quiet {
+    position: absolute;
+    inset-inline-end: var(--gutter);
+    inset-block-end: clamp(1.5rem, 5vh, 3rem);
+    min-height: 44px;
+    padding: 0 0.25rem;
+    border: 0;
+    color: oklch(0.72 0.02 265);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-decoration-color: oklch(0.72 0.02 265 / 0.5);
+    text-underline-offset: 6px;
+    transition: color var(--dur-ui) var(--ease-out);
+  }
+
+  .enter-note {
+    margin: 1rem 0 0;
+    color: oklch(0.62 0.02 265);
+    font-size: 0.75rem;
+  }
+
+  .enter-go:focus-visible,
+  .enter-quiet:focus-visible {
+    outline: 2px solid oklch(0.93 0.01 265);
+    outline-offset: 2px;
+  }
+
+  /* Phones: the quiet link sits under the button, centred, so both are in thumb reach. */
+  @media (max-width: 640px) {
+    .enter-quiet {
+      position: static;
+      margin-top: 0.75rem;
+    }
+
+    :global(html[data-enter='open']) .enter {
+      grid-template-rows: 1fr auto auto auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html[data-enter='open']) .enter,
+    :global(html[data-enter='leaving']) .enter {
+      transition: opacity 200ms linear;
+    }
+
+    :global(html[data-enter='leaving']) .enter {
+      filter: none;
+      scale: none;
+    }
+
+    .enter-go {
+      transition: none;
+    }
+  }
+</style>
