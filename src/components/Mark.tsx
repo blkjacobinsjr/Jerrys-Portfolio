@@ -22,7 +22,7 @@ export default function Mark({ children, action, color }: Props) {
   }, []);
   if (!on) return <span ref={ref}>{children}</span>;
   return (
-    <Highlighter action={action} color={color} isView iterations={action === 'underline' ? 1 : 2} animationDuration={action === 'underline' ? 700 : 900}>
+    <Highlighter action={action} color={color} isView>
       {children}
     </Highlighter>
   );
