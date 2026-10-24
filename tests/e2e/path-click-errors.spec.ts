@@ -27,13 +27,22 @@ test('a stop partly out of view opens its drawer with no page errors, and the pa
   await page.waitForTimeout(150);
 
   // A stop cut by the viewport edge, clicked on its visible part while the strip may still be gliding.
+  // The edge a visitor can click: the reserved scrollbar gutter (scrollbar-gutter: stable) is not hit-testable, so a
+  // stop "partly out of view" straddles the last hit-testable column, not innerWidth.
+  const edge = isMobile
+    ? vp.width
+    : await page.evaluate(() => {
+        let x = innerWidth - 1;
+        while (x > innerWidth - 60 && !document.elementFromPoint(x, innerHeight / 2)) x--;
+        return x + 1;
+      });
   const target = await page.locator('[data-stop]').evaluateAll((els, w) => {
     for (const el of els) {
       const r = el.getBoundingClientRect();
       if (r.left < w && r.right > w && r.top > -1) return { id: (el as HTMLElement).dataset.stop!, x: (r.left + w) / 2, y: r.top + r.height / 2 };
     }
     return null;
-  }, vp.width);
+  }, edge);
   expect(target, 'a stop straddles the right edge').not.toBeNull();
   if (isMobile) await page.touchscreen.tap(target!.x, target!.y);
   else await page.mouse.click(target!.x, target!.y);

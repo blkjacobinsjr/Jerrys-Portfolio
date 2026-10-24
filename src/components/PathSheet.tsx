@@ -67,15 +67,28 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
   }, [sendDrawer, startDrawer]);
 
   useEffect(() => {
+    // The strip may still be gliding when a visitor clicks: the stop can slide out from under the pointer between
+    // press and release, so the click lands on the track. The stop pressed (with no drag) still counts.
+    let pressed: { stop: string; x: number; y: number } | null = null;
+    const onDown = (event: PointerEvent) => {
+      const stop = (event.target as Element | null)?.closest<HTMLElement>('[data-stop]')?.dataset.stop;
+      pressed = stop ? { stop, x: event.clientX, y: event.clientY } : null;
+    };
     const onClick = (event: MouseEvent) => {
       const button = (event.target as Element | null)?.closest<HTMLElement>('[data-stop]');
-      if (!button?.dataset.stop) return;
-      setId(button.dataset.stop);
+      const held = pressed && Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) < 8 ? pressed.stop : undefined;
+      pressed = null;
+      const onTrack = Boolean((event.target as Element | null)?.closest('[data-path-track]'));
+      const stop = button?.dataset.stop ?? (onTrack ? held : undefined);
+      if (!stop) return;
+      setId(stop);
       setVisit((n) => n + 1);
       changeDrawerOpen(true);
     };
+    document.addEventListener('pointerdown', onDown, true);
     document.addEventListener('click', onClick);
     return () => {
+      document.removeEventListener('pointerdown', onDown, true);
       document.removeEventListener('click', onClick);
       clearTimeout(settle.current);
     };
