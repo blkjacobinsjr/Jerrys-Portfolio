@@ -92,9 +92,10 @@ export function heroLaptop() {
     screenMat.map = t;
     screenMat.color.set(0xffffff);
     screenMat.needsUpdate = true;
-    // Paint the first frame before the overlay may hand off, so there is never an empty frame.
+    // The attribute shows the canvas, and the first frame is drawn in the same task, before the next paint, so the
+    // overlay never hands off to an empty canvas.
+    root.dataset.hero3d = 'ready';
     draw(progress());
-    requestAnimationFrame(() => (root.dataset.hero3d = 'ready'));
     wake(true);
   });
   const base = new Group();
@@ -135,17 +136,21 @@ export function heroLaptop() {
   let vw = 0, vh = 0, fv = 1, cxv = 0, cyv = 0;
   const startPos = new Vector3();
   const size = () => {
-    vw = root.clientWidth;
-    vh = innerHeight;
+    vw = canvas.clientWidth;
+    vh = canvas.clientHeight;
     renderer.setSize(vw, vh, false);
   };
   // The desk moves a little before the sticky hero pins, so the camera follows its rect every drawn frame (a read only).
   const layout = () => {
+    // The canvas is display:none until data-hero3d, so its size is (re)read here, not only on resize.
+    if (canvas.clientWidth !== vw || canvas.clientHeight !== vh) size();
+    // Desk position in the canvas's own pixels (the canvas is sticky in the pin, not fixed).
     const r = desk.getBoundingClientRect();
+    const c = canvas.getBoundingClientRect();
     const s = r.width / SRC_W;
     fv = F * s;
-    cxv = r.left + CX * s;
-    cyv = r.top + CY * s;
+    cxv = r.left - c.left + CX * s;
+    cyv = r.top - c.top + CY * s;
     const n = 0.1, far = 200;
     camera.projectionMatrix.makePerspective((-cxv / fv) * n, ((vw - cxv) / fv) * n, (cyv / fv) * n, (-(vh - cyv) / fv) * n, n, far);
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
@@ -155,7 +160,7 @@ export function heroLaptop() {
   };
 
   let cur = -1, target = 0, raf = 0;
-  const progress = () => clamp(scrollY / (vh * 0.9));
+  const progress = () => clamp(scrollY / (innerHeight * 0.9));
   const draw = (p: number) => {
     layout();
     const e = inOut(clamp(p / 0.86));

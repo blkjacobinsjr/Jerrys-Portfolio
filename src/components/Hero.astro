@@ -231,8 +231,15 @@ const quotes = await Promise.all(
     display: none;
   }
   @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
+    /* No fixed layers (overlay.test): the screen, the canvas and the hero share one grid cell in the pin, each
+       sticky at the top for the whole travel. */
     :global(html[data-hero-zoom='laptop']) .hero-pin {
+      display: grid;
       height: calc(100svh + 90vh);
+    }
+    :global(html[data-hero-zoom='laptop']) .hero-pin > * {
+      grid-area: 1 / 1;
+      align-self: start;
     }
     :global(html[data-hero-zoom='laptop']) .hero {
       position: sticky;
@@ -257,8 +264,10 @@ const quotes = await Promise.all(
     }
     :global(html[data-hero-zoom='laptop']) .hero-screen {
       display: block;
-      position: fixed;
-      inset: 0;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100svh;
       z-index: 5;
       background: var(--e3-screen) center / cover no-repeat #10203a;
       pointer-events: none;
@@ -294,10 +303,10 @@ const quotes = await Promise.all(
       pointer-events: none;
     }
     .hero-laptop {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100svh;
       z-index: 4;
       pointer-events: none;
     }
