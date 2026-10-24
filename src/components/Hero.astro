@@ -93,8 +93,10 @@ const quotes = await Promise.all(
 
 <script>
   // The attribute is only ever set on a desktop with a fine pointer (Base.astro), so phones never load three.js.
-  if (document.documentElement.dataset.heroZoom === 'laptop')
-    import('../scripts/hero-laptop').then((m) => m.heroLaptop());
+  const boot = () => import('../scripts/hero-laptop').then((m) => m.heroLaptop());
+  if (document.documentElement.dataset.heroZoom === 'laptop') boot();
+  // The enter screen re-runs the E3 check on its click and asks for the laptop if it now passes.
+  else addEventListener('hero-zoom', boot, { once: true });
 </script>
 
 <style>

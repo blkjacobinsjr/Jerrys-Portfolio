@@ -9,7 +9,7 @@ test('E3 hero: desktop opens full-bleed, lands on the desk, zero errors; phones 
   });
   const errors = await open(page);
   const mode = await page.evaluate(() => document.documentElement.dataset.heroZoom ?? null);
-  const fine = await page.evaluate(() => matchMedia('(min-width: 900px) and (hover: hover) and (pointer: fine)').matches && CSS.supports('animation-timeline: scroll()'));
+  const fine = await page.evaluate(() => matchMedia('(min-width: 900px) and (any-hover: hover) and (any-pointer: fine)').matches && CSS.supports('animation-timeline: scroll()'));
   await expect(page.locator('[data-hero-art] > picture img')).toBeVisible();
   if (!fine) {
     expect(mode).toBeNull();

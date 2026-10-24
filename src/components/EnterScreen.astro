@@ -96,6 +96,10 @@ const photo =
         // Private mode: the gate simply shows again next visit.
       }
       void import('../lib/sound').then((sound) => sound.enter(withSound, audio));
+      // Desktop always leaves into the E3 wallpaper: if the load-time check missed (window resized since), re-run
+      // it now, before 'leaving', so the photo takes the E3 path and the laptop boots under it.
+      const w = window as Window & { __heroZoom?: () => boolean };
+      if (!root.dataset.heroZoom && w.__heroZoom?.()) dispatchEvent(new Event('hero-zoom'));
       root.dataset.enter = 'leaving';
       let finished = false;
       const done = () => {
@@ -144,7 +148,7 @@ const photo =
     inset: 0 0 auto;
     z-index: 60;
     display: grid;
-    grid-template-rows: 1fr auto auto;
+    grid-template-rows: 1fr auto auto auto;
     justify-items: center;
     height: 100svh;
     padding: clamp(1.5rem, 5vh, 3rem) var(--gutter);
@@ -207,7 +211,7 @@ const photo =
      hero's own framing (cover, centred, full viewport), so it becomes the laptop screen the page opens on. */
   @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
     :global(html[data-hero-zoom='laptop'][data-enter-bg]) .enter-photo {
-      background-image: var(--enter-photo-e3);
+      background-image: var(--enter-photo-e3), var(--enter-photo);
     }
 
     :global(html[data-hero-zoom='laptop'][data-enter='leaving']) .enter {
@@ -314,15 +318,14 @@ const photo =
     scale: 0.98;
   }
 
+  /* The secondary choice, centred under the main one and quieter. */
   .enter-quiet {
-    position: absolute;
-    inset-inline-end: var(--gutter);
-    inset-block-end: clamp(1.5rem, 5vh, 3rem);
+    margin-top: 0.5rem;
     min-height: 44px;
     padding: 0 0.25rem;
     border: 0;
     color: oklch(0.72 0.02 265);
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-decoration: underline;
@@ -336,7 +339,7 @@ const photo =
   }
 
   .enter-note {
-    margin: 1rem 0 0;
+    margin: 0.5rem 0 0;
     color: oklch(0.62 0.02 265);
     font-size: 0.75rem;
   }
@@ -347,17 +350,6 @@ const photo =
     outline-offset: 2px;
   }
 
-  /* Phones: the quiet link sits under the button, centred, so both are in thumb reach. */
-  @media (max-width: 640px) {
-    .enter-quiet {
-      position: static;
-      margin-top: 0.75rem;
-    }
-
-    :global(html[data-enter='open']) .enter {
-      grid-template-rows: 1fr auto auto auto;
-    }
-  }
 
   @media (prefers-reduced-motion: reduce) {
     :global(html[data-enter='open']) .enter,
