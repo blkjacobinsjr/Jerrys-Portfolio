@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures';
+import { skipGate } from './fixtures';
 import sharp from 'sharp';
 import { open, scrollToSelector } from './helpers';
 
@@ -254,6 +255,7 @@ test('/contact: after about two seconds the letter is open and usable', async ({
 
 test('/contact: under reduced motion the letter is open immediately, with no ball', async ({ browser }) => {
   const still = await browser.newContext({ reducedMotion: 'reduce' });
+  await skipGate(still);
   const calm = await still.newPage();
   await calm.goto('/contact', { waitUntil: 'domcontentloaded' });
   await expect(calm.locator('.letter-ball')).toBeHidden();

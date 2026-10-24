@@ -3,11 +3,14 @@ import { test as base, type Page } from '@playwright/test';
 export * from '@playwright/test';
 
 /** The enter screen is live once per tab session: specs see the page behind it unless they ask for it with ?enter=1. */
+const skip = () => {
+  if (!/[?&]enter=1/.test(location.search)) sessionStorage.setItem('jp-enter', 'quiet');
+};
+/** For contexts a spec opens itself. */
+export const skipGate = (target: Pick<Page, 'addInitScript'>) => target.addInitScript(skip);
 export const skipEnterGate = {
   page: async ({ page }: { page: Page }, use: (page: Page) => Promise<void>) => {
-    await page.addInitScript(() => {
-      if (!/[?&]enter=1/.test(location.search)) sessionStorage.setItem('jp-enter', 'quiet');
-    });
+    await skipGate(page);
     await use(page);
   },
 };

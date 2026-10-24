@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures';
+import { skipGate } from './fixtures';
 import { open } from './helpers';
 
 /** E3 hero (t154): desktop + fine pointer only. Phones get the production hero with no extra bytes. */
@@ -63,6 +64,7 @@ test('E3 hero: desktop opens full-bleed, lands on the desk, zero errors; phones 
 
 test('E3 hero: reduced motion keeps the static desk', async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 1440, height: 900 } });
+  await skipGate(ctx);
   const page = await ctx.newPage();
   const errors = await open(page);
   expect(await page.evaluate(() => document.documentElement.dataset.heroZoom ?? null)).toBeNull();
@@ -73,6 +75,7 @@ test('E3 hero: reduced motion keeps the static desk', async ({ browser }) => {
 
 test('E3 hero: a wide touch tablet (no fine pointer) gets no E3 and no E3 bytes', async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true });
+  await skipGate(ctx);
   const page = await ctx.newPage();
   const e3: string[] = [];
   page.on('request', (r) => /screen-v3|desk-nolaptop|desk-landed|hero-laptop/.test(r.url()) && e3.push(r.url()));
