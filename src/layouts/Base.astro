@@ -3,7 +3,6 @@ import { Font } from 'astro:assets';
 import 'lenis/dist/lenis.css';
 import '../styles/global.css';
 import '../styles/polish.css';
-import ThemeToggle from '../components/ThemeToggle';
 import { HERO_ZOOM, POLISH, WORK_DETAILS, flagState } from '../data/site';
 
 interface Props {
@@ -105,7 +104,11 @@ const ogVideo = new URL('/og.mp4', Astro.site);
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    {polish !== 'off' && <ThemeToggle client:only="react" />}
+    {polish !== 'off' && (
+      <script>
+        if (document.documentElement.dataset.polish === 'on') import('../lib/polish-mount');
+      </script>
+    )}
     <slot />
     <script>
       const userIntents = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;

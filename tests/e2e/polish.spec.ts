@@ -43,8 +43,15 @@ test('polish: theme toggler flips the existing dark tokens, persists, and the pa
 test('polish: highlighter marks the Kindle line once it scrolls into view', async ({ page }) => {
   await open(page, '/?polish=1');
   await scrollToSelector(page, '#about');
-  await page.getByText('Kindle', { exact: false }).first().evaluate((e) => e.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await expect(page.locator('#about .rough-annotation').first()).toBeAttached({ timeout: 10_000 });
+  // Mid-reveal the words are still blurred, so nothing is drawn yet.
+  await expect(page.locator('#about .rough-annotation')).toHaveCount(0);
+  // Read on: the marks land once the scroll reveal has un-blurred their words.
+  await expect
+    .poll(async () => {
+      await page.evaluate(() => window.scrollBy({ top: 80, behavior: 'instant' }));
+      return page.locator('#about .rough-annotation').count();
+    }, { timeout: 15_000, intervals: [100] })
+    .toBeGreaterThanOrEqual(3);
 });
 
 test('polish: beam rides "Enter with sound" and entering still works', async ({ page }) => {
