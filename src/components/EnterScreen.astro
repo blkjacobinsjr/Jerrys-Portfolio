@@ -1,23 +1,34 @@
 ---
+import { getImage } from 'astro:assets';
 import FooterGhost from './FooterGhost';
+import screen from '../assets/icons/screen-v3.webp';
 import { ENTER_SCREEN, flagState, person } from '../data/site';
-import { fontData } from 'astro:assets';
 
 // ENTER_SCREEN (Overworld Audio style): a calm full-viewport gate over the hero. It is CSS and a few lines of inline
 // script until someone clicks: the hero renders underneath (still the LCP), every word stays in the DOM, the smoke
 // is the footer's own FooterGhost (WebGL fetched on the first mouse move over the gate), and the audio code loads
 // on the click. Shown once per tab session; in preview builds only with ?enter=1.
 const state = flagState(ENTER_SCREEN);
-// Preload the italic only when the gate opens on a wide screen; on phones it swaps in over a metric-matched fallback so it never competes with the hero image (LCP).
-const italic = (fontData as Record<string, { src: { url: string }[]; style?: string }[] | undefined>)['--font-display']?.find((f) => f.style === 'italic')?.src[0]?.url;
 const [first, ...rest] = person.name.split(' ');
+// The Berlin shot behind the gate, at low opacity. It is the hero laptop's v3 screen: on the E3 desktop hero it uses
+// the exact files Hero.astro sets as --e3-screen (same params, so one cached request), and on leaving it rises to
+// full opacity and lands on the hero's full-bleed screen. Everyone else gets a small copy. CSS backgrounds under
+// html[data-enter='open'] only, so a visit without the gate never fetches either.
+const url = async (width: number, format: 'avif' | 'webp', quality: number) => (await getImage({ src: screen, width, format, quality })).src;
+const photo =
+  state === 'off'
+    ? undefined
+    : [
+        `--enter-photo: image-set(url(${await url(960, 'avif', 40)}) type("image/avif"), url(${await url(960, 'webp', 45)}) type("image/webp"))`,
+        `--enter-photo-e3: image-set(url(${await url(2560, 'avif', 45)}) type("image/avif"), url(${await url(2560, 'webp', 50)}) type("image/webp"))`,
+      ].join(';');
 ---
 
 {
   state !== 'off' && (
     <>
-      <script is:inline define:vars={{ needsQuery: state === 'query', italic }}>
-        // Before the hero paints: open the gate, lock the page at the top, preload the title face.
+      <script is:inline define:vars={{ needsQuery: state === 'query' }}>
+        // Before the hero paints: open the gate and lock the page at the top.
         (function () {
           try {
             var q = new URLSearchParams(location.search).get('enter');
@@ -25,22 +36,17 @@ const [first, ...rest] = person.name.split(' ');
             var root = document.documentElement;
             root.dataset.enter = 'open';
             if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-            // Wide screens: preload the title face and use it at once. Phones: keep the metric-matched fallback
-            // until the page has loaded, so the 48 KB face never competes with the hero image (LCP).
-            var face = function () { root.dataset.displayFont = 'on'; };
-            if (matchMedia('(min-width: 900px)').matches) {
-              if (italic) {
-                var l = document.createElement('link');
-                l.rel = 'preload'; l.as = 'font'; l.type = 'font/woff2'; l.crossOrigin = ''; l.href = italic;
-                document.head.appendChild(l);
-              }
-              face();
-            } else addEventListener('load', face, { once: true });
+            // The Berlin shot: at once on the E3 hero (it is the hero's own screen file), after load elsewhere so
+            // it never competes with the hero image (LCP on phones); it fades in when it arrives.
+            var photo = function () { root.dataset.enterBg = 'on'; };
+            if (root.dataset.heroZoom === 'laptop') photo();
+            else addEventListener('load', photo, { once: true });
           } catch (e) {}
         })();
       </script>
-      <section class="enter" id="enter" aria-labelledby="enter-title" aria-describedby="enter-note" data-overlay data-enter-screen>
-        <FooterGhost client:visible host="[data-enter-screen]" />
+      <section class="enter" id="enter" aria-labelledby="enter-title" aria-describedby="enter-note" data-overlay data-enter-screen style={photo}>
+        <div class="enter-photo" data-enter-photo aria-hidden="true"></div>
+        <FooterGhost client:media="(hover: hover) and (pointer: fine)" host="[data-enter-screen]" />
         <div class="enter-mark">
           <p class="enter-title" id="enter-title">
             <span class="enter-first">{first}</span>
@@ -105,8 +111,11 @@ const [first, ...rest] = person.name.split(' ');
           main.focus({ preventScroll: true });
         }
       };
+      // Ends when the gate has faded (phones, reduced motion) or, on the E3 desktop hero, when the photo has risen
+      // to full opacity: it then matches the hero's full-bleed screen underneath, so hiding the gate is invisible.
+      const photo = gate.querySelector('[data-enter-photo]');
       if (reduced) setTimeout(done, 200);
-      else gate.addEventListener('transitionend', (e) => e.target === gate && done());
+      else gate.addEventListener('transitionend', (e) => (e.target === gate || (e.target === photo && e.propertyName === 'opacity')) && done());
       setTimeout(done, 1600);
     };
     gate.addEventListener('click', (event) => {
@@ -160,6 +169,67 @@ const [first, ...rest] = person.name.split(' ');
     pointer-events: none;
   }
 
+  /* The Berlin shot, low and slightly enlarged, under the smoke. */
+  .enter-photo {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: center / cover no-repeat;
+    opacity: 0;
+    scale: 1.04;
+    pointer-events: none;
+    /* Softer than the UI curve (ease-out cubic), so the rise reads as a crossfade rather than a cut. */
+    transition:
+      opacity 1100ms cubic-bezier(0.33, 1, 0.68, 1),
+      scale 1100ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+  .enter-mark,
+  .enter-note,
+  .enter :global(.footer-ghost) {
+    transition:
+      opacity 280ms var(--ease-out),
+      filter 280ms var(--ease-out),
+      translate 280ms var(--ease-out);
+  }
+
+  :global(html[data-enter-bg]) .enter-photo {
+    background-image: var(--enter-photo);
+    opacity: 0.18;
+  }
+
+  /* Phones and every non-E3 hero: the photo settles a little smaller as the gate fades, toward the laptop. */
+  :global(html[data-enter='leaving']) .enter-photo {
+    scale: 0.96;
+  }
+
+  /* E3 desktop hero: the gate itself stays; the words lift away and the photo rises to full strength at the
+     hero's own framing (cover, centred, full viewport), so it becomes the laptop screen the page opens on. */
+  @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
+    :global(html[data-hero-zoom='laptop'][data-enter-bg]) .enter-photo {
+      background-image: var(--enter-photo-e3);
+    }
+
+    :global(html[data-hero-zoom='laptop'][data-enter='leaving']) .enter {
+      opacity: 1;
+      filter: none;
+      scale: none;
+      transition: none;
+    }
+
+    :global(html[data-hero-zoom='laptop'][data-enter='leaving']) .enter-photo {
+      opacity: 1;
+      scale: 1;
+    }
+
+    :global(html[data-hero-zoom='laptop'][data-enter='leaving']) :is(.enter-mark, .enter-go, .enter-quiet, .enter-note),
+    :global(html[data-hero-zoom='laptop'][data-enter='leaving']) .enter :global(.footer-ghost) {
+      opacity: 0;
+      filter: blur(4px);
+      translate: 0 -8px;
+    }
+  }
+
   .enter :global(.footer-ghost) {
     z-index: -1;
   }
@@ -172,7 +242,7 @@ const [first, ...rest] = person.name.split(' ');
     text-align: center;
   }
 
-  /* The Three Worlds pairing: italic serif over tracked capitals. */
+  /* The site's own Geist: a large light first name over tracked capitals. */
   .enter-title {
     display: grid;
     justify-items: center;
@@ -180,29 +250,10 @@ const [first, ...rest] = person.name.split(' ');
     line-height: 1;
   }
 
-  /* Times, sized to Timeless Serif's metrics (the same overrides Astro computes for its own fallback), so the swap
-     to the real face does not move the title. */
-  @font-face {
-    font-family: 'Timeless Fallback';
-    src: local('Times New Roman'), local('TimesNewRomanPSMT'), local('Liberation Serif');
-    font-style: italic;
-    size-adjust: 114.6679%;
-    ascent-override: 83.9583%;
-    descent-override: 21.6667%;
-    line-gap-override: 0%;
-  }
-
   .enter-first {
-    font-family: 'Timeless Fallback', Georgia, serif;
-    font-style: italic;
-    font-synthesis: none;
-    font-weight: 400;
+    font-weight: 300;
     font-size: clamp(2.75rem, 1.6rem + 4vw, 4.75rem);
-    letter-spacing: -0.01em;
-  }
-
-  :global(:root[data-display-font]) .enter-first {
-    font-family: var(--font-display, Georgia), Georgia, serif;
+    letter-spacing: -0.04em;
   }
 
   .enter-last {
@@ -242,7 +293,10 @@ const [first, ...rest] = person.name.split(' ');
     text-transform: uppercase;
     transition:
       border-color var(--dur-ui) var(--ease-out),
-      background-color var(--dur-ui) var(--ease-out);
+      background-color var(--dur-ui) var(--ease-out),
+      opacity 280ms var(--ease-out),
+      filter 280ms var(--ease-out),
+      translate 280ms var(--ease-out);
   }
 
   @media (hover: hover) and (pointer: fine) {
@@ -274,7 +328,11 @@ const [first, ...rest] = person.name.split(' ');
     text-decoration: underline;
     text-decoration-color: oklch(0.72 0.02 265 / 0.5);
     text-underline-offset: 6px;
-    transition: color var(--dur-ui) var(--ease-out);
+    transition:
+      color var(--dur-ui) var(--ease-out),
+      opacity 280ms var(--ease-out),
+      filter 280ms var(--ease-out),
+      translate 280ms var(--ease-out);
   }
 
   .enter-note {
@@ -312,8 +370,13 @@ const [first, ...rest] = person.name.split(' ');
       scale: none;
     }
 
-    .enter-go {
+    .enter-go,
+    .enter-photo {
       transition: none;
+    }
+
+    :global(html[data-enter='leaving']) .enter-photo {
+      scale: 1.04;
     }
   }
 </style>

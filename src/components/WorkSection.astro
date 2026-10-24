@@ -68,18 +68,6 @@ const items = await resolveProjects();
 </section>
 
 <style>
-  /* Preview flags only: "Selected work" becomes a Timeless italic display line (on phones only after load, see EnterScreen). Body text is untouched. */
-  :global(:root:is([data-work-details], [data-display-font])) #work-title {
-    font-family: var(--font-display, Georgia, 'Times New Roman', serif);
-    font-size: clamp(2.25rem, 1rem + 3vw, 3.75rem);
-    font-style: italic;
-    font-synthesis: none;
-    font-weight: 400;
-    line-height: 1;
-    letter-spacing: -0.01em;
-    color: var(--fg);
-  }
-
   .work {
     display: grid;
     gap: 1.5rem;

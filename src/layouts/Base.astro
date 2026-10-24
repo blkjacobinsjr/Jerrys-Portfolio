@@ -1,5 +1,5 @@
 ---
-import { Font, fontData } from 'astro:assets';
+import { Font } from 'astro:assets';
 import 'lenis/dist/lenis.css';
 import '../styles/global.css';
 import { HERO_ZOOM, WORK_DETAILS, flagState } from '../data/site';
@@ -10,8 +10,6 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
-// Timeless Serif is registered only when its (gitignored) files are present; see astro.config.mjs.
-const display = '--font-display' in fontData ? ('--font-display' as Parameters<typeof Font>[0]['cssVariable']) : undefined;
 const details = flagState(WORK_DETAILS);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL('/og.jpg', Astro.site);
@@ -43,7 +41,6 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <meta property="og:video:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-sans" preload />
-    {display && <Font cssVariable={display} />}
     {details !== 'off' && (
       <script is:inline define:vars={{ needsQuery: details === 'query' }}>
         // WORK_DETAILS: Overworld-style project pages, desktop with a fine pointer only. In preview builds ?details=1

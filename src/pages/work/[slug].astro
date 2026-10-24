@@ -375,7 +375,7 @@ const media = item.shots[0];
   }
 
   /* WORK_DETAILS (preview flag, desktop with a fine pointer): Overworld-style detail page. A wide shot dissolves
-     through a painterly edge into a dark grain ground; the title in Timeless on the left, the lede on the right,
+     through a painterly edge into a dark grain ground; the title on the left, the lede on the right,
      the facts in small caps below. Everything is scoped to the attribute, so the default page is untouched. */
   .work-hero-lede {
     display: none;
@@ -394,7 +394,7 @@ const media = item.shots[0];
   }
 
   :root[data-work-details] .work-page {
-    --serif: var(--font-display, Georgia, 'Times New Roman', serif);
+    --display: var(--font-sans-stack);
     position: relative;
     isolation: isolate;
     padding-top: 0;
@@ -470,24 +470,23 @@ const media = item.shots[0];
   :root[data-work-details] .work-hero-copy .detail-title {
     grid-column: 1;
     grid-row: 1;
-    font-family: var(--serif);
+    font-family: var(--display);
     font-size: clamp(2.75rem, 1rem + 3.6vw, 4.5rem);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 0.98;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.035em;
   }
 
-  /* The tagline becomes the title's second line, in italic, as in the reference. */
+  /* The tagline becomes the title's second line, lighter and quieter. */
   :root[data-work-details] .work-hero-tagline {
     grid-column: 1;
     grid-row: 2;
     margin: 0.1em 0 0;
-    font-family: var(--serif);
+    font-family: var(--display);
     font-size: clamp(1.75rem, 0.9rem + 1.8vw, 2.625rem);
-    font-style: italic;
-    font-synthesis: none;
-    font-weight: 400;
+    font-weight: 300;
     line-height: 1.08;
+    letter-spacing: -0.025em;
     color: var(--fg-2);
     text-wrap: balance;
   }
@@ -497,10 +496,11 @@ const media = item.shots[0];
     grid-column: 2;
     grid-row: 1 / span 2;
     margin: 0.35rem 0 0;
-    font-family: var(--serif);
+    font-family: var(--display);
     font-size: clamp(1.375rem, 0.85rem + 1.05vw, 1.875rem);
     font-weight: 400;
     line-height: 1.32;
+    letter-spacing: -0.015em;
     color: var(--fg);
     text-wrap: pretty;
   }

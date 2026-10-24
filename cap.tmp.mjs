@@ -1,0 +1,27 @@
+import { chromium, devices } from 'playwright';
+const base = process.argv[2] || 'http://localhost:4361';
+const tag = process.argv[3] || 'local';
+const out = '/workspace/shots/enter/v2';
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, recordVideo: { dir: out + '/raw-' + tag, size: { width: 1440, height: 900 } } });
+const p = await ctx.newPage();
+await p.goto(base + '/?enter=1'); await p.waitForLoadState('networkidle'); await p.waitForTimeout(1500);
+await p.screenshot({ path: `${out}/${tag}-desktop-1-gate.png` });
+await p.mouse.move(720, 700);
+await p.getByRole('button', { name: 'Enter with sound' }).click();
+await p.waitForTimeout(400); await p.screenshot({ path: `${out}/${tag}-desktop-2-mid.png` });
+await p.waitForTimeout(1500); await p.screenshot({ path: `${out}/${tag}-desktop-3-hero.png` });
+for (let y = 0; y <= 1000; y += 25) { await p.mouse.wheel(0, 25); await p.waitForTimeout(40); }
+await p.waitForTimeout(800); await p.screenshot({ path: `${out}/${tag}-desktop-4-landed.png` });
+await ctx.close();
+const d = await b.newContext({ viewport: { width: 1440, height: 900 } });
+const dp = await d.newPage(); await dp.goto(base + '/work/tiding?details=1'); await dp.waitForLoadState('networkidle'); await dp.waitForTimeout(800);
+await dp.screenshot({ path: `${out}/${tag}-details-tiding.png` }); await d.close();
+const m = await b.newContext({ ...devices['Pixel 7'] });
+const q = await m.newPage();
+await q.goto(base + '/?enter=1'); await q.waitForLoadState('networkidle'); await q.waitForTimeout(1800);
+await q.screenshot({ path: `${out}/${tag}-phone-1-gate.png` });
+await q.getByRole('button', { name: 'Enter with sound' }).click();
+await q.waitForTimeout(300); await q.screenshot({ path: `${out}/${tag}-phone-2-mid.png` });
+await q.waitForTimeout(1500); await q.screenshot({ path: `${out}/${tag}-phone-3-hero.png` });
+await m.close(); await b.close();
