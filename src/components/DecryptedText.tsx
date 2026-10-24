@@ -621,7 +621,7 @@ export default function DecryptedText({
       : {};
 
   return (
-    <span className={parentClassName} ref={containerRef} style={styles.wrapper} {...animateProps} {...props}>
+    <span className={parentClassName} ref={containerRef} style={styles.wrapper} data-decrypt={hoverable ? "" : undefined} {...animateProps} {...props}>
       <span style={styles.srOnly}>{chars.join('')}</span>
 
       <span aria-hidden="true">

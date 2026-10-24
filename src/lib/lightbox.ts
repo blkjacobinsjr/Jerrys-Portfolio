@@ -37,7 +37,8 @@ export async function openLightbox(shots: LightboxShot[], index: number, contain
     showAnimationDuration: 250,
     hideAnimationDuration: 150,
     easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    bgOpacity: 0.92,
+    // Opaque: at 0.92 the open Path drawer's text ghosted through on phones.
+    bgOpacity: 1,
     wheelToZoom: false,
     // Inside an open Path drawer (a modal dialog element) the lightbox must live in the dialog's top layer to show above it.
     ...(container ? { appendToEl: container } : {}),

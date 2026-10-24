@@ -16,6 +16,24 @@ export default function ContactCTA({ email }: { email: string }) {
   // The beam's generated stylesheet is large; render it only once mounted, so it never ships in the HTML.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // The beam breathes only while the button is on screen and the tab is visible; otherwise its loop rests.
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    let seen = false;
+    const sync = () => setLive(seen && document.visibilityState !== 'hidden');
+    const io = new IntersectionObserver(([entry]) => {
+      seen = Boolean(entry?.isIntersecting);
+      sync();
+    });
+    io.observe(el);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, []);
 
   async function copy() {
     try {
@@ -40,7 +58,7 @@ export default function ContactCTA({ email }: { email: string }) {
     <div className="t-confetti-stage contact-stage" ref={stage}>
       <canvas className="t-confetti-canvas" ref={canvas} aria-hidden="true" />
       {mounted ? (
-        <BorderBeam size="pulse-inner" colorVariant="sunset" theme={scheme} borderRadius={999} className="contact-beam">
+        <BorderBeam active={live} size="pulse-inner" colorVariant="sunset" theme={scheme} borderRadius={999} className="contact-beam">
           {cta}
         </BorderBeam>
       ) : (

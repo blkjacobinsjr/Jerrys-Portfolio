@@ -28,6 +28,8 @@ test('desktop hover: one ripple renderer and a spec sheet of real project data; 
   const values = ['/01', String(spec.created), String(spec.name), String(spec.type), String(spec.scope)];
   await expect(sheet.locator('dd')).toHaveText(values.map((v) => v + v), { timeout: 5_000 });
   await expect(first.locator('.work-phone')).toBeVisible();
+  // One phone, never two: the canvas carries it while mounted and the real img steps aside.
+  await expect(first.locator('.work-phone')).toHaveCSS('opacity', '0');
   // Moving across the card leaves a wake but the link under it still takes the click.
   const box = (await first.boundingBox())!;
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5, { steps: 10 });

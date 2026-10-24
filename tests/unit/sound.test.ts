@@ -7,11 +7,12 @@ type Handler = (event: unknown) => void;
 
 // Mock AudioContext and its components
 const mockGainNode = {
-  gain: { value: 0 },
+  gain: { value: 0, setTargetAtTime: vi.fn() },
   connect: vi.fn(),
 };
 const mockBufferSource = {
   buffer: null as AudioBuffer | null,
+  loop: false,
   connect: vi.fn(),
   start: vi.fn(),
 };
@@ -24,7 +25,8 @@ const mockAudioContext = {
   resume: vi.fn(() => Promise.resolve()),
   suspend: vi.fn(() => Promise.resolve()),
   state: 'running' as AudioContextState, // Will be 'running' or 'suspended'
-  destination: {}, // Required for gainNode.connect(ctx.destination)
+  destination: {},
+  currentTime: 0,
 };
 
 const mockAudio = {
@@ -211,21 +213,21 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(3); // 'open', 'close', 'whoosh'
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8); // 'open', 'close', 'whoosh'
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledWith(expect.any(ArrayBuffer));
   });
 
-  it('loads samples via mp3 path when webm is not supported', async () => {
+  it('loads samples via m4a path when webm is not supported', async () => {
     const env = await loaded();
     mockAudio.canPlayType.mockReturnValue(''); // WebM not supported
     mockFetch.mockResolvedValue({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) });
 
     await unlockAudio(env);
 
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.mp3');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.mp3');
-    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.mp3');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(3);
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/open.m4a');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/close.m4a');
+    expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.m4a');
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8);
   });
 
   it('handles !ok fetch response during sample loading', async () => {
@@ -242,7 +244,7 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(2); // Only 2 successful decodes
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(7); // Only 2 successful decodes
   });
 
   it('handles rejecting fetch during sample loading', async () => {
@@ -259,7 +261,7 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(2); // Only 2 successful decodes
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(7); // Only 2 successful decodes
   });
 
   it('only initializes AudioContext and loads samples once', async () => {
@@ -269,7 +271,7 @@ describe('sound', () => {
 
     await unlockAudio(env); // First time, ctx is created and samples loaded
     expect(vi.mocked(global.AudioContext)).toHaveBeenCalledTimes(1);
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(3);
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8);
 
     // Calling initSound again won't re-trigger the load path due to 'once' listeners
     // and loadSamples itself has `if (ctx) return;`
@@ -392,5 +394,133 @@ describe('sound', () => {
     env.sound.setMuted(false);
     expect(mockAudioContext.suspend).not.toHaveBeenCalled();
     expect(mockAudioContext.resume).not.toHaveBeenCalled();
+  });
+
+  describe('t138 cues and footer loops', () => {
+    const flush = async () => { for (let n = 0; n < 20; n++) await Promise.resolve(); };
+    const ready = async (opts?: Parameters<typeof setup>[0], ok = true) => {
+      const observers: Array<(entries: Array<{ isIntersecting: boolean }>) => void> = [];
+      vi.stubGlobal('IntersectionObserver', vi.fn(function (cb: (entries: Array<{ isIntersecting: boolean }>) => void) {
+        observers.push(cb);
+        return { observe: vi.fn() };
+      }));
+      vi.stubGlobal('scrollY', 0);
+      const env = await loaded(opts);
+      mockAudio.canPlayType.mockReturnValue('probably');
+      mockFetch.mockResolvedValue(ok ? { ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)) } : { ok: false });
+      await unlockAudio(env);
+      await flush();
+      mockAudioContext.createBufferSource.mockClear();
+      mockGainNode.gain.setTargetAtTime.mockClear();
+      lib.play.mockClear();
+      return { ...env, see: (on: boolean) => observers.forEach((cb) => cb([{ isIntersecting: on }])) };
+    };
+    const over = (selector: string, from: string[] = []) => ({ pointerType: 'mouse', target: hit([selector]), relatedTarget: hit(from) });
+    const scrollTo = (env: { fire: (t: string, e?: unknown) => void }, y: number) => { vi.stubGlobal('scrollY', y); env.fire('scroll'); };
+
+    it('a data tick on entering decrypted text and a key jingle on the keyring, both throttled', async () => {
+      const now = vi.spyOn(performance, 'now').mockReturnValue(1000);
+      const env = await ready();
+      env.fire('pointerover', over('[data-decrypt]'));
+      env.fire('pointerover', over('[data-decrypt]'));
+      now.mockReturnValue(1100);
+      env.fire('pointerover', over('[data-decrypt]'));
+      env.fire('pointerover', over('[data-decrypt]', ['[data-decrypt]']));
+      env.fire('pointerover', { ...over('[data-decrypt]'), pointerType: 'touch' });
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(2);
+      env.fire('pointerover', over('[data-keyring]'));
+      now.mockReturnValue(1500);
+      env.fire('pointerover', over('[data-keyring]'));
+      env.fire('pointerover', { ...over('[data-keyring]'), pointerType: 'touch' });
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(3);
+      expect(lib.play).not.toHaveBeenCalled();
+      now.mockRestore();
+    });
+
+    it('sample-only cues stay silent before their files load', async () => {
+      await ready(undefined, false);
+      const sound = await import('../../src/lib/sound');
+      sound.cue('data');
+      sound.cue('rewind');
+      sound.cue('keys');
+      sound.wind(2);
+      sound.ambience(true);
+      expect(lib.play).not.toHaveBeenCalled();
+      expect(mockAudioContext.createBufferSource).not.toHaveBeenCalled();
+    });
+
+    it('one rewind per upward reversal after more than 600px down, with a 1.5s cooldown', async () => {
+      const now = vi.spyOn(performance, 'now').mockReturnValue(5000);
+      const env = await ready();
+      scrollTo(env, 100);
+      scrollTo(env, 800);
+      scrollTo(env, 790);
+      scrollTo(env, 780);
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+      scrollTo(env, 1500);
+      scrollTo(env, 1400);
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+      now.mockReturnValue(7000);
+      scrollTo(env, 1700);
+      scrollTo(env, 1650);
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+      scrollTo(env, 2400);
+      scrollTo(env, 2400);
+      scrollTo(env, 2300);
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(2);
+      now.mockRestore();
+    });
+
+    it('footer wind: one looping buffer whose gain follows pointer speed and fades when still', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const now = vi.spyOn(performance, 'now').mockReturnValue(0);
+      const env = await ready();
+      const move = (x: number, t: number, target = hit(['footer']), pointerType = 'mouse') => {
+        now.mockReturnValue(t);
+        env.fire('pointermove', { pointerType, target, clientX: x, clientY: 0 });
+      };
+      move(0, 0);
+      move(10, 10);
+      move(20, 20);
+      move(30, 500);
+      move(40, 500);
+      move(50, 510, hit([]));
+      move(60, 520, hit(['footer']), 'touch');
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+      expect(mockBufferSource.loop).toBe(true);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenCalledWith(0.12, 0, 0.08);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenCalledTimes(2);
+      vi.advanceTimersByTime(140);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, 0, 0.25);
+      env.sound.setMuted(true);
+      mockGainNode.gain.setTargetAtTime.mockClear();
+      env.sound.wind(3);
+      expect(mockGainNode.gain.setTargetAtTime).not.toHaveBeenCalled();
+      now.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('city ambience fades in while the footer is on screen, out when it leaves or sound is muted', async () => {
+      const env = await ready();
+      env.see(false);
+      expect(mockAudioContext.createBufferSource).not.toHaveBeenCalled();
+      env.see(true);
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenLastCalledWith(0.06, 0, 0.6);
+      env.sound.setMuted(true);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, 0, 0.6);
+      env.sound.setMuted(false);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenLastCalledWith(0.06, 0, 0.6);
+      env.see(false);
+      expect(mockGainNode.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, 0, 0.6);
+      expect(mockAudioContext.createBufferSource).toHaveBeenCalledTimes(1);
+    });
+
+    it('without a footer or IntersectionObserver nothing is observed', async () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+      const env = await loaded({ toggle: false });
+      await unlockAudio(env);
+      expect(lib.bind).toHaveBeenCalled();
+    });
   });
 });
