@@ -27,7 +27,10 @@ test.describe('page', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Jerry Doughan');
     await expect(page.locator('h1 [aria-hidden="true"]')).toHaveText('Jerry Doughan');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /consumer apps/);
-    await expect(page.locator('.hero-art img')).toBeVisible();
+    // The hero art is on screen: the static desk, or on the E3 desktop (where the drawn desk is never shown) the
+    // full-bleed screen it opens on.
+    const e3 = await page.evaluate(() => document.documentElement.dataset.heroZoom === 'laptop');
+    await expect(page.locator(e3 ? '.hero-screen' : '.hero-art img')).toBeVisible();
     expect(errors).toEqual([]);
   });
 
