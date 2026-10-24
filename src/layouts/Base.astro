@@ -42,34 +42,18 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <Font cssVariable="--font-sans" preload />
     <slot name="head" />
     {HERO_ZOOM && (
-      <script is:inline define:vars={{ mode: HERO_ZOOM }}>
-        // Before first paint: the E3 hero runs only on a wide screen with a mouse or trackpad, motion allowed and CSS
-        // scroll timelines; everyone else gets the static hero. ?zoom=off turns it off for a visit. any-hover/any-pointer
-        // (not the primary pointer) so a Mac with a second input device still counts; phones and tablets without a
-        // fine pointer still never match. The reason it is off lands in data-hero-zoom-off; Hero.astro re-runs the
-        // check on resize while the page is at the top.
-        (function () {
-          var root = document.documentElement;
-          window.__heroZoom = function () {
-            var m = function (q) { return matchMedia(q).matches; };
-            var off = new URLSearchParams(location.search).get('zoom') === 'off' ? 'query'
-              : !m('(min-width: 900px)') ? 'width'
-              : !m('(any-hover: hover) and (any-pointer: fine)') ? 'pointer'
-              : m('(prefers-reduced-motion: reduce)') ? 'motion'
-              : !CSS.supports('animation-timeline: scroll()') ? 'timeline' : '';
-            if (off) root.dataset.heroZoomOff = off;
-            else { delete root.dataset.heroZoomOff; root.dataset.heroZoom = mode; }
-            return !off;
-          };
-          if (mode) window.__heroZoom();
-        })();
-      </script>
+      // Before first paint: E3 only on a wide screen with a mouse/trackpad (any-hover/any-pointer, so phones and touch
+      // tablets never match), motion allowed and CSS scroll timelines; ?zoom=off turns it off for a visit. The reason it
+      // is off lands in data-hero-zoom-off; hero-boot.ts re-runs the check on resize while at the top. Kept minified:
+      // these bytes sit in every phone's head before the LCP image.
+      <script is:inline set:html={`(function(){var mode=${JSON.stringify(HERO_ZOOM)},r=document.documentElement;window.__heroZoom=function(){var m=function(q){return matchMedia(q).matches},o=new URLSearchParams(location.search).get('zoom')==='off'?'query':!m('(min-width: 900px)')?'width':!m('(any-hover: hover) and (any-pointer: fine)')?'pointer':m('(prefers-reduced-motion: reduce)')?'motion':!CSS.supports('animation-timeline: scroll()')?'timeline':'';if(o)r.dataset.heroZoomOff=o;else{delete r.dataset.heroZoomOff;r.dataset.heroZoom=mode}return!o};if(mode)window.__heroZoom()})();`} />
     )}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <slot />
     <script>
+      import '../scripts/hero-boot';
       const userIntents = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
       const recordUserIntent = () => {
         document.documentElement.dataset.userIntent = 'true';
