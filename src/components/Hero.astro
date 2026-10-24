@@ -306,6 +306,13 @@ const quotes = await Promise.all(
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
       display: block;
     }
+    /* Off-screen once the pin (100svh + 90vh) has scrolled past: the WebGL layer stops compositing for the rest of the
+       page and comes back when scrolling up. Nobody sees the switch. */
+    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
+      animation: e3-fade linear both;
+      animation-timeline: scroll(root);
+      animation-range: calc(100svh + 90vh) calc(100svh + 91vh);
+    }
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-landed,
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-art > :global(picture) {
       visibility: hidden;
