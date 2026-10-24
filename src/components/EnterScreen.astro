@@ -264,6 +264,9 @@ const photo =
     position: absolute;
     pointer-events: none;
     mix-blend-mode: screen;
+    filter: url(#enter-oil-floor);
+    /* The tile's halo still reaches the top and bottom early in the film (up to 6/255): fade those edges out. */
+    mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
     transition: opacity 480ms var(--ease-out);
   }
 

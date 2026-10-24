@@ -145,6 +145,10 @@ export async function startEnterOil(gate: HTMLElement): Promise<boolean> {
   if (!probe?.getExtension('EXT_color_buffer_float')) return false;
   probe.getExtension('WEBGL_lose_context')?.loseContext();
   await document.fonts.ready;
+  // The film's black studio isn't quite black (about 0/1/4 out of 255 after the screen blend), so the canvas
+  // lifted a faint box over the photo. This filter takes that floor to exactly 0 (screen with 0 is the page
+  // untouched) and stretches the rest back, so the lens edge vanishes.
+  gate.insertAdjacentHTML('beforeend', `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="enter-oil-floor" color-interpolation-filters="sRGB"><feComponentTransfer>${['R', 'G', 'B'].map((c) => `<feFunc${c} type="linear" slope="1.033" intercept="-0.033"/>`).join('')}</feComponentTransfer></filter></svg>`);
   const root = document.documentElement;
   const title = gate.querySelector<HTMLElement>('.enter-title')!;
   const first = title.querySelector('.enter-first')!;
