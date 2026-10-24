@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 /** The hero teaser's active author (name + role) is a real link to their LinkedIn, in dark mode too. */

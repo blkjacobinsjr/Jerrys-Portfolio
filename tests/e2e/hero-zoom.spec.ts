@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 /** E3 hero (t154): desktop + fine pointer only. Phones get the production hero with no extra bytes. */

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 test('FluidGlass mounts over the footer heading only after intent, and reduced motion keeps the plain heading', async ({ page }, info) => {

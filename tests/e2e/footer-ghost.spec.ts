@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 /** Footer ghost cursor (React Bits GhostCursor): lazy, gated, and invisible to layout. */

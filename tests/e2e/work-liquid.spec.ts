@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 test('mounts Liquid Object canvas only on hover of an in-view desktop card, at most one at a time, while static image stays', async ({ page, isMobile }) => {

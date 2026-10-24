@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 // Click-through rule: an interactive effect must never swallow the click under it. Every selected-work card is

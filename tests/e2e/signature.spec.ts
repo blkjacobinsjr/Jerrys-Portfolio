@@ -1,6 +1,6 @@
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 test('draws the inline signature once, keeps its reserved box stable, and stays out of LCP', async ({ page }, testInfo) => {

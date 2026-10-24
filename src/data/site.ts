@@ -57,10 +57,10 @@ export const HERO_ZOOM: 'laptop' | false = 'laptop';
  *  and they still wait for a query flag: ?enter=1 (enter screen, once per tab session) and ?details=1 (Overworld-style
  *  project pages on desktop with a fine pointer; remembered for the tab session). true = on everywhere, false = gone. */
 export type PreviewFlag = boolean | 'preview';
-export const ENTER_SCREEN: PreviewFlag = 'preview';
+export const ENTER_SCREEN: PreviewFlag = true;
 export const WORK_DETAILS: PreviewFlag = 'preview';
-/** Jerry's t174 polish set (icon swap, theme toggle, enter beam, highlighter): ?polish=1 on previews, remembered for the tab session. */
-export const POLISH: PreviewFlag = 'preview';
+/** Live (Jerry 24.10, 17:16): the enter screen (once per tab session) and the t174 polish set; set false to kill. ?polish=0 turns polish off for a visit. */
+export const POLISH: PreviewFlag = true;
 /** Whether a flag is compiled into this build, and whether it still needs its query flag to show. */
 export const flagState = (flag: PreviewFlag): 'off' | 'query' | 'on' =>
   flag === true ? 'on' : flag === 'preview' && process.env.VERCEL_ENV !== 'production' ? 'query' : 'off';

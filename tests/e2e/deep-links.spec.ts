@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const targets = ['about', 'recommendations', 'contact', 'work', 'path'] as const;
 const motionPreferences = ['no-preference', 'reduce'] as const;

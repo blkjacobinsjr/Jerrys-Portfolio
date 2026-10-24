@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 /** C: Ripple Distortion + spec sheet on a hovered desktop card; nothing on phones; the card link always clicks. */

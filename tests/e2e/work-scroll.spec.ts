@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 /** Selected work: the sticky receding deck on a fine pointer (GSAP); on touch the same deck as pure CSS (t144):

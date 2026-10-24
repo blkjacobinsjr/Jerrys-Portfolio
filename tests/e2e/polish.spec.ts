@@ -1,10 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
-/** POLISH (t174, ?polish=1 on previews): icon swap, Magic UI theme toggler + highlighter, enter beam. */
+/** POLISH (t174, live; ?polish=0 off for a visit): icon swap, Magic UI theme toggler + highlighter, enter beam. */
 
-test('polish off by default: no toggle, no icons, no highlighter', async ({ page }) => {
-  await open(page, '/');
+test('?polish=0 turns the polish set off for a visit: no toggle, no icons, no highlighter', async ({ page }) => {
+  await open(page, '/?polish=0');
   await expect(page.locator('html')).not.toHaveAttribute('data-polish', 'on');
   await expect(page.locator('.theme-toggle')).toHaveCount(0);
   for (const icon of await page.locator('#contact .t-icon-swap').all()) await expect(icon).toBeHidden();

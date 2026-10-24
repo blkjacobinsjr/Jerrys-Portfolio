@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 // Regression (live 56cf3c0): wheel down the Path section, click a stop that is only partly in view, and the snap

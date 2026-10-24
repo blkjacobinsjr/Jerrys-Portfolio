@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 test('a photo in a Path drawer expands into the lightbox above it; Escape closes only the lightbox', async ({ page }) => {

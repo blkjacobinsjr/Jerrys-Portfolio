@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 test('footer film: nothing fetched until the footer nears, then it plays over the skyline and pauses offscreen', async ({ page }) => {

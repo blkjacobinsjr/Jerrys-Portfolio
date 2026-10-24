@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 /** t138 cues: nothing audio-related loads before a gesture; afterwards hovers, reversals and the footer play samples. */

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open } from './helpers';
 
 /** ENTER_SCREEN (preview flag, ?enter=1): a low-opacity Berlin shot behind the gate that flows into the hero. */

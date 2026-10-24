@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures';
 import { open } from './helpers';
 
 // The hero teaser (21st.dev Minimal Testimonial): the published layout at every width.

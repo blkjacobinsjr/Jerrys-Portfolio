@@ -38,7 +38,7 @@ const ogVideo = new URL('/og.mp4', Astro.site);
             var q = new URLSearchParams(location.search).get('polish');
             if (q === '1') sessionStorage.setItem('jp-polish', '1');
             if (q === '0') sessionStorage.removeItem('jp-polish');
-            if (needsQuery && sessionStorage.getItem('jp-polish') !== '1') return;
+            if (q === '0' || (needsQuery && sessionStorage.getItem('jp-polish') !== '1')) return;
             root.dataset.polish = 'on';
             // Theme: the saved choice (Magic UI toggler's "theme" key), else the system setting.
             var t = localStorage.getItem('theme');

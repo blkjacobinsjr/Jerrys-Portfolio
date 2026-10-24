@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { open, scrollToSelector } from './helpers';
 
 test('path captions are one fixed-height line with one separator, a date and a place on every stop', async ({ page }) => {
