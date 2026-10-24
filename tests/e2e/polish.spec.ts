@@ -52,6 +52,16 @@ test('polish: highlighter marks the Kindle line once it scrolls into view', asyn
       return page.locator('#about .rough-annotation').count();
     }, { timeout: 15_000, intervals: [100] })
     .toBeGreaterThanOrEqual(3);
+  // Scroll-linked: reading on draws the strokes, scrolling back undraws them.
+  const drawn = () =>
+    page.evaluate(() => {
+      const path = [...document.querySelectorAll('#about svg.rough-annotation')].at(-1)?.querySelector('path');
+      return path ? 1 - Number.parseFloat(path.style.strokeDashoffset) / path.getTotalLength() : -1;
+    });
+  await page.evaluate(() => window.scrollBy({ top: 320, behavior: 'instant' }));
+  await expect.poll(drawn).toBeGreaterThan(0.95);
+  await page.evaluate(() => window.scrollBy({ top: -400, behavior: 'instant' }));
+  await expect.poll(drawn).toBeLessThan(0.05);
 });
 
 test('polish: beam rides "Enter with sound" and entering still works', async ({ page }) => {
