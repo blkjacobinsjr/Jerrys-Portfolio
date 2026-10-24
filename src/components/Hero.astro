@@ -6,7 +6,7 @@ import desk from '../assets/icons/desk.webp';
 import screen from '../assets/icons/screen-v3.webp';
 import deskBare from '../assets/icons/desk-nolaptop.webp';
 import deskLanded from '../assets/icons/desk-landed.webp';
-import { HERO_ZOOM, person } from '../data/site';
+import { HERO_ZOOM, ULTRAMOCK_LAPTOP, flagState, person } from '../data/site';
 import { teaser } from '../data/recommendations';
 import MinimalTestimonial from './MinimalTestimonial';
 import Signature from './Signature.astro';
@@ -21,6 +21,8 @@ const { sprite, still } = Astro.props;
 // touch, reduced motion and ?zoom=off never fetch them. The v3 screen opens full-bleed; the bare desk (laptop
 // inpainted out) carries the flight; the landed desk is the drawn laptop showing v3.
 const img = async (src: ImageMetadata, width: number, format: 'avif' | 'webp', quality = 50) => (await getImage({ src, width, format, quality })).src;
+// Ultramock laptop: compiled into preview builds only, and shown there with ?um=1 (remembered for the tab session).
+const um = HERO_ZOOM ? flagState(ULTRAMOCK_LAPTOP) : 'off';
 const e3 = HERO_ZOOM
   ? [
       `--e3-screen: image-set(url(${await img(screen, 2560, 'avif', 45)}) type("image/avif"), url(${await img(screen, 2560, 'webp')}) type("image/webp"))`,
@@ -88,7 +90,7 @@ const quotes = await Promise.all(
   </div>
 </header>
 {HERO_ZOOM && <div class="hero-screen" data-hero-screen aria-hidden="true"></div>}
-{HERO_ZOOM && <canvas class="hero-laptop" data-hero-laptop aria-hidden="true"></canvas>}
+{HERO_ZOOM && <canvas class="hero-laptop" data-hero-laptop data-um={um === 'off' ? undefined : um} aria-hidden="true"></canvas>}
 </div>
 
 <script>
@@ -97,11 +99,18 @@ const quotes = await Promise.all(
   // like every other WebGL effect on the page; until then the full-bleed v3 screen is all there is to see.
   const root = document.documentElement;
   if (root.dataset.heroZoom === 'laptop') {
+    // ULTRAMOCK_LAPTOP: 'on' everywhere, 'query' only with ?um=1 (kept for the tab session; ?um=0 clears it).
+    const um = document.querySelector<HTMLElement>('[data-hero-laptop]')?.dataset.um;
+    const q = new URLSearchParams(location.search).get('um');
+    if (q === '1') sessionStorage.setItem('um', '1');
+    if (q === '0') sessionStorage.removeItem('um');
+    if (um === 'on' || (um === 'query' && sessionStorage.getItem('um') === '1')) root.dataset.um = '';
     const intents = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'scroll'] as const;
     const go = () => {
       intents.forEach((t) => removeEventListener(t, go));
       root.dataset.e3 = '';
-      import('../scripts/hero-laptop').then((m) => m.heroLaptop());
+      if ('um' in root.dataset) import('../scripts/hero-frames').then((m) => m.heroFrames());
+      else import('../scripts/hero-laptop').then((m) => m.heroLaptop());
     };
     if (scrollY > 0) go();
     else intents.forEach((t) => addEventListener(t, go, { passive: true }));
@@ -300,6 +309,21 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0.5vh 4vh;
     }
+    /* Ultramock frames start small and turned away, so the screen lets go more slowly and the first turn of the
+       spin plays under it as a cross-fade. */
+    :global(html[data-hero-zoom='laptop'][data-hero3d][data-um]) .hero-screen {
+      animation: e3-out linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0.5vh 10vh;
+    }
+    /* The bare desk is transparent above the desk's back edge, so the drawn laptop's lid would show behind the
+       spinning one. The landed layers wait under the canvas and come in just before it fades. */
+    :global(html[data-hero-zoom='laptop'][data-hero3d][data-um]) .hero-landed,
+    :global(html[data-hero-zoom='laptop'][data-hero3d][data-um]) .hero-art > :global(picture) {
+      animation: e3-in linear both;
+      animation-timeline: scroll(root);
+      animation-range: 79vh 80vh;
+    }
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-bare,
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
       display: block;
@@ -327,6 +351,11 @@ const quotes = await Promise.all(
       opacity: 0;
       transform: scale(0.92);
       visibility: hidden;
+    }
+  }
+  @keyframes e3-in {
+    from {
+      opacity: 0;
     }
   }
   @keyframes e3-fade {

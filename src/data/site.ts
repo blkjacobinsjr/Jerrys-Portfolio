@@ -53,6 +53,16 @@ import markDraper from '../assets/stops/logos/draper.png';
  *  Set to false to revert in one line. ?zoom=off turns it off for a visit. */
 export const HERO_ZOOM: 'laptop' | false = 'laptop';
 
+/** Preview-only features. 'preview' compiles them into every build except Vercel production (VERCEL_ENV=production),
+ *  and they still wait for a query flag. true = on everywhere, false = gone. */
+export type PreviewFlag = boolean | 'preview';
+/** Ultramock laptop (preview, ?um=1): the E3 hero swaps the code-built three.js laptop for 90 frames of a real
+ *  MacBook Pro rendered in Ultramock (public/hero-um), scrubbed by the same scroll and landing on the drawn desk. */
+export const ULTRAMOCK_LAPTOP: PreviewFlag = 'preview';
+/** Whether a flag is compiled into this build, and whether it still needs its query flag to show. */
+export const flagState = (flag: PreviewFlag): 'off' | 'query' | 'on' =>
+  flag === true ? 'on' : flag === 'preview' && process.env.VERCEL_ENV !== 'production' ? 'query' : 'off';
+
 export const person = {
   name: 'Jerry Doughan',
   role: 'Product designer and frontend developer',
