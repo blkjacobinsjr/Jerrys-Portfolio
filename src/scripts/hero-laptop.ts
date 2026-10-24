@@ -55,8 +55,7 @@ function keyboard() {
 
 export function heroLaptop() {
   const root = document.documentElement;
-  if (root.dataset.heroZoom !== 'laptop' || innerWidth < 900) return;
-  if (!CSS.supports('animation-timeline: scroll()')) return;
+  if (root.dataset.heroZoom !== 'laptop') return;
   const desk = document.querySelector<HTMLImageElement>('[data-hero-art] > picture img');
   const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-laptop]');
   if (!desk || !canvas) return;
@@ -93,7 +92,9 @@ export function heroLaptop() {
     screenMat.map = t;
     screenMat.color.set(0xffffff);
     screenMat.needsUpdate = true;
-    root.dataset.hero3d = 'ready';
+    // Paint the first frame before the overlay may hand off, so there is never an empty frame.
+    draw(progress());
+    requestAnimationFrame(() => (root.dataset.hero3d = 'ready'));
     wake(true);
   });
   const base = new Group();

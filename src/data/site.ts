@@ -48,12 +48,10 @@ import markHkw from '../assets/stops/logos/hkw.png';
 import markWbs from '../assets/stops/logos/wbs.png';
 import markDraper from '../assets/stops/logos/draper.png';
 
-/** t141 preview: 'start-inside' opens full-bleed on the laptop screen and scroll lands it in the desk;
- *  'dive-in' opens on the desk and scroll dives into the screen. false reverts. ?zoom=start-inside|dive-in|laptop|off overrides on previews.
- *  E3 'laptop': full-bleed v3 screensaver, scroll spins a 3D laptop onto the desk (scripts/hero-laptop.ts). */
-export const HERO_ZOOM: 'start-inside' | 'dive-in' | 'laptop' | false = false;
-/** Preview builds only (VERCEL_ENV !== 'production'): ship the zoom markup so ?zoom= can switch it on. */
-export const HERO_ZOOM_PREVIEW = !!HERO_ZOOM || (typeof process !== 'undefined' && !!process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production');
+/** E3 hero (t154): desktop with a fine pointer opens on the v3 screen full-bleed and scroll spins a 3D laptop onto
+ *  the desk (scripts/hero-laptop.ts). Phones, touch and reduced motion get the static hero with no extra bytes.
+ *  Set to false to revert in one line. ?zoom=off turns it off for a visit. */
+export const HERO_ZOOM: 'laptop' | false = 'laptop';
 
 export const person = {
   name: 'Jerry Doughan',
