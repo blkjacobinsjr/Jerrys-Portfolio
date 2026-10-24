@@ -10,7 +10,11 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .stop-logo {
+  :where(html:not([data-polish='on'])) .stop-logo {
     outline-color: oklch(1 0 0 / 0.1);
   }
 }
+/* POLISH theme toggle: the same dark styles under html.dark. */
+  :where(html[data-polish='on'].dark) .stop-logo {
+    outline-color: oklch(1 0 0 / 0.1);
+  }

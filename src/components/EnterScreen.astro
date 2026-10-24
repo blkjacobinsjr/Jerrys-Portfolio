@@ -1,6 +1,7 @@
 ---
 import { getImage } from 'astro:assets';
 import FooterGhost from './FooterGhost';
+import EnterBeam from './EnterBeam';
 import screen from '../assets/icons/screen-v3.webp';
 import { ENTER_SCREEN, flagState, person } from '../data/site';
 
@@ -54,7 +55,7 @@ const photo =
           </p>
           <p class="enter-role">{person.role}</p>
         </div>
-        <button type="button" class="enter-go" data-enter-choice="sound">Enter with sound</button>
+        <span class="enter-beam"><button type="button" class="enter-go" data-enter-choice="sound">Enter with sound</button><EnterBeam client:only="react" /></span>
         <button type="button" class="enter-quiet" data-enter-choice="quiet">Enter without sound</button>
         <p class="enter-note" id="enter-note">Best with headphones. You can turn sound off in the footer.</p>
       </section>

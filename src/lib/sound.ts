@@ -247,7 +247,9 @@ export function initSound() {
   const paint = () => {
     if (!toggle) return;
     toggle.setAttribute('aria-pressed', String(!muted));
-    toggle.textContent = muted ? 'Sound off' : 'Sound on';
+    const label = toggle.querySelector?.('[data-sound-label]') ?? toggle;
+    label.textContent = muted ? 'Sound off' : 'Sound on';
+    toggle.querySelector?.('.t-icon-swap')?.setAttribute('data-state', muted ? 'b' : 'a');
   };
   paint();
   toggle?.addEventListener('click', () => {

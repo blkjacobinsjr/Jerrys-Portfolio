@@ -5,6 +5,7 @@ import kindle from '../assets/icons/kindle.webp';
 import podcast from '../assets/icons/podcast.webp';
 import { path, person } from '../data/site';
 import { recommendations, honoraryMention } from '../data/recommendations';
+import Mark from './Mark';
 
 const statement =
   'German efficiency meets Ghanaian resilience. Years in marketing and customer support taught me why people buy. Teaching myself design and code let me build what they buy.';
@@ -18,6 +19,22 @@ const downtime = [
 const step = 84 / (words.length + downtime.length);
 // Read words light up in the colours of the path, one stop after another.
 const unit = (i: number) => `--i: ${i}; --c: ${path[i % path.length]!.glow}`;
+// POLISH (t174): the phrases Magic UI's Highlighter marks, as [first, last] word indexes; plain words without ?polish=1.
+const span = (phrase: string): [number, number] => {
+  const at = statement.split(phrase)[0]!.split(' ').length - 1;
+  return [at, at + phrase.split(' ').length - 1];
+};
+const runs = (n: number, marks: [number, number][]) => {
+  const out: [number, number, boolean][] = [];
+  for (let i = 0; i < n; ) {
+    const m = marks.find(([a]) => a === i);
+    out.push(m ? [m[0], m[1], true] : [i, i, false]);
+    i = (m ? m[1] : i) + 1;
+  }
+  return out;
+};
+const underlined = runs(words.length, [span('why people buy.'), span('build what they buy.')]);
+const highlighted = runs(downtime.length, [[downtime.indexOf('Kindle'), downtime.indexOf('highlighter,')]]);
 ---
 
 <section class="about" id="about" aria-labelledby="about-title">
@@ -25,20 +42,28 @@ const unit = (i: number) => `--i: ${i}; --c: ${path[i % path.length]!.glow}`;
   <div class="statement-stage">
     <div class="statement-group col" style={`--step: ${step}%`}>
       <p class="statement">
-        {words.map((word, i) => [<span class="word" style={unit(i)}>{word}</span>, ' '])}
+        {
+          underlined.map(([a, b, marked]) => {
+            const run = words.slice(a, b + 1).map((word, k) => [<span class="word" style={unit(a + k)}>{word}</span>, ' ']);
+            return marked ? [<Mark client:visible action="underline" color="#e8743b">{run}</Mark>, ' '] : run;
+          })
+        }
       </p>
       <p class="downtime">
         {
-          downtime.map((part, j) => [
-            typeof part === 'string' ? (
-              <span class="word" style={unit(words.length + j)}>{part}</span>
-            ) : (
-              <span class="word inline-icon" style={unit(words.length + j)}>
-                <Image src={part} alt="" widths={[64, 128]} sizes="2.25em" loading="lazy" />
-              </span>
-            ),
-            ' ',
-          ])
+          highlighted.map(([a, b, marked]) => {
+            const run = downtime.slice(a, b + 1).map((part, k) => [
+              typeof part === 'string' ? (
+                <span class="word" style={unit(words.length + a + k)}>{part}</span>
+              ) : (
+                <span class="word inline-icon" style={unit(words.length + a + k)}>
+                  <Image src={part} alt="" widths={[64, 128]} sizes="2.25em" loading="lazy" />
+                </span>
+              ),
+              ' ',
+            ]);
+            return marked ? [<Mark client:visible action="highlight" color="rgba(255, 196, 61, 0.45)">{run}</Mark>, ' '] : run;
+          })
         }
       </p>
     </div>

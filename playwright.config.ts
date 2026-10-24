@@ -21,7 +21,7 @@ export default defineConfig({
     { name: 'mobile', testDir: 'tests/e2e', use: { ...devices['Pixel 7'] } },
     { name: 'safari', testDir: 'tests/e2e', use: { ...devices['iPhone 15'] } },
     // Desktop Safari (mouse, wide): the E3 hero and the enter screen.
-    { name: 'webkit-desktop', testDir: 'tests/e2e', testMatch: /(enter-screen|hero-zoom|a11y)\.spec\.ts/, use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 } } },
+    { name: 'webkit-desktop', testDir: 'tests/e2e', testMatch: /(enter-screen|hero-zoom|a11y|polish)\.spec\.ts/, use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 } } },
     { name: 'perf', testDir: 'tests/perf', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
     { name: 'journeys', testDir: bddDir, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
   ],

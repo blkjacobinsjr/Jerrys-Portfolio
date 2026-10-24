@@ -2,7 +2,9 @@
 import { Font } from 'astro:assets';
 import 'lenis/dist/lenis.css';
 import '../styles/global.css';
-import { HERO_ZOOM, WORK_DETAILS, flagState } from '../data/site';
+import '../styles/polish.css';
+import ThemeToggle from '../components/ThemeToggle';
+import { HERO_ZOOM, POLISH, WORK_DETAILS, flagState } from '../data/site';
 
 interface Props {
   title: string;
@@ -11,6 +13,7 @@ interface Props {
 
 const { title, description } = Astro.props;
 const details = flagState(WORK_DETAILS);
+const polish = flagState(POLISH);
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL('/og.jpg', Astro.site);
 // The looping link-preview reel (tools/og-video.mjs). Only link cards fetch it, never the page.
@@ -27,6 +30,24 @@ const ogVideo = new URL('/og.mp4', Astro.site);
     <link rel="canonical" href={canonical} />
     <meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+    {polish !== 'off' && (
+      <script is:inline define:vars={{ needsQuery: polish === 'query' }}>
+        // POLISH (t174): ?polish=1 turns it on for the tab session (?polish=0 off), before first paint.
+        (function () {
+          try {
+            var root = document.documentElement;
+            var q = new URLSearchParams(location.search).get('polish');
+            if (q === '1') sessionStorage.setItem('jp-polish', '1');
+            if (q === '0') sessionStorage.removeItem('jp-polish');
+            if (needsQuery && sessionStorage.getItem('jp-polish') !== '1') return;
+            root.dataset.polish = 'on';
+            // Theme: the saved choice (Magic UI toggler's "theme" key), else the system setting.
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)) root.classList.add('dark');
+          } catch (e) {}
+        })();
+      </script>
+    )}
     <link rel="icon" href="/favicon.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:type" content="website" />
@@ -84,6 +105,7 @@ const ogVideo = new URL('/og.mp4', Astro.site);
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    {polish !== 'off' && <ThemeToggle client:only="react" />}
     <slot />
     <script>
       const userIntents = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;

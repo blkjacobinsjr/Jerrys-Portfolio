@@ -50,6 +50,10 @@ export default function ContactCTA({ email }: { email: string }) {
 
   const cta = (
     <button ref={button} type="button" className="contact-btn" onClick={copy}>
+      <span className="t-icon-swap" data-state={copied ? 'b' : 'a'} aria-hidden="true">
+        <svg className="t-icon" data-icon="a" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+        <svg className="t-icon" data-icon="b" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+      </span>
       {copied ? 'Copied' : 'Copy email'}
     </button>
   );

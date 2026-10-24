@@ -155,10 +155,14 @@ const media = item.shots[0];
   }
 
   @media (prefers-color-scheme: dark) {
-    .work-page {
+    :global(:where(html:not([data-polish='on']))) .work-page {
       --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
     }
   }
+  /* POLISH theme toggle: the same dark styles under html.dark. */
+    :global(:where(html[data-polish='on'].dark)) .work-page {
+      --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
+    }
 
   .work-back {
     display: inline-flex;
