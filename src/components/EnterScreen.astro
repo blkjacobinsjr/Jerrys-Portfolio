@@ -35,6 +35,11 @@ const photo =
             if (sessionStorage.getItem('jp-enter') || (needsQuery && q !== '1')) return;
             var root = document.documentElement;
             root.dataset.enter = 'open';
+            // The oil lens (apple-music-effect) on desktop: the name waits hidden for it, at most 3 s.
+            if (matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches) {
+              root.dataset.enterOil = 'wait';
+              setTimeout(function () { if (root.dataset.enterOil === 'wait') delete root.dataset.enterOil; }, 3000);
+            }
             if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
             // The Berlin shot: at once on the E3 hero (it is the hero's own screen file), after load elsewhere so
             // it never competes with the hero image (LCP on phones); it fades in when it arrives.
@@ -54,7 +59,7 @@ const photo =
           </p>
           <p class="enter-role">{person.role}</p>
         </div>
-        <button type="button" class="enter-go" data-enter-choice="sound">Enter with sound</button>
+        <button type="button" class="enter-go" data-enter-choice="sound"><span class="enter-go-label">Enter with sound</span></button>
         <button type="button" class="enter-quiet" data-enter-choice="quiet">Enter without sound</button>
         <p class="enter-note" id="enter-note">Best with headphones. You can turn sound off in the footer.</p>
       </section>
@@ -76,6 +81,20 @@ const photo =
     gate.querySelector<HTMLButtonElement>('.enter-go')?.focus({ preventScroll: true });
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // The oil lens loads after the page, off the critical path; any failure just shows the plain name.
+    if (root.dataset.enterOil === 'wait') {
+      const off = () => root.dataset.enterOil !== 'settled' && delete root.dataset.enterOil;
+      const boot = () => import('../lib/enter-oil').then((m) => m.startEnterOil(gate)).then((ok) => ok || off(), off);
+      if (document.readyState === 'complete') boot();
+      else addEventListener('load', boot, { once: true });
+    }
+    // Intent: fetch the click's two sounds before the click, so they start inside one frame of it.
+    const go = gate.querySelector<HTMLElement>('.enter-go');
+    let warmed: typeof import('../lib/sound') | undefined;
+    const warm = () => void import('../lib/sound').then((sound) => ((warmed = sound), sound.preloadEnter()));
+    go?.addEventListener('pointerenter', warm, { once: true });
+    go?.addEventListener('focus', warm, { once: true });
+    gate.addEventListener('keydown', warm, { once: true });
     let chosen = false;
     const choose = (withSound: boolean) => {
       if (chosen) return;
@@ -95,7 +114,8 @@ const photo =
       } catch {
         // Private mode: the gate simply shows again next visit.
       }
-      void import('../lib/sound').then((sound) => sound.enter(withSound, audio));
+      if (warmed) void warmed.enter(withSound, audio);
+      else void import('../lib/sound').then((sound) => sound.enter(withSound, audio));
       // Desktop always leaves into the E3 wallpaper: if the load-time check missed (window resized since), re-run
       // it now, before 'leaving', so the photo takes the E3 path and the laptop boots under it.
       const w = window as Window & { __heroZoom?: () => boolean };
@@ -226,7 +246,7 @@ const photo =
       scale: 1;
     }
 
-    :global(html[data-hero-zoom='laptop'][data-enter='leaving']) :is(.enter-mark, .enter-go, .enter-quiet, .enter-note),
+    :global(html[data-hero-zoom='laptop'][data-enter='leaving']) :is(.enter-mark, .enter-go, .enter-quiet, .enter-note, :global(.enter-oil)),
     :global(html[data-hero-zoom='laptop'][data-enter='leaving']) .enter :global(.footer-ghost) {
       opacity: 0;
       filter: blur(4px);
@@ -236,6 +256,30 @@ const photo =
 
   .enter :global(.footer-ghost) {
     z-index: -1;
+  }
+
+  /* The oil lens (src/lib/enter-oil.ts): its black studio screens out, so only the lit oil and logo show. The DOM
+     text hides while the film plays and crossfades back as it settles. */
+  .enter :global(.enter-oil) {
+    position: absolute;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    transition: opacity 480ms var(--ease-out);
+  }
+
+  .enter-title,
+  .enter-go-label {
+    transition: opacity 480ms var(--ease-out);
+  }
+
+  :global(html:is([data-enter-oil='wait'], [data-enter-oil='name'])) .enter-title,
+  .enter-go[data-oil='on'] .enter-go-label {
+    opacity: 0;
+  }
+
+  :global(html[data-enter-oil='settled']) .enter :global(.enter-oil-name),
+  .enter:not(:has(.enter-go[data-oil='on'])) :global(.enter-oil-label) {
+    opacity: 0;
   }
 
   .enter-mark {

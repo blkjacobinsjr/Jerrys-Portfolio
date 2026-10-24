@@ -113,6 +113,7 @@ export function setMuted(value: boolean) {
     }
   }
   ambience(footerSeen);
+  music();
   globalThis.dispatchEvent?.(new Event('soundchange'));
 }
 
@@ -232,6 +233,7 @@ function bindUi(bound: Lib) {
     const observer = new IntersectionObserver(([entry]) => {
       footerSeen = entry.isIntersecting;
       ambience(footerSeen);
+      music();
     }, { threshold: 0.1 });
     observer.observe(footer);
   }
@@ -278,15 +280,91 @@ export function initSound() {
 
 let loading: Promise<void> | undefined;
 
+let imported: Promise<Lib> | undefined;
+const importLib = () => (imported ??= import('cuelume').then((loaded) => (lib = loaded)));
+
 /** Import and bind cuelume, then decode the samples. Safe to call more than once. */
 function loadLib() {
-  loading ??= import('cuelume').then((loaded) => {
-    lib = loaded;
+  loading ??= importLib().then((loaded) => {
     loaded.setEnabled(!muted);
     bindUi(loaded);
     return loadSamples().then(() => ambience(footerSeen));
   });
   return loading;
+}
+
+// The enter screen's own sounds (ElevenLabs, see public/sfx/README.md): fetched on intent (hover or focus on
+// 'Enter with sound'), decoded in the click. The jazz loop is fetched only after the click.
+const ext = () => (new Audio().canPlayType('audio/webm; codecs=opus') ? 'webm' : 'm4a');
+let enterBuffers: Promise<(AudioBuffer | undefined)[]> | undefined;
+let enterReady: (AudioBuffer | undefined)[] | undefined;
+/** Fetches and decodes the click's two sounds on intent. An OfflineAudioContext decodes without a gesture or a
+ * console warning, and AudioBuffers play in any context, so the click itself only schedules them. */
+export function preloadEnter() {
+  // Cuelume too (9 kB), so the click can unlock it and play its tap inside the gesture, as its docs ask.
+  void importLib().catch(() => undefined);
+  enterBuffers ??= (async () => {
+    const offline = new OfflineAudioContext(1, 1, 48000);
+    return Promise.all(['drop', 'enter'].map(async (n) => {
+      try {
+        return await offline.decodeAudioData(await (await fetch(`/sfx/${n}.${ext()}`)).arrayBuffer());
+      } catch {
+        return undefined;
+      }
+    }));
+  })().catch(() => [undefined, undefined]).then((b) => (enterReady = b));
+  return enterBuffers;
+}
+
+/** Plays a decoded buffer `at` seconds from now at `gain`. */
+function shot(buffer: AudioBuffer, at: number, gain: number) {
+  const source = ctx!.createBufferSource();
+  source.buffer = buffer;
+  const g = ctx!.createGain();
+  g.gain.value = gain;
+  source.connect(g);
+  g.connect(ctx!.destination);
+  source.start(ctx!.currentTime + at);
+}
+
+// The music bed: a seamless 28.5 s loop at -18 LUFS, faded in under the swell, at a low bed level. It follows
+// the mute toggle, fades out while the tab is hidden, and ducks under the footer's city ambience.
+const BED = 0.32;
+let musicGain: GainNode | undefined;
+let setDone = false;
+const musicLevel = () => (setDone || muted || document.hidden ? 0 : footerSeen ? BED * 0.35 : BED);
+function music() {
+  if (!musicGain || !ctx) return;
+  musicGain.gain.cancelScheduledValues(ctx.currentTime);
+  musicGain.gain.setTargetAtTime(musicLevel(), ctx.currentTime, setDone ? 2.7 : muted || document.hidden ? 0.25 : 1.2);
+}
+async function startMusic() {
+  if (!ctx || musicGain) return;
+  const audio = ctx;
+  musicGain = audio.createGain();
+  musicGain.gain.value = 0;
+  musicGain.connect(audio.destination);
+  try {
+    const buffer = await audio.decodeAudioData(await (await fetch(`/sfx/jazz.${ext()}`)).arrayBuffer());
+    const source = audio.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    // The AAC file decodes 64 samples (1.3 ms) of frame padding past the 28.5 s loop; loop on the music only.
+    source.loopEnd = Math.min(buffer.duration, 28.5);
+    source.connect(musicGain);
+    source.start();
+    // Fade in over ~4 s (time constant 1.2 s) once the swell has peaked. Three passes (~85 s) make one set; then
+    // it fades out over ~8 s and stays off, so the loop never wears thin and the city ambience is left alone.
+    musicGain.gain.setTargetAtTime(musicLevel(), audio.currentTime + 0.6, 1.2);
+    setTimeout(() => {
+      setDone = true;
+      music();
+      setTimeout(() => source.stop(), 12_000);
+    }, buffer.duration * 3 * 1000 - 8000);
+  } catch {
+    // No music; the cues still work.
+  }
+  addEventListener('visibilitychange', music);
 }
 
 /**
@@ -300,8 +378,24 @@ export async function enter(withSound: boolean, audio?: AudioContext) {
     return;
   }
   if (audio) ctx ??= audio;
+  ctx ??= new AudioContext();
   setMuted(false);
+  // The click's own sounds first, before the other samples: Cuelume's tap and the oil drop under the finger, then the
+  // air swell as the Berlin shot rises (its peak lands ~0.55 s in, mid-way through the 1.1 s rise).
+  // Already decoded on intent: schedule synchronously, inside the click, before the page's own leave work runs.
+  const decoded = enterReady ?? (await preloadEnter());
+  if (ctx.state === 'suspended') void ctx.resume();
+  // Cuelume owns the button's UI cue (a primary button is `tap`, per its docs); ElevenLabs owns the scene.
+  const warm = lib;
+  if (warm) {
+    warm.setEnabled(true);
+    void warm.unlock();
+    warm.play('tap');
+  }
+  if (decoded[0]) shot(decoded[0], 0, 0.9);
+  if (decoded[1]) shot(decoded[1], 0.06, 0.8);
+  else cue('drift');
+  void startMusic();
   await loadLib();
-  void lib?.unlock();
-  cue('drift');
+  if (!warm) void lib?.unlock();
 }
