@@ -86,7 +86,7 @@ export function heroLaptop() {
   const screen = new Mesh(new PlaneGeometry(1.6, 1.0), screenMat);
   screen.position.set(0, 0.55, 0.001);
   laptop.add(screen);
-  new TextureLoader().load('/hero-screen-v2.webp', (t) => {
+  new TextureLoader().load('/hero-screen-v3.webp', (t) => {
     t.colorSpace = SRGBColorSpace;
     t.anisotropy = 4;
     screenMat.map = t;
