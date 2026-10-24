@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../e2e/fixtures'; // the page behind the once-per-session enter gate (its oil lens is WebGL by design)
 
 /**
  * Budgets for what Lighthouse cannot see: work done while the visitor scrolls.

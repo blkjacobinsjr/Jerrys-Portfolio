@@ -41,6 +41,7 @@ test('polish: theme toggler flips the existing dark tokens, persists, and the pa
 });
 
 test('polish: highlighter marks the Kindle line once it scrolls into view', async ({ page }) => {
+  test.slow(); // cold first load in the full suite: the About islands hydrate late
   await open(page, '/?polish=1');
   await scrollToSelector(page, '#about');
   // Mid-reveal the words are still blurred, so nothing is drawn yet.
@@ -55,12 +56,13 @@ test('polish: highlighter marks the Kindle line once it scrolls into view', asyn
   // Scroll-linked: reading on draws the strokes, scrolling back undraws them.
   const drawn = () =>
     page.evaluate(() => {
-      const path = [...document.querySelectorAll('#about svg.rough-annotation')].at(-1)?.querySelector('path');
+      // The first mark: its start is the earliest, so the scrolls below move it fully either way.
+      const path = document.querySelector('#about svg.rough-annotation path') as SVGPathElement | null;
       return path ? 1 - Number.parseFloat(path.style.strokeDashoffset) / path.getTotalLength() : -1;
     });
   await page.evaluate(() => window.scrollBy({ top: 320, behavior: 'instant' }));
   await expect.poll(drawn).toBeGreaterThan(0.95);
-  await page.evaluate(() => window.scrollBy({ top: -400, behavior: 'instant' }));
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   await expect.poll(drawn).toBeLessThan(0.05);
 });
 
