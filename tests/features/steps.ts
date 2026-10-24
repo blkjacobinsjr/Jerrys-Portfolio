@@ -1,7 +1,9 @@
 import { expect } from '@playwright/test';
-import { createBdd } from 'playwright-bdd';
+import { createBdd, test as bdd } from 'playwright-bdd';
+import { skipEnterGate } from '../e2e/fixtures';
 
-const { Given, When, Then } = createBdd();
+export const test = bdd.extend(skipEnterGate);
+const { Given, When, Then } = createBdd(test);
 
 Given('I open the portfolio', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
