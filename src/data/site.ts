@@ -48,7 +48,7 @@ import markHkw from '../assets/stops/logos/hkw.png';
 import markWbs from '../assets/stops/logos/wbs.png';
 import markDraper from '../assets/stops/logos/draper.png';
 
-/** E3 hero (t154): desktop with a fine pointer opens on the v2 screen full-bleed and scroll spins a 3D laptop onto
+/** E3 hero (t154): desktop with a fine pointer opens on the v3 screen full-bleed and scroll spins a 3D laptop onto
  *  the desk (scripts/hero-laptop.ts). Phones, touch and reduced motion get the static hero with no extra bytes.
  *  Set to false to revert in one line. ?zoom=off turns it off for a visit. */
 export const HERO_ZOOM: 'laptop' | false = 'laptop';

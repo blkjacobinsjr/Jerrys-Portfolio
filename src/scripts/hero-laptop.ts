@@ -1,5 +1,5 @@
 /**
- * E3 hero (preview, ?zoom=laptop): the page opens on the v2 screensaver full-bleed; scrolling pulls back as a
+ * E3 hero (preview, ?zoom=laptop): the page opens on the v3 screensaver full-bleed; scrolling pulls back as a
  * real 3D laptop spins onto the desk and lands on the pose solved (solvePnP, f = 2500 desk px) from the drawn
  * laptop's screen corners, then hands off to the illustration. No glTF: the laptop is ~40 lines of rounded
  * extrusions, so the only extra bytes are three.js (already a dependency) and the 1920 screen texture.
@@ -63,6 +63,8 @@ export function heroLaptop() {
   try {
     renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   } catch {
+    // No WebGL: the only case where the warped landed drawing stands in (Hero.astro, data-e3-nogl).
+    root.dataset.e3Nogl = '';
     return;
   }
   renderer.outputColorSpace = SRGBColorSpace;
@@ -86,7 +88,7 @@ export function heroLaptop() {
   const screen = new Mesh(new PlaneGeometry(1.6, 1.0), screenMat);
   screen.position.set(0, 0.55, 0.001);
   laptop.add(screen);
-  new TextureLoader().load('/hero-screen-v2.webp', (t) => {
+  new TextureLoader().load('/hero-screen-v3.webp', (t) => {
     t.colorSpace = SRGBColorSpace;
     t.anisotropy = 4;
     screenMat.map = t;
@@ -182,7 +184,8 @@ export function heroLaptop() {
     target = progress();
     cur = cur < 0 ? target : cur + (target - cur) * 0.2;
     if (Math.abs(target - cur) < 0.0005) cur = target;
-    if (cur < 1) draw(cur);
+    // Always draw, the landed frame (cur === 1) included: the 3D laptop is the final state, and a resize clears the canvas.
+    draw(cur);
     if (cur !== target) raf = requestAnimationFrame(frame);
   };
   function wake(force = false) {

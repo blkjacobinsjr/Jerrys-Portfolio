@@ -5,14 +5,14 @@ import { open } from './helpers';
 test('E3 hero: desktop opens full-bleed, lands on the desk, zero errors; phones get the static hero and no E3 bytes', async ({ page }, info) => {
   const e3Requests: string[] = [];
   page.on('request', (r) => {
-    if (/screen-v2|desk-nolaptop|desk-landed|hero-screen-v2|hero-laptop/.test(r.url())) e3Requests.push(r.url());
+    if (/screen-v3|desk-nolaptop|desk-landed|hero-screen-v3|hero-laptop/.test(r.url())) e3Requests.push(r.url());
   });
   const errors = await open(page);
   const mode = await page.evaluate(() => document.documentElement.dataset.heroZoom ?? null);
   const fine = await page.evaluate(() => matchMedia('(min-width: 900px) and (any-hover: hover) and (any-pointer: fine)').matches && CSS.supports('animation-timeline: scroll()'));
   // The desk is always shown: the static image, or, once the 3D laptop is ready, the laptop-free desk under it.
-  const is3d = await page.evaluate(() => 'hero3d' in document.documentElement.dataset);
-  await expect(page.locator(is3d ? '[data-hero-art] > .hero-bare' : '[data-hero-art] > picture img')).toBeVisible();
+  const e3 = await page.evaluate(() => 'e3' in document.documentElement.dataset);
+  await expect(page.locator(mode === 'laptop' ? (e3 ? '[data-hero-art] > .hero-bare' : '.hero-screen') : '[data-hero-art] > picture img')).toBeVisible();
   if (!fine) {
     expect(mode).toBeNull();
     // Off with a reason, and phones (no fine pointer anywhere) never pass a re-check either.
@@ -38,6 +38,19 @@ test('E3 hero: desktop opens full-bleed, lands on the desk, zero errors; phones 
     await page.evaluate(() => scrollTo(0, innerHeight * 1.2));
     await expect.poll(() => page.locator('.hero-screen').evaluate((e) => getComputedStyle(e).opacity)).toBe('0');
     await expect(page.locator('.hero-copy')).toHaveCSS('opacity', '1');
+    // The spin ends on the 3D laptop over the laptop-free desk; the drawn laptop desk never shows, even after
+    // scrolling past the pin and back.
+    await expect(page.locator('[data-hero-art] > picture')).toHaveCSS('visibility', 'hidden');
+    await expect(page.locator('[data-hero-art] > .hero-bare')).toBeVisible();
+    if (info.project.name === 'desktop') {
+      await expect(page.locator('.hero-landed')).toBeHidden();
+      await page.evaluate(() => scrollTo(0, innerHeight * 4));
+      await page.waitForTimeout(300);
+      await page.evaluate(() => scrollTo(0, innerHeight * 1.2));
+      await expect.poll(() => page.locator('.hero-laptop').evaluate((e) => getComputedStyle(e).visibility)).toBe('visible');
+      await expect(page.locator('[data-hero-art] > picture')).toHaveCSS('visibility', 'hidden');
+      await expect(page.locator('.hero-landed')).toBeHidden();
+    }
   }
   // Nothing fixed blocks the hero links.
   const link = page.locator('.hero-bio a[href="#work"]');
@@ -62,7 +75,7 @@ test('E3 hero: a wide touch tablet (no fine pointer) gets no E3 and no E3 bytes'
   const ctx = await browser.newContext({ viewport: { width: 1180, height: 820 }, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   const e3: string[] = [];
-  page.on('request', (r) => /screen-v2|desk-nolaptop|desk-landed|hero-laptop/.test(r.url()) && e3.push(r.url()));
+  page.on('request', (r) => /screen-v3|desk-nolaptop|desk-landed|hero-laptop/.test(r.url()) && e3.push(r.url()));
   await page.goto('/');
   await page.evaluate(() => scrollTo(0, 600));
   await page.waitForTimeout(500);

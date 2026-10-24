@@ -3,7 +3,7 @@ import { getImage, Picture } from 'astro:assets';
 import Mascot from './Mascot';
 import DecryptedText from './DecryptedText';
 import desk from '../assets/icons/desk.webp';
-import screen from '../assets/icons/screen-v2.webp';
+import screen from '../assets/icons/screen-v3.webp';
 import deskBare from '../assets/icons/desk-nolaptop.webp';
 import deskLanded from '../assets/icons/desk-landed.webp';
 import { HERO_ZOOM, person } from '../data/site';
@@ -18,8 +18,8 @@ interface Props {
 }
 const { sprite, still } = Astro.props;
 // E3 (desktop only): every extra image is a CSS background set only under html[data-hero-zoom], so phones,
-// touch, reduced motion and ?zoom=off never fetch them. The v2 screen opens full-bleed; the bare desk (laptop
-// inpainted out) carries the flight; the landed desk is the drawn laptop showing v2.
+// touch, reduced motion and ?zoom=off never fetch them. The v3 screen opens full-bleed; the bare desk (laptop
+// inpainted out) carries the flight; the landed desk is the drawn laptop showing v3.
 const img = async (src: ImageMetadata, width: number, format: 'avif' | 'webp', quality = 50) => (await getImage({ src, width, format, quality })).src;
 const e3 = HERO_ZOOM
   ? [
@@ -94,7 +94,7 @@ const quotes = await Promise.all(
 <script>
   // The attribute is only ever set on a desktop with a fine pointer (Base.astro), so phones never load three.js.
   // three.js, the screen texture and the two desk layers wait for the first intent (pointer, wheel, key, scroll),
-  // like every other WebGL effect on the page; until then the full-bleed v2 screen is all there is to see.
+  // like every other WebGL effect on the page; until then the full-bleed v3 screen is all there is to see.
   const root = document.documentElement;
   const start = () => {
     const intents = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'scroll'] as const;
@@ -247,7 +247,7 @@ const quotes = await Promise.all(
   }
 
   /* E3 hero (desktop + fine pointer only; html[data-hero-zoom='laptop'] is set in Base.astro). The page opens on
-     the v2 screen full-bleed; scroll pulls back as hero-laptop.ts spins a 3D laptop onto the desk. CSS scroll
+     the v3 screen full-bleed; scroll pulls back as hero-laptop.ts spins a 3D laptop onto the desk. CSS scroll
      timelines own every fade (transform/opacity only); without them the attribute is never set. */
   .hero-screen,
   .hero-bare,
@@ -301,7 +301,16 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0 50svh;
     }
-    :global(html[data-hero-zoom='laptop'][data-e3]) .hero-landed {
+    /* The drawn laptop desk never shows while E3 runs, at any scroll position (back up, resize, context loss): the
+       picture only sizes the desk for the camera, the laptop-free desk sits under the 3D laptop. The warped landed
+       drawing is the no-WebGL fallback only. */
+    :global(html[data-hero-zoom='laptop']) .hero-art > :global(picture) {
+      visibility: hidden;
+    }
+    :global(html[data-hero-zoom='laptop'][data-e3]) .hero-bare {
+      display: block;
+    }
+    :global(html[data-hero-zoom='laptop'][data-e3-nogl]) .hero-landed {
       display: block;
       align-self: start;
       aspect-ratio: 1192 / 1122;
@@ -314,9 +323,8 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0.5vh 4vh;
     }
-    /* The 3D laptop is the final state (one screen texture, v2 Berlin): the bare desk hides the drawn laptop and
+    /* The 3D laptop is the final state (one screen texture, v3 Berlin): the bare desk hides the drawn laptop and
        the landed drawing from the first painted frame, so no ghost laptop and no second screen at the hand-off. */
-    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-bare,
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
       display: block;
     }
@@ -326,10 +334,6 @@ const quotes = await Promise.all(
       animation: e3-fade linear both;
       animation-timeline: scroll(root);
       animation-range: calc(100svh + 90vh) calc(100svh + 91vh);
-    }
-    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-landed,
-    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-art > :global(picture) {
-      visibility: hidden;
     }
     :global(html[data-hero-zoom='laptop']) .hero-bare {
       align-self: start;
