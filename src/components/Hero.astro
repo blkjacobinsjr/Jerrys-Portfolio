@@ -300,14 +300,13 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0.5vh 4vh;
     }
-    /* The 3D laptop is the final state (one screen texture, v3 Berlin): the bare desk hides the drawn laptop and
-       the landed drawing from the first painted frame, so no ghost laptop and no second screen at the hand-off. */
+    /* The 3D laptop is the final state (one screen texture, v3 Berlin): the bare desk (stacked over the picture) hides the drawn laptop
+       and the landed drawing is hidden from the first painted frame, so no ghost laptop and no second screen at the hand-off. */
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-bare,
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
       display: block;
     }
-    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-landed,
-    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-art > :global(picture) {
+    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-landed {
       visibility: hidden;
     }
     :global(html[data-hero-zoom='laptop']) .hero-bare {
