@@ -1,10 +1,10 @@
 import type { PlayOptions, SoundName } from 'cuelume';
 
-type Cue = 'tick' | 'press' | 'release' | 'bloom' | 'sparkle' | 'tear' | 'crumple' | 'success' | 'draw' | 'snap' | 'drift' | 'data' | 'rewind' | 'keys';
+type Cue = 'tick' | 'press' | 'release' | 'bloom' | 'sparkle' | 'tear' | 'crumple' | 'success' | 'draw' | 'snap' | 'drift' | 'data' | 'rewind' | 'keys' | 'mark';
 type Lib = typeof import('cuelume');
 
 // Our cue names, mapped to cuelume's fourteen. press and release are the two halves of one tap.
-const PLAY: Record<Exclude<Cue, 'press' | 'release' | 'drift' | 'data' | 'rewind' | 'keys'>, [SoundName, PlayOptions]> = {
+const PLAY: Record<Exclude<Cue, 'press' | 'release' | 'drift' | 'data' | 'rewind' | 'keys' | 'mark'>, [SoundName, PlayOptions]> = {
   tick: ['select', { emphasis: 'subtle' }],
   bloom: ['open', {}],
   sparkle: ['success', { emphasis: 'subtle' }],
@@ -25,7 +25,7 @@ let muted = false;
 let ctx: AudioContext | undefined;
 const buffers = new Map<string, AudioBuffer>();
 
-const SAMPLES: Partial<Record<Cue, string>> = { bloom: 'open', tear: 'close', drift: 'whoosh', data: 'data', rewind: 'rewind', keys: 'keys' };
+const SAMPLES: Partial<Record<Cue, string>> = { bloom: 'open', tear: 'close', drift: 'whoosh', data: 'data', rewind: 'rewind', keys: 'keys', mark: 'mark' };
 
 const last = new Map<Cue, number>();
 // Footer loops: wind follows pointer speed, the city ambience follows footer visibility.
@@ -249,7 +249,9 @@ export function initSound() {
   const paint = () => {
     if (!toggle) return;
     toggle.setAttribute('aria-pressed', String(!muted));
-    toggle.textContent = muted ? 'Sound off' : 'Sound on';
+    const label = toggle.querySelector?.('[data-sound-label]') ?? toggle;
+    label.textContent = muted ? 'Sound off' : 'Sound on';
+    toggle.querySelector?.('.t-icon-swap')?.setAttribute('data-state', muted ? 'b' : 'a');
   };
   paint();
   toggle?.addEventListener('click', () => {

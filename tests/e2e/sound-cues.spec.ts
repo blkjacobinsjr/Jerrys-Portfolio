@@ -18,7 +18,7 @@ test('sound cues load after the first gesture and play on hover, upward reversal
   expect(sfx, 'no audio before a gesture').toEqual([]);
 
   await page.keyboard.press('Shift');
-  await expect.poll(() => sfx.length).toBe(8);
+  await expect.poll(() => sfx.length).toBe(9);
   expect(sfx.every((u) => /\.(webm|m4a)$/.test(u))).toBe(true);
   await page.waitForLoadState('networkidle');
 

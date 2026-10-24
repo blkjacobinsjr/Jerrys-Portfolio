@@ -213,7 +213,7 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8); // 'open', 'close', 'whoosh'
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(9); // 'open', 'close', 'whoosh'
     expect(mockAudioContext.decodeAudioData).toHaveBeenCalledWith(expect.any(ArrayBuffer));
   });
 
@@ -227,7 +227,7 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.m4a');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.m4a');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.m4a');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8);
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(9);
   });
 
   it('handles !ok fetch response during sample loading', async () => {
@@ -244,7 +244,7 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(7); // Only 2 successful decodes
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8); // Only 2 successful decodes
   });
 
   it('handles rejecting fetch during sample loading', async () => {
@@ -261,7 +261,7 @@ describe('sound', () => {
     expect(mockFetch).toHaveBeenCalledWith('/sfx/open.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/close.webm');
     expect(mockFetch).toHaveBeenCalledWith('/sfx/whoosh.webm');
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(7); // Only 2 successful decodes
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8); // Only 2 successful decodes
   });
 
   it('only initializes AudioContext and loads samples once', async () => {
@@ -271,7 +271,7 @@ describe('sound', () => {
 
     await unlockAudio(env); // First time, ctx is created and samples loaded
     expect(vi.mocked(global.AudioContext)).toHaveBeenCalledTimes(1);
-    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(8);
+    expect(mockAudioContext.decodeAudioData).toHaveBeenCalledTimes(9);
 
     // Calling initSound again won't re-trigger the load path due to 'once' listeners
     // and loadSamples itself has `if (ctx) return;`

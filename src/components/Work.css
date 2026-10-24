@@ -13,10 +13,14 @@
 
 @media (prefers-color-scheme: dark) {
   /* Same hue as the light tint, pushed dark, so cards stay on brand. */
-  .work-item {
+  :where(html:not([data-polish='on'])) .work-item {
     --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
   }
 }
+/* POLISH theme toggle: the same dark styles under html.dark. */
+:where(html[data-polish='on'].dark) .work-item {
+    --surface: oklch(from var(--tint) 0.27 calc(c * 1.4) h);
+  }
 
 /* Phones and touch read the cards with plain native scroll: no sticky deck, nothing scroll-linked. */
 @media (hover: hover) and (pointer: fine) {

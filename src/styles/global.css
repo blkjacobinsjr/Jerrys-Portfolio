@@ -47,7 +47,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-polish='on']) {
     --bg: oklch(0.165 0.003 106);
     --bg-elev: oklch(0.205 0.003 106);
     --bg-sunk: oklch(0.13 0.003 106);
@@ -60,6 +60,19 @@
     --shadow-tint: 0 0 0;
   }
 }
+/* POLISH theme toggle: the same dark styles under html.dark. */
+  :root[data-polish='on'].dark {
+    --bg: oklch(0.165 0.003 106);
+    --bg-elev: oklch(0.205 0.003 106);
+    --bg-sunk: oklch(0.13 0.003 106);
+    --fg: oklch(0.955 0.002 106);
+    --fg-2: oklch(0.73 0.004 106);
+    --fg-3: oklch(0.56 0.004 106);
+    --line: oklch(0.27 0.004 106);
+    --accent: oklch(0.72 0.17 45);
+    --accent-ink: oklch(0.78 0.14 50);
+    --shadow-tint: 0 0 0;
+  }
 
 *,
 *::before,

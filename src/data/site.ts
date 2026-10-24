@@ -59,6 +59,8 @@ export const HERO_ZOOM: 'laptop' | false = 'laptop';
 export type PreviewFlag = boolean | 'preview';
 export const ENTER_SCREEN: PreviewFlag = 'preview';
 export const WORK_DETAILS: PreviewFlag = 'preview';
+/** Jerry's t174 polish set (icon swap, theme toggle, enter beam, highlighter): ?polish=1 on previews, remembered for the tab session. */
+export const POLISH: PreviewFlag = 'preview';
 /** Whether a flag is compiled into this build, and whether it still needs its query flag to show. */
 export const flagState = (flag: PreviewFlag): 'off' | 'query' | 'on' =>
   flag === true ? 'on' : flag === 'preview' && process.env.VERCEL_ENV !== 'production' ? 'query' : 'off';

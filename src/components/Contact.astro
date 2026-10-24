@@ -49,7 +49,7 @@ const layers = [
         Playlist
       </a>
     </p>
-    <p class="contact-fine muted">© {new Date().getFullYear()} {person.name}. Berlin. · <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="true">Sound on</button></p>
+    <p class="contact-fine muted">© {new Date().getFullYear()} {person.name}. Berlin. · <button type="button" class="sound-toggle" data-sound-toggle aria-pressed="true"><span class="t-icon-swap" data-state="a" aria-hidden="true"><svg class="t-icon" data-icon="a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/></svg><svg class="t-icon" data-icon="b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg></span><span data-sound-label>Sound on</span></button></p>
   </div>
   </div>
   {/* Jerry's mark, small and static, back in the bottom-right corner of the footer. */}
@@ -92,7 +92,7 @@ const layers = [
   }
 
   @media (prefers-color-scheme: dark) {
-    .contact {
+    :global(:where(html:not([data-polish='on']))) .contact {
       background: linear-gradient(to bottom, oklch(0.18 0.04 265) 0%, oklch(0.26 0.06 290) 60%, oklch(0.36 0.08 40) 100%);
       color: oklch(0.96 0.002 106);
       --fg: oklch(0.96 0.002 106);
@@ -101,10 +101,23 @@ const layers = [
       --line: oklch(1 0 0 / 0.18);
     }
 
-    .roof {
+    :global(:where(html:not([data-polish='on']))) .roof {
       filter: brightness(0.5) saturate(0.85);
     }
   }
+  /* POLISH theme toggle: the same dark styles under html.dark. */
+    :global(:where(html[data-polish='on'].dark)) .contact {
+      background: linear-gradient(to bottom, oklch(0.18 0.04 265) 0%, oklch(0.26 0.06 290) 60%, oklch(0.36 0.08 40) 100%);
+      color: oklch(0.96 0.002 106);
+      --fg: oklch(0.96 0.002 106);
+      --fg-2: oklch(0.8 0.01 106);
+      --bg: oklch(0.165 0.003 106);
+      --line: oklch(1 0 0 / 0.18);
+    }
+
+    :global(:where(html[data-polish='on'].dark)) .roof {
+      filter: brightness(0.5) saturate(0.85);
+    }
 
   .sky {
     position: absolute;
@@ -293,10 +306,14 @@ const layers = [
   }
 
   @media (prefers-color-scheme: dark) {
-    .sky-video {
+    :global(:where(html:not([data-polish='on']))) .sky-video {
       filter: brightness(0.5) saturate(0.85);
     }
   }
+  /* POLISH theme toggle: the same dark styles under html.dark. */
+    :global(:where(html[data-polish='on'].dark)) .sky-video {
+      filter: brightness(0.5) saturate(0.85);
+    }
 
   @media (prefers-reduced-motion: reduce) {
     .sky-video {
