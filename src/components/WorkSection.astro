@@ -76,7 +76,8 @@ const items = await resolveProjects();
 
   /* Phones: straight after the hero's Startup programs row, the full section gap read as an empty screen. */
   @media (max-width: 899px) {
-    :global(.hero) + .work {
+    :global(.hero) + .work,
+    :global(.hero-pin) ~ .work {
       padding-top: clamp(2rem, 8vw, 3rem);
     }
   }

@@ -24,8 +24,8 @@ const img = async (src: ImageMetadata, width: number, format: 'avif' | 'webp', q
 const e3 = HERO_ZOOM
   ? [
       `--e3-screen: image-set(url(${await img(screen, 2560, 'avif', 45)}) type("image/avif"), url(${await img(screen, 2560, 'webp')}) type("image/webp"))`,
-      `--e3-bare: url(${await img(deskBare, 1040, 'webp')})`,
-      `--e3-landed: url(${await img(deskLanded, 1040, 'webp')})`,
+      `--e3-bare: image-set(url(${await img(deskBare, 1040, 'avif', 45)}) type("image/avif"), url(${await img(deskBare, 1040, 'webp', 45)}) type("image/webp"))`,
+      `--e3-landed: image-set(url(${await img(deskLanded, 1040, 'avif', 45)}) type("image/avif"), url(${await img(deskLanded, 1040, 'webp', 45)}) type("image/webp"))`,
     ].join(';')
   : undefined;
 // Three verbatim lines from the recommendations (data/recommendations.ts), portraits at 2x their 40px.
@@ -91,13 +91,6 @@ const quotes = await Promise.all(
 {HERO_ZOOM && <canvas class="hero-laptop" data-hero-laptop aria-hidden="true"></canvas>}
 </div>
 
-<script>
-  // The attribute is only ever set on a desktop with a fine pointer (Base.astro), so phones never load three.js.
-  const boot = () => import('../scripts/hero-laptop').then((m) => m.heroLaptop());
-  if (document.documentElement.dataset.heroZoom === 'laptop') boot();
-  // The enter screen re-runs the E3 check on its click and asks for the laptop if it now passes.
-  else addEventListener('hero-zoom', boot, { once: true });
-</script>
 
 <style>
   .hero {
@@ -278,7 +271,16 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0 50svh;
     }
-    :global(html[data-hero-zoom='laptop']) .hero-landed {
+    /* The drawn laptop desk never shows while E3 runs, at any scroll position (back up, resize, context loss): the
+       picture only sizes the desk for the camera, the laptop-free desk sits under the 3D laptop. The warped landed
+       drawing is the no-WebGL fallback only. */
+    :global(html[data-hero-zoom='laptop']) .hero-art > :global(picture) {
+      visibility: hidden;
+    }
+    :global(html[data-hero-zoom='laptop'][data-e3]) .hero-bare {
+      display: block;
+    }
+    :global(html[data-hero-zoom='laptop'][data-e3-nogl]) .hero-landed {
       display: block;
       align-self: start;
       aspect-ratio: 1192 / 1122;
@@ -291,12 +293,17 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0.5vh 4vh;
     }
-    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-bare,
+    /* The 3D laptop is the final state (one screen texture, v3 Berlin): the bare desk hides the drawn laptop and
+       the landed drawing from the first painted frame, so no ghost laptop and no second screen at the hand-off. */
     :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
       display: block;
+    }
+    /* Off-screen once the pin (100svh + 90vh) has scrolled past: the WebGL layer stops compositing for the rest of the
+       page and comes back when scrolling up. Nobody sees the switch. */
+    :global(html[data-hero-zoom='laptop'][data-hero3d]) .hero-laptop {
       animation: e3-fade linear both;
       animation-timeline: scroll(root);
-      animation-range: 80vh 89vh;
+      animation-range: calc(100svh + 90vh) calc(100svh + 91vh);
     }
     :global(html[data-hero-zoom='laptop']) .hero-bare {
       align-self: start;
