@@ -24,8 +24,8 @@ const img = async (src: ImageMetadata, width: number, format: 'avif' | 'webp', q
 const e3 = HERO_ZOOM
   ? [
       `--e3-screen: image-set(url(${await img(screen, 2560, 'avif', 45)}) type("image/avif"), url(${await img(screen, 2560, 'webp')}) type("image/webp"))`,
-      `--e3-bare: url(${await img(deskBare, 1040, 'webp')})`,
-      `--e3-landed: url(${await img(deskLanded, 1040, 'webp')})`,
+      `--e3-bare: image-set(url(${await img(deskBare, 1040, 'avif', 45)}) type("image/avif"), url(${await img(deskBare, 1040, 'webp', 45)}) type("image/webp"))`,
+      `--e3-landed: image-set(url(${await img(deskLanded, 1040, 'avif', 45)}) type("image/avif"), url(${await img(deskLanded, 1040, 'webp', 45)}) type("image/webp"))`,
     ].join(';')
   : undefined;
 // Three verbatim lines from the recommendations (data/recommendations.ts), portraits at 2x their 40px.
@@ -93,8 +93,19 @@ const quotes = await Promise.all(
 
 <script>
   // The attribute is only ever set on a desktop with a fine pointer (Base.astro), so phones never load three.js.
-  if (document.documentElement.dataset.heroZoom === 'laptop')
-    import('../scripts/hero-laptop').then((m) => m.heroLaptop());
+  // three.js, the screen texture and the two desk layers wait for the first intent (pointer, wheel, key, scroll),
+  // like every other WebGL effect on the page; until then the full-bleed v3 screen is all there is to see.
+  const root = document.documentElement;
+  if (root.dataset.heroZoom === 'laptop') {
+    const intents = ['pointermove', 'pointerdown', 'wheel', 'keydown', 'scroll'] as const;
+    const go = () => {
+      intents.forEach((t) => removeEventListener(t, go));
+      root.dataset.e3 = '';
+      import('../scripts/hero-laptop').then((m) => m.heroLaptop());
+    };
+    if (scrollY > 0) go();
+    else intents.forEach((t) => addEventListener(t, go, { passive: true }));
+  }
 </script>
 
 <style>
@@ -276,7 +287,7 @@ const quotes = await Promise.all(
       animation-timeline: scroll(root);
       animation-range: 0 50svh;
     }
-    :global(html[data-hero-zoom='laptop']) .hero-landed {
+    :global(html[data-hero-zoom='laptop'][data-e3]) .hero-landed {
       display: block;
       align-self: start;
       aspect-ratio: 1192 / 1122;
