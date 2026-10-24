@@ -133,10 +133,13 @@ export function heroLaptop() {
   const camera = new PerspectiveCamera();
   let vw = 0, vh = 0, fv = 1, cxv = 0, cyv = 0;
   const startPos = new Vector3();
-  const layout = () => {
+  const size = () => {
     vw = root.clientWidth;
     vh = innerHeight;
     renderer.setSize(vw, vh, false);
+  };
+  // The desk moves a little before the sticky hero pins, so the camera follows its rect every drawn frame (a read only).
+  const layout = () => {
     const r = desk.getBoundingClientRect();
     const s = r.width / SRC_W;
     fv = F * s;
@@ -153,6 +156,7 @@ export function heroLaptop() {
   let cur = -1, target = 0, raf = 0;
   const progress = () => clamp(scrollY / (vh * 0.9));
   const draw = (p: number) => {
+    layout();
     const e = inOut(clamp(p / 0.86));
     const q = clamp((p - 0.04) / 0.82);
     // Lerp inverse depth and the projected position, so the apparent size changes evenly with scroll.
@@ -179,10 +183,10 @@ export function heroLaptop() {
     if (force) cur = -1;
     if (!raf) raf = requestAnimationFrame(frame);
   }
-  layout();
+  size();
   addEventListener('scroll', () => wake(), { passive: true });
   addEventListener('resize', () => {
-    layout();
+    size();
     wake(true);
   });
   canvas.addEventListener('webglcontextlost', () => delete root.dataset.hero3d);
