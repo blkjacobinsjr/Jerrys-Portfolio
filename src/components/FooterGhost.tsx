@@ -19,11 +19,12 @@ export default function FooterGhost({ host = 'footer' }: { host?: string }) {
   const [armed, setArmed] = useState(false);
   const slot = useRef<HTMLDivElement>(null);
   const scheme = useColorScheme();
-  useEffect(() => setOn(!matchMedia('(pointer: coarse)').matches && canUseGL()), []);
+  useEffect(() => setOn(!matchMedia('(pointer: coarse)').matches), []);
   useEffect(() => {
     const footer = slot.current?.closest<HTMLElement>(host);
     if (!on || !footer) return;
-    const arm = (e: PointerEvent) => e.pointerType === 'mouse' && setArmed(true);
+    // The WebGL2 probe waits for that intent too, so an idle page (or a skipped enter screen) opens no context.
+    const arm = (e: PointerEvent) => e.pointerType === 'mouse' && canUseGL() && setArmed(true);
     footer.addEventListener('pointermove', arm, { passive: true, once: true });
     return () => footer.removeEventListener('pointermove', arm);
   }, [on, host]);
