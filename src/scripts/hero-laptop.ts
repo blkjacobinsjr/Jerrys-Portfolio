@@ -1,5 +1,5 @@
 /**
- * E3 hero (preview, ?zoom=laptop): the page opens on the v3 screensaver full-bleed; scrolling pulls back as a
+ * E3 hero (preview, ?zoom=laptop): the page opens on the v2 screensaver full-bleed; scrolling pulls back as a
  * real 3D laptop spins onto the desk and lands on the pose solved (solvePnP, f = 2500 desk px) from the drawn
  * laptop's screen corners, then hands off to the illustration. No glTF: the laptop is ~40 lines of rounded
  * extrusions, so the only extra bytes are three.js (already a dependency) and the 1920 screen texture.
@@ -86,7 +86,7 @@ export function heroLaptop() {
   const screen = new Mesh(new PlaneGeometry(1.6, 1.0), screenMat);
   screen.position.set(0, 0.55, 0.001);
   laptop.add(screen);
-  new TextureLoader().load('/hero-screen-v3.webp', (t) => {
+  new TextureLoader().load('/hero-screen-v2.webp', (t) => {
     t.colorSpace = SRGBColorSpace;
     t.anisotropy = 4;
     screenMat.map = t;

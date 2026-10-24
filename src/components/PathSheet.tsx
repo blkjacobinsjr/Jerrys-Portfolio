@@ -70,7 +70,7 @@ export default function PathSheet({ stops }: { stops: StopView[] }) {
     // The strip may still be gliding when a visitor clicks: the stop can slide out from under the pointer between
     // press and release, so the click lands on the track. The stop pressed (with no drag) still counts.
     let pressed: { stop: string; x: number; y: number } | null = null;
-    const onDown = (event: PointerEvent) => {
+    const onDown = (event: globalThis.PointerEvent) => {
       const stop = (event.target as Element | null)?.closest<HTMLElement>('[data-stop]')?.dataset.stop;
       pressed = stop ? { stop, x: event.clientX, y: event.clientY } : null;
     };
