@@ -16,6 +16,8 @@ interface Props {
   still: string;
 }
 const { sprite, still } = Astro.props;
+// E3: the inpainted desk without the laptop, a CSS background so it is never an <img> in the figure.
+const bareUrl = HERO_ZOOM_PREVIEW ? (await getImage({ src: deskBare, width: 1040, format: 'webp', quality: 50 })).src : '';
 // Three verbatim lines from the recommendations (data/recommendations.ts), portraits at 2x their 40px.
 const quotes = await Promise.all(
   teaser.map(async ({ name, fragment, org, linkedin, portrait, logo }) => ({
@@ -70,9 +72,7 @@ const quotes = await Promise.all(
       fetchpriority="high"
     />
     {HERO_ZOOM_PREVIEW && (
-      <div class="hero-bare" aria-hidden="true">
-        <Picture src={deskBare} formats={['avif', 'webp']} fallbackFormat="webp" alt="" widths={[480, 560, 640, 760, 1040]} quality={46} sizes="520px" loading="lazy" decoding="async" />
-      </div>
+      <div class="hero-bare" aria-hidden="true" style={`--bare: url(${bareUrl})`}></div>
     )}
   </figure>
   <StartupPrograms />
@@ -349,12 +349,9 @@ const quotes = await Promise.all(
         }
         .hero-bare {
           align-self: start;
+          aspect-ratio: 1192 / 1122;
+          background: var(--bare) center / 100% 100% no-repeat;
           pointer-events: none;
-        }
-        .hero-bare :global(img) {
-          display: block;
-          width: 100%;
-          height: auto;
         }
         .hero-laptop {
           position: fixed;
